@@ -126,10 +126,11 @@ my %cmd_opt = (
     'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
     'l' => "",  # "load" diary.
     'D' => "",  # "diff" option.
+    'L' => "",  # "load" all entries of diary.
 );
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
-getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
+getopts("tdu:p:a:T:cg:f:Mn:l:D:L", \%cmd_opt) or error_exit("Unknown option.");
 
 if ($cmd_opt{d}) {
     print_debug("Debug flag on.");
@@ -164,6 +165,8 @@ if ($cmd_opt{l}) {
   &load_main;
 } elsif ($cmd_opt{D}) {
   &diff_main;
+} elsif ($cmd_opt{L}) {
+  &load_all_main;
 } else {
   &main;
 }
@@ -182,6 +185,46 @@ sub load_main {
     my ($title, $body) = load_diary_entry($year,$month,$day);
     save_diary_entry($year,$month,$day,$title,$body);
     print_message("Load OK.");
+
+    logout if ($user_agent);
+}
+
+sub load_all_main {
+    eval {
+        require XML::TreePP;
+    };
+    if ($@) {
+        error_exit("you need to install XML::TreePP if you want to use -L option.");
+    }
+
+    # Login if necessary.
+    login() unless ($user_agent);
+
+    $user_agent->cookie_jar($cookie_jar);
+
+    my $export_url = "$hatena_url/$username/export";
+    print_debug("GET $export_url");
+    my $r = $user_agent->simple_request(
+        HTTP::Request::Common::GET($export_url)
+    );
+
+    unless ($r->is_success) {
+        die "couldn't get entries:".$r->status_line;
+    }
+
+    my $xml_parser = XML::TreePP->new;
+    my $entries = $xml_parser->parse($r->content);
+
+    for my $entry (@{ $entries->{diary}{day} }) {
+        my ($year, $month, $day);
+        if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
+            ($year, $month, $day) = ($1, $2, $3);
+        } else {
+            error_exit("diary's day is invalid format");
+        }
+
+        save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+    }
 
     logout if ($user_agent);
 }
