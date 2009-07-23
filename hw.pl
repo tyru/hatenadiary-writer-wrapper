@@ -223,7 +223,19 @@ sub load_all_main {
             error_exit("diary's date is invalid format. (date format is YYYY-MM-DD)");
         }
 
-        save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+        # Find entry's name. (http://d.hatena.ne.jp/user/yyyymmdd/name/)
+        my @headlines;
+        my $body = $entry->{body};
+        while ($body =~ s/^\*([^\*]+)\*//m) {
+            print_debug("found headline: $1");
+            push @headlines, $1;
+        }
+
+        save_diary_entry({
+            year => $year, month => $month, day => $day,
+            title => $entry->{'-title'}, body => $entry->{body},
+            headlines => \@headlines,
+        });
     }
 
     logout if ($user_agent);
@@ -898,9 +910,16 @@ sub load_diary_entry($$$) {
     return ($title, $body);
 }
 
-sub text_filename($$$) {
-    my ($year,$month,$day) = @_;
-    my $datename = "$year-$month-$day";
+sub text_filename($$$;$) {
+    my ($year,$month,$day, $headlines) = @_;
+    my $datename;
+    if (defined $headlines
+        && ref $headlines eq 'ARRAY'
+        && @$headlines) {
+        $datename = "$year-$month-$day-".join('-', @$headlines);
+    } else {
+        $datename = "$year-$month-$day";
+    }
 
     while (glob("$txt_dir/*.txt")) {
         next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
@@ -913,8 +932,20 @@ sub text_filename($$$) {
 }
 
 sub save_diary_entry($$$$) {
-    my ($year,$month,$day,$title,$body) = @_;
-    my $filename = text_filename($year,$month,$day);
+    my ($year, $month, $day, $title, $body);
+    my $filename;
+    if (ref $_[0] eq 'HASH') {
+        # New way of passing arguments.
+        # this can take 'headlines' option additionally.
+        my %opt = %{ shift() };
+        ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
+        $filename = text_filename($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
+    } else {
+        # Original way of passing arguments.
+        ($year,$month,$day,$title,$body) = @_;
+        $filename = text_filename($year, $month, $day);
+    }
+
 
     # backup($filename);
     
