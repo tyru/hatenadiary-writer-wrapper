@@ -803,6 +803,7 @@ Options:
     -M              Do NOT replace *t* with current time.
     -n config_file  Config file. Default value is $config_file.
     -l YYYY-MM-DD   Load diary.
+    -s              Load all drafts. drafts will be saved in '$draft_dir'.
 
 Config file example:
 #
