@@ -209,7 +209,7 @@ sub load_all_main {
     );
 
     unless ($r->is_success) {
-        die "couldn't get entries:".$r->status_line;
+        error_exit("couldn't get entries:".$r->status_line);
     }
 
     my $xml_parser = XML::TreePP->new;
