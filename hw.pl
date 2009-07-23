@@ -220,7 +220,7 @@ sub load_all_main {
         if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
             ($year, $month, $day) = ($1, $2, $3);
         } else {
-            error_exit("diary's day is invalid format");
+            error_exit("diary's date is invalid format. (date format is YYYY-MM-DD)");
         }
 
         save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
