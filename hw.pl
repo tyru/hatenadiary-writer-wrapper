@@ -787,6 +787,7 @@ Options:
     -M              Do NOT replace *t* with current time.
     -n config_file  Config file. Default value is $config_file.
     -l YYYY-MM-DD   Load diary.
+    -L              Load all entries of diary.
 
 Config file example:
 #
