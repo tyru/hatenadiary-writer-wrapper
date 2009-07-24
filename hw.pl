@@ -126,10 +126,11 @@ my %cmd_opt = (
     'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
     'l' => "",  # "load" diary.
     'D' => "",  # "diff" option.
+    'L' => "",  # "load" all entries of diary.
 );
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
-getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
+getopts("tdu:p:a:T:cg:f:Mn:l:D:L", \%cmd_opt) or error_exit("Unknown option.");
 
 if ($cmd_opt{d}) {
     print_debug("Debug flag on.");
@@ -164,6 +165,8 @@ if ($cmd_opt{l}) {
   &load_main;
 } elsif ($cmd_opt{D}) {
   &diff_main;
+} elsif ($cmd_opt{L}) {
+  &load_all_main;
 } else {
   &main;
 }
@@ -182,6 +185,58 @@ sub load_main {
     my ($title, $body) = load_diary_entry($year,$month,$day);
     save_diary_entry($year,$month,$day,$title,$body);
     print_message("Load OK.");
+
+    logout if ($user_agent);
+}
+
+sub load_all_main {
+    eval {
+        require XML::TreePP;
+    };
+    if ($@) {
+        error_exit("you need to install XML::TreePP if you want to use -L option.");
+    }
+
+    # Login if necessary.
+    login() unless ($user_agent);
+
+    $user_agent->cookie_jar($cookie_jar);
+
+    my $export_url = "$hatena_url/$username/export";
+    print_debug("GET $export_url");
+    my $r = $user_agent->simple_request(
+        HTTP::Request::Common::GET($export_url)
+    );
+
+    unless ($r->is_success) {
+        error_exit("couldn't get entries:".$r->status_line);
+    }
+
+    my $xml_parser = XML::TreePP->new;
+    my $entries = $xml_parser->parse($r->content);
+
+    for my $entry (@{ $entries->{diary}{day} }) {
+        my ($year, $month, $day);
+        if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
+            ($year, $month, $day) = ($1, $2, $3);
+        } else {
+            error_exit("diary's date is invalid format. (date format is YYYY-MM-DD)");
+        }
+
+        # Find entry's name. (http://d.hatena.ne.jp/user/yyyymmdd/name/)
+        my @headlines;
+        my $body = $entry->{body};
+        while ($body =~ s/^\*([^\*]+)\*//m) {
+            print_debug("found headline: $1");
+            push @headlines, $1;
+        }
+
+        save_diary_entry({
+            year => $year, month => $month, day => $day,
+            title => $entry->{'-title'}, body => $entry->{body},
+            headlines => \@headlines,
+        });
+    }
 
     logout if ($user_agent);
 }
@@ -741,6 +796,7 @@ Options:
     -M              Do NOT replace *t* with current time.
     -n config_file  Config file. Default value is $config_file.
     -l YYYY-MM-DD   Load diary.
+    -L              Load all entries of diary.
 
 Config file example:
 #
@@ -864,9 +920,16 @@ sub load_diary_entry($$$) {
     return ($title, $body);
 }
 
-sub text_filename($$$) {
-    my ($year,$month,$day) = @_;
-    my $datename = "$year-$month-$day";
+sub text_filename($$$;$) {
+    my ($year,$month,$day, $headlines) = @_;
+    my $datename;
+    if (defined $headlines
+        && ref $headlines eq 'ARRAY'
+        && @$headlines) {
+        $datename = "$year-$month-$day-".join('-', @$headlines);
+    } else {
+        $datename = "$year-$month-$day";
+    }
 
     while (glob("$txt_dir/*.txt")) {
         next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
@@ -879,8 +942,20 @@ sub text_filename($$$) {
 }
 
 sub save_diary_entry($$$$) {
-    my ($year,$month,$day,$title,$body) = @_;
-    my $filename = text_filename($year,$month,$day);
+    my ($year, $month, $day, $title, $body);
+    my $filename;
+    if (ref $_[0] eq 'HASH') {
+        # New way of passing arguments.
+        # this can take 'headlines' option additionally.
+        my %opt = %{ shift() };
+        ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
+        $filename = text_filename($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
+    } else {
+        # Original way of passing arguments.
+        ($year,$month,$day,$title,$body) = @_;
+        $filename = text_filename($year, $month, $day);
+    }
+
 
     # backup($filename);
     
