@@ -1,0 +1,24 @@
+
+=head1 NAME
+
+    hww-help - display help information about hww
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl help [COMMAND]
+
+
+=head1 DESCRIPTION
+
+### NOT WRITTEN YET ###
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
