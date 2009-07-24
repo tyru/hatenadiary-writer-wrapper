@@ -81,6 +81,9 @@ my $http_proxy = '';
 # Directory for "YYYY-MM-DD.txt".
 my $txt_dir = ".";
 
+# Directory for drafts. (see -s option)
+my $draft_dir = "./draft";
+
 # Client and server encodings.
 my $client_encoding = '';
 my $server_encoding = '';
@@ -127,10 +130,11 @@ my %cmd_opt = (
     'l' => "",  # "load" diary.
     'D' => "",  # "diff" option.
     'L' => "",  # "load" all entries of diary.
+    's' => 0,   # load all "sitagaki"(drafts)
 );
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
-getopts("tdu:p:a:T:cg:f:Mn:l:D:L", \%cmd_opt) or error_exit("Unknown option.");
+getopts("tdu:p:a:T:cg:f:Mn:l:D:Ls", \%cmd_opt) or error_exit("Unknown option.");
 
 if ($cmd_opt{d}) {
     print_debug("Debug flag on.");
@@ -167,6 +171,8 @@ if ($cmd_opt{l}) {
   &diff_main;
 } elsif ($cmd_opt{L}) {
   &load_all_main;
+} elsif ($cmd_opt{s}) {
+  &load_drafts_main;
 } else {
   &main;
 }
@@ -261,6 +267,71 @@ sub diff_main {
     my $filename = text_filename($year,$month,$day);
     my $cmd = "diff $tmpfilename $filename";
     system $cmd;
+}
+
+sub load_drafts_main {
+    eval {
+        require LWP::Authen::Wsse;
+        require XML::TreePP;
+        require File::Spec;    # maybe installed
+    };
+    if ($@) {
+        error_exit("you need to install LWP::Authen::Wsse and XML::TreePP"
+                  ." if you want to use -s option.");
+    }
+
+    unless (-d $draft_dir) {
+        mkdir $draft_dir or error_exit("can't mkdir $draft_dir:$!");
+    }
+
+
+    login() unless ($user_agent);
+
+    $user_agent->cookie_jar($cookie_jar);
+
+    # $user_agent->credentials("d.hatena.ne.jp", '', $username, $password);
+    {
+        # Override get_basic_credentials
+        # to return current username and password.
+        package LWP::UserAgent;
+        no warnings qw(redefine once);
+        *get_basic_credentials = sub { ($username, $password) };
+    }
+
+    # http://d.hatena.ne.jp/{user}/atom/draft
+    my $draft_collection_url = "$hatena_url/$username/atom/draft";
+    my $xml_parser = XML::TreePP->new;
+
+    # save draft entry.
+    print_message("Getting drafts...");
+    for (my $page_num = 1; ; $page_num++) {
+        my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
+        # $user_agent->simple_request() can't handle authentication response.
+        print_debug("GET $url");
+        my $r = $user_agent->request(
+            HTTP::Request::Common::GET($url)
+        );
+
+        unless ($r->is_success) {
+            error_exit("couldn't get drafts: ".$r->status_line);
+        }
+
+        my $drafts = $xml_parser->parse($r->content);
+        my $feed = $drafts->{feed};
+
+        unless (exists $feed->{entry}) {
+            # No more drafts found.
+            last;
+        }
+
+        for my $entry (@{ $feed->{entry} }) {
+            my $epoch = (split '/', $entry->{'link'}{'-href'})[-1];
+            save_diary_draft($epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
+        }
+    }
+
+
+    logout if ($user_agent);
 }
 
 sub parse_date($) {
@@ -797,6 +868,7 @@ Options:
     -n config_file  Config file. Default value is $config_file.
     -l YYYY-MM-DD   Load diary.
     -L              Load all entries of diary.
+    -s              Load all drafts. drafts will be saved in '$draft_dir'.
 
 Config file example:
 #
@@ -941,6 +1013,11 @@ sub text_filename($$$;$) {
     return $filename;
 }
 
+sub draft_filename($) {
+    my ($epoch) = @_;
+    return "$draft_dir/$epoch.txt";
+}
+
 sub save_diary_entry($$$$) {
     my ($year, $month, $day, $title, $body);
     my $filename;
@@ -965,6 +1042,21 @@ sub save_diary_entry($$$$) {
     print OUT $title."\n";
     print OUT $body;
     close(OUT);
+    print_debug("save_diary_entry: return 1 (OK)");
+    return 1;
+}
+
+sub save_diary_draft($$$) {
+    my ($epoch, $title, $body) = @_;
+    my $filename = draft_filename($epoch);
+
+    my $OUT;
+    if (not open $OUT, ">", $filename) {
+        error_exit("$!:$filename");
+    }
+    print $OUT $title."\n";
+    print $OUT $body;
+    close $OUT;
     print_debug("save_diary_entry: return 1 (OK)");
     return 1;
 }
