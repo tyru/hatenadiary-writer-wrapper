@@ -22,7 +22,7 @@
 #
 use strict;
 use warnings;
-my $VERSION = "1.4.2.2";
+my $VERSION = "1.4.2.3";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -32,6 +32,7 @@ use Getopt::Std;
 use Digest::MD5 qw(md5_base64);
 use File::Temp qw(tempdir tempfile);
 use File::Spec;
+use Pod::Usage;
 
 my $enable_encode = eval('use Encode; 1');
 
@@ -626,6 +627,8 @@ sub get_timestamp() {
 
 # Show version message. This is called by getopts.
 sub VERSION_MESSAGE {
+    # Do not print this message if '--help' was given.
+    return if grep { $_ eq '--help' } @ARGV;
     print <<"EOD";
 Hatena Diary Writer(+Loader) Version $VERSION
 Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
@@ -727,42 +730,7 @@ sub replace_timestamp($) {
 
 # Show help message. This is called by getopts.
 sub HELP_MESSAGE {
-    print <<"EOD";
-
-Usage: perl $0 [Options]
-
-Options:
-    --version       Show version.
-    --help          Show this message.
-    -t              Trivial. Use this switch for trivial edit (i.e. typo).
-    -d              Debug. Use this switch for verbose log.
-    -u username     Username. Specify username.
-    -p password     Password. Specify password.
-    -a agent        User agent. Default value is HatenaDiaryWriter/$VERSION.
-    -T seconds      Timeout. Default value is 180.
-    -c              Cookie. Skip login/logout if $cookie_file exists.
-    -g groupname    Groupname. Specify groupname.
-    -f filename     File. Send only this file without checking timestamp.
-    -M              Do NOT replace *t* with current time.
-    -n config_file  Config file. Default value is $config_file.
-    -l YYYY-MM-DD   Load diary.
-
-Config file example:
-#
-# $config_file
-#
-id:yourid
-password:yourpassword
-cookie:cookie.txt
-# txt_dir:/usr/yourid/diary
-# touch:/usr/yourid/diary/hw.touch
-# proxy:http://www.example.com:8080/
-# g:yourgroup
-# client_encoding:Shift_JIS
-# server_encoding:UTF-8
-## for Unix, if Encode module is not available.
-# filter:iconv -f euc-jp -t utf-8 %s
-EOD
+    pod2usage(-verbose => 2);
 }
 
 # Load config file.
@@ -935,3 +903,111 @@ sub unescape($) {
     return $str;
 }
 __END__
+
+=head1 NAME
+
+hw.pl - Hatena Diary Writer
+
+
+=head1 SYNOPSIS
+
+    $ perl hw.pl [Options]
+
+    # upload updated entries(with cookie)
+    $ perl hw.pl -c
+
+=head1 OPTIONS
+
+=over
+
+=item --version
+
+Show version.
+
+=item --help
+
+Show this message.
+
+=item -t
+
+Trivial. Use this switch for trivial edit (i.e. typo).
+
+=item -d
+
+Debug. Use this switch for verbose log.
+
+=item -u username
+
+Username. Specify username.
+
+=item -p password
+
+Password. Specify password.
+
+=item -a agent
+
+User agent. Default value is HatenaDiaryWriter/$VERSION.
+
+=item -T seconds
+
+Timeout. Default value is 180.
+
+=item -c
+
+Cookie. Skip login/logout if $cookie_file exists.
+
+=item -g groupname
+
+Groupname. Specify groupname.
+
+=item -f filename
+
+File. Send only this file without checking timestamp.
+
+=item -M
+
+Do NOT replace *t* with current time.
+
+=item -n config_file
+
+Config file. Default value is $config_file.
+
+=item -l YYYY-MM-DD
+
+Load diary.
+
+=item -L
+
+Load all entries of diary.
+
+=item -s
+
+Load all drafts. drafts will be saved in '$draft_dir'.
+
+=back
+
+
+=head1 CONFIG FILE EXAMPLE
+
+    id:yourid
+    password:yourpassword
+    cookie:cookie.txt
+    # txt_dir:/usr/yourid/diary
+    # touch:/usr/yourid/diary/hw.touch
+    # proxy:http://www.example.com:8080/
+    # g:yourgroup
+    # client_encoding:Shift_JIS
+    # server_encoding:UTF-8
+    ## for Unix, if Encode module is not available.
+    # filter:iconv -f euc-jp -t utf-8 %s
+
+
+=head1 AUTHOR
+
+Hiroshi Yuki
+Kengo Koseki (+Loader)
+
+
+=head1 COPYRIGHT
+
+Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
