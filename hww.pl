@@ -68,14 +68,13 @@ sub parse_opt {
 }
 
 sub getopt {
-    local @ARGV = @{ shift() };
-    my $opt = shift;
+    my ($argv, $opt) = @_;
 
-    GetOptions(%$opt) or do {
-        warning "arguments error";
-        sleep 1;
-        usage;
-    };
+    local @ARGV = @$argv;
+    my $result = GetOptions(%$opt);
+
+    $argv = [@ARGV];
+    return $result;
 }
 
 
@@ -89,7 +88,11 @@ getopt($hww_args, {
     help => \$show_help,
     version => \$show_version,
     debug => \$debug,
-});
+}) or do {
+    warning "arguments error";
+    sleep 1;
+    usage;
+};
 
 usage   if $show_help;
 version if $show_version;

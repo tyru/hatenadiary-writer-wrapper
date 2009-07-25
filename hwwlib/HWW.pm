@@ -38,6 +38,14 @@ sub is_hww_command {
     $self->can($cmd) && exists $HWW_COMMAND{$cmd};
 }
 
+sub sub_alias {
+    my ($to, $from) = @_;
+    no strict 'refs';
+    *$to = $from;
+}
+
+sub_alias getopt => \&hww_main::getopt;
+
 sub call_hw {
     my ($self, @args) = @_;
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
