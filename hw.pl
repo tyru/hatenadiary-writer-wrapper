@@ -22,7 +22,7 @@
 #
 use strict;
 use warnings;
-my $VERSION = "1.4.2.4";
+my $VERSION = "1.4.2.5";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -138,7 +138,7 @@ if ($cmd_opt{d}) {
     print_debug("Debug flag on.");
     print_debug("Cookie flag on.") if $cmd_opt{c};
     print_debug("Trivial flag on.") if $cmd_opt{t};
-    &VERSION_MESSAGE();
+    VERSION_MESSAGE();
 }
 
 # Override config file name (before load_config).
@@ -164,11 +164,11 @@ if ($groupname) {
 
 # Start.
 if ($cmd_opt{l}) {
-  &load_main;
+  load_main();
 } elsif ($cmd_opt{D}) {
-  &diff_main;
+  diff_main();
 } else {
-  &main;
+  main();
 }
 
 # no-error exit.
