@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.1');
+our $VERSION = qv('0.0.2');
 
 use File::Spec;
 use Pod::Usage;
@@ -15,6 +15,7 @@ our %HWW_COMMAND = (
     help => \&help,
     version => \&version,
     release => \&release,
+    update => \&update,
 );
 
 
@@ -104,6 +105,11 @@ EOD
 sub release {
     my $self = shift;
     $self->call_hw('-c');
+}
+
+sub update {
+    my $self = shift;
+    $self->call_hw('-c', '-t');
 }
 
 
