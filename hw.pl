@@ -22,7 +22,7 @@
 #
 use strict;
 use warnings;
-my $VERSION = "1.4.2.1";
+my $VERSION = "1.4.2.2";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -31,6 +31,7 @@ use File::Basename;
 use Getopt::Std;
 use Digest::MD5 qw(md5_base64);
 use File::Temp qw(tempdir tempfile);
+use File::Spec;
 
 my $enable_encode = eval('use Encode; 1');
 
@@ -879,7 +880,7 @@ sub text_filename($$$) {
         return $_ if $datename eq $1
     }
 
-    my $filename = "$txt_dir/$datename.txt";
+    my $filename = File::Spec->catfile($txt_dir, "$datename.txt");
     return $filename;
 }
 
