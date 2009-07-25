@@ -8,9 +8,11 @@ use utf8;
 use FindBin;
 our $BASE_DIR;
 our $HWW_LIB;
+our $TEXT_DIR;
 BEGIN {
     $BASE_DIR = $FindBin::Bin;
     $HWW_LIB  = "$FindBin::Bin/hwwlib";
+    $TEXT_DIR = "$FindBin::Bin/text";
 }
 use lib $HWW_LIB;
 

@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.3');
+our $VERSION = qv('0.0.4');
 
 use File::Spec;
 use Pod::Usage;
@@ -20,6 +20,7 @@ our %HWW_COMMAND = (
     load => \&load,
     verify => \&verify,
 );
+
 
 
 
@@ -103,8 +104,8 @@ sub dispatch {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
-    debug("dispatch $cmd");
-    $self->$cmd(@$args);
+    debug("dispatch '$cmd'");
+    $self->$cmd($args);
 }
 
 
@@ -112,7 +113,8 @@ sub dispatch {
 ### hww commands ###
 
 sub help {
-    my ($self, $cmd) = @_;
+    my ($self, $args) = @_;
+    my $cmd = exists $args->[0] ? $args->[0] : undef;
 
     unless (defined $cmd) {
         debug("show HWW.pm pod");
@@ -146,14 +148,14 @@ sub release {
 
 sub update {
     my $self = shift;
-    call_hw('-c', '-t');
+    $self->release(@_);
 }
 
 sub load {
-    my $self = shift;
+    my ($self, $args) = @_;
 
     my $all;
-    getopt(\@_, {
+    getopt($args, {
         all => \$all,
     }) or error("load: arguments error");
 
