@@ -50,7 +50,8 @@ sub_alias getopt => \&hww_main::getopt;
 sub call_hw {
     my ($self, @args) = @_;
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
-    system 'perl', $hw, @args;
+    my @debug = $hww_main::debug ? qw(-d) : ();
+    system 'perl', $hw, @debug, @args;
 }
 
 
