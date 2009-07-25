@@ -16,6 +16,7 @@ our %HWW_COMMAND = (
     version => \&version,
     release => \&release,
     update => \&update,
+    load => \&load,
 );
 
 
@@ -52,6 +53,16 @@ sub call_hw {
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
     my @debug = $hww_main::debug ? qw(-d) : ();
     system 'perl', $hw, @debug, @args;
+}
+
+sub require_modules {
+    my @modules = @_;
+    for my $m (@modules) {
+        eval "require $m";
+        if ($@) {
+            error("you need to install $m.");
+        }
+    }
 }
 
 
@@ -111,6 +122,63 @@ sub release {
 sub update {
     my $self = shift;
     $self->call_hw('-c', '-t');
+}
+
+sub load {
+    my $self = shift;
+
+    my $all;
+    getopt(\@_, {
+        all => \$all,
+    }) or error("load: arguments error");
+
+    if ($all) {
+        require_modules(qw(XML::TreePP));
+
+        package hw_main;
+
+        # import and declare package global variables.
+        our $user_agent;
+        our $cookie_jar;
+        our $hatena_url;
+        our $username;
+
+
+        # Login if necessary.
+        login() unless ($user_agent);
+
+        $user_agent->cookie_jar($cookie_jar);
+
+        my $export_url = "$hatena_url/$username/export";
+        print_debug("GET $export_url");
+        my $r = $user_agent->simple_request(
+            HTTP::Request::Common::GET($export_url)
+        );
+
+        unless ($r->is_success) {
+            die "couldn't get entries:".$r->status_line;
+        }
+
+        my $xml_parser = XML::TreePP->new;
+        my $entries = $xml_parser->parse($r->content);
+
+        for my $entry (@{ $entries->{diary}{day} }) {
+            my ($year, $month, $day);
+            if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
+                ($year, $month, $day) = ($1, $2, $3);
+            } else {
+                error_exit($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
+            }
+
+            save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+        }
+
+        logout() if ($user_agent);
+
+    } else {
+        my $ymd = shift || $self->dispatch('help', 'load');
+        $self->call_hw('-c', '-l', $ymd);
+    }
 }
 
 
