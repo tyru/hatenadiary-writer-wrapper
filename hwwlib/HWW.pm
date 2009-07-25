@@ -9,6 +9,7 @@ our $VERSION = qv('0.0.2');
 
 use File::Spec;
 use Pod::Usage;
+use File::Basename;
 
 
 our %HWW_COMMAND = (
@@ -24,20 +25,26 @@ our %HWW_COMMAND = (
 ### util commands ###
 
 sub warning {
-    warn "warning: ", @_, "\n";
+    warn "warning: ", sprintf(@_), "\n";
 }
 
 sub error {
-    die "error: ", @_, "\n";
+    die "error: ", sprintf(@_), "\n";
 }
 
 sub debug {
     warn "debug: ", @_, "\n" if $hww_main::debug;
 }
 
+# not 'say'.
+# but print with newline.
+sub puts {
+    print @_, "\n";
+}
+
 sub is_hww_command {
-    my ($self, $cmd) = @_;
-    $self->can($cmd) && exists $HWW_COMMAND{$cmd};
+    my $cmd = shift;
+    __PACKAGE__->can($cmd) && exists $HWW_COMMAND{$cmd};
 }
 
 sub sub_alias {
@@ -49,19 +56,36 @@ sub sub_alias {
 sub_alias getopt => \&hww_main::getopt;
 
 sub call_hw {
-    my ($self, @args) = @_;
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
     my @debug = $hww_main::debug ? qw(-d) : ();
-    system 'perl', $hw, @debug, @args;
+    system 'perl', $hw, @debug, @_;
 }
 
 sub require_modules {
-    my @modules = @_;
-    for my $m (@modules) {
+    my @failed;
+    for my $m (@_) {
         eval "require $m";
         if ($@) {
-            error("you need to install $m.");
+            push @failed, $m;
         }
+    }
+    if (@failed) {
+        error("you need to install %s.", join(', ', @failed));
+    }
+}
+
+sub get_entrydate {
+    my $path = shift;
+
+    if (basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+).txt?\Z/) {
+        return {
+            year  => $1,
+            month => $2,
+            day   => $3,
+            rest  => $4,
+        };
+    } else {
+        return undef;
     }
 }
 
@@ -74,7 +98,7 @@ sub dispatch {
 
     $self = bless {}, $self;
 
-    unless ($self->is_hww_command($cmd)) {
+    unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
@@ -94,7 +118,7 @@ sub help {
         pod2usage(-verbose => 2, -input => __FILE__);
     }
 
-    unless ($self->is_hww_command($cmd)) {
+    unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
@@ -116,12 +140,12 @@ EOD
 
 sub release {
     my $self = shift;
-    $self->call_hw('-c');
+    call_hw('-c');
 }
 
 sub update {
     my $self = shift;
-    $self->call_hw('-c', '-t');
+    call_hw('-c', '-t');
 }
 
 sub load {
@@ -177,7 +201,7 @@ sub load {
 
     } else {
         my $ymd = shift || $self->dispatch('help', 'load');
-        $self->call_hw('-c', '-l', $ymd);
+        call_hw('-c', '-l', $ymd);
     }
 }
 
