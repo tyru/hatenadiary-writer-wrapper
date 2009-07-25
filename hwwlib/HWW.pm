@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.2');
+our $VERSION = qv('0.0.3');
 
 use File::Spec;
 use Pod::Usage;
@@ -18,6 +18,7 @@ our %HWW_COMMAND = (
     release => \&release,
     update => \&update,
     load => \&load,
+    verify => \&verify,
 );
 
 
@@ -202,6 +203,49 @@ sub load {
     } else {
         my $ymd = shift || $self->dispatch('help', 'load');
         call_hw('-c', '-l', $ymd);
+    }
+}
+
+# currently only checking duplicated entries.
+sub verify {
+    my $self = shift;
+
+    my $txt_dir = do {
+        package hw_main;
+        # import package global variables.
+        our $txt_dir;
+    };
+
+
+    # check if a entry duplicates other entries.
+    my %entry;
+    my @duplicated;
+    for my $file (map { basename $_ } glob "$txt_dir/*.txt") {
+        my $date = get_entrydate($file);
+        next    unless defined $date;
+
+        my $ymd = sprintf "%s-%s-%s",
+                            $date->{year},
+                            $date->{month},
+                            $date->{day};
+        if (exists $entry{$ymd}) {
+            debug("$file is duplicated.");
+            push @duplicated, [$ymd, $file];
+        } else {
+            $entry{$ymd} = $file;
+        }
+    }
+
+    if (@duplicated) {
+        puts("duplicated entries here:");
+        for (@duplicated) {
+            # dulicated entry which was found at first
+            puts("  $entry{$_->[0]}");
+            # filepath
+            puts("  $_->[1]");
+        }
+    } else {
+        puts("ok: not found any bad conditions.");
     }
 }
 
