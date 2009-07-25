@@ -22,7 +22,7 @@
 #
 use strict;
 use warnings;
-my $VERSION = "1.4.2";
+my $VERSION = "1.4.2.1";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -283,9 +283,10 @@ sub main {
     } else {
         unless ($cmd_opt{f}) {
             # Touch file.
-            open(FILE, "> $touch_file") or die "$!:$touch_file\n";
-            print FILE get_timestamp;
-            close(FILE);
+            my $FILE;
+            open($FILE, "> $touch_file") or die "$!:$touch_file\n";
+            print $FILE get_timestamp;
+            close($FILE);
         }
     }
 }
@@ -659,13 +660,14 @@ sub read_title_body($) {
         $input = sprintf("$filter_command |", $file);
     }
     print_debug("read_title_body: input: $input");
-    if (not open(FILE, $input)) {
+    my $FILE;
+    if (not open($FILE, $input)) {
         error_exit("$!:$input");
     }
-    my $title = <FILE>; # first line.
+    my $title = <$FILE>; # first line.
     chomp($title);
-    my $body = join('', <FILE>); # rest of all.
-    close(FILE);
+    my $body = join('', <$FILE>); # rest of all.
+    close($FILE);
 
     # Convert encodings.
     if ($enable_encode and ($client_encoding ne $server_encoding)) {
@@ -704,9 +706,10 @@ sub replace_timestamp($) {
     my ($filename) = @_;
 
     # Read.
-    open(FILE, $filename) or error_exit("$!: $filename");
-    my $file = join('', <FILE>);
-    close(FILE);
+    my $FILE;
+    open($FILE, $filename) or error_exit("$!: $filename");
+    my $file = join('', <$FILE>);
+    close($FILE);
 
     # Replace.
     my $newfile = $file;
@@ -715,9 +718,9 @@ sub replace_timestamp($) {
     # Write if replaced.
     if ($newfile ne $file) {
         print_debug("replace_timestamp: $filename");
-        open(FILE, "> $filename") or error_exit("$!: $filename");
-        print FILE $newfile;
-        close(FILE);
+        open($FILE, "> $filename") or error_exit("$!: $filename");
+        print $FILE $newfile;
+        close($FILE);
     }
 }
 
@@ -764,10 +767,11 @@ EOD
 # Load config file.
 sub load_config() {
     print_debug("Loading config file ($config_file).");
-    if (not open(CONF, $config_file)) {
+    my $CONF;
+    if (not open($CONF, $config_file)) {
         error_exit("Can't open $config_file.");
     }
-    while (<CONF>) {
+    while (<$CONF>) {
         chomp;
         if (/^\#/) {
             # skip comment.
@@ -808,7 +812,7 @@ sub load_config() {
             error_exit("Unknown command '$_' in $config_file.");
         }
     }
-    close(CONF);
+    close($CONF);
 }
 
 
@@ -885,12 +889,13 @@ sub save_diary_entry($$$$) {
 
     # backup($filename);
     
-    if (not open(OUT, ">$filename")) {
+    my $OUT;
+    if (not open($OUT, ">$filename")) {
         error_exit("$!:$filename");
     }
-    print OUT $title."\n";
-    print OUT $body;
-    close(OUT);
+    print $OUT $title."\n";
+    print $OUT $body;
+    close($OUT);
     print_debug("save_diary_entry: return 1 (OK)");
     return 1;
 }
