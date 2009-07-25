@@ -22,7 +22,7 @@
 #
 use strict;
 use warnings;
-my $VERSION = "1.4.2.3";
+my $VERSION = "1.4.2.4";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -239,11 +239,11 @@ sub main {
     }
 
     # Process it.
-    for (@files) {
+    for my $file (@files) {
         # Check file name.
-        next unless (/\b(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?\.txt$/);
+        next unless ($file =~ /\b(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?\.txt$/);
         # Check if it is a file.
-        next unless (-f $_);
+        next unless (-f $file);
 
         my ($year, $month, $day) = ($1, $2, $3);
         my $date = $year . $month . $day;
@@ -252,13 +252,13 @@ sub main {
         login() unless ($user_agent);
 
         # Replace "*t*" unless suppressed.
-        replace_timestamp($_) unless ($cmd_opt{M});
+        replace_timestamp($file) unless ($cmd_opt{M});
 
         # Read title and body.
-        my ($title, $body) = read_title_body($_);
+        my ($title, $body) = read_title_body($file);
 
         # Find image files.
-        my $imgfile = find_image_file($_);
+        my $imgfile = find_image_file($file);
 
         if ($title eq $delete_title) {
             # Delete entry.
@@ -271,6 +271,15 @@ sub main {
             update_diary_entry($year, $month, $day, $title, $body, $imgfile);
             print_message("Post OK.");
         }
+
+        # Rename if found new/deleted headlines.
+        my @headline = find_headlines($body);
+        my $newfile = text_filename($year, $month, $day, \@headline);
+        if (basename($file) ne basename($newfile)) {
+            print_message("Rename $file to $newfile");
+            rename $file, $newfile or die "can't rename $file to $newfile:$!";
+        }
+
 
         sleep(1);
 
@@ -784,6 +793,15 @@ sub load_config() {
     close($CONF);
 }
 
+sub find_headlines {
+    my ($body) = @_;
+    my @headline;
+    while ($body =~ s/^\*([^\n\*]+)\*//m) {
+        push @headline, $1;
+    }
+    return @headline;
+}
+
 
 # from hateda loader
 
@@ -838,9 +856,16 @@ sub load_diary_entry($$$) {
     return ($title, $body);
 }
 
-sub text_filename($$$) {
-    my ($year,$month,$day) = @_;
-    my $datename = "$year-$month-$day";
+sub text_filename($$$;$) {
+    my ($year,$month,$day, $headlines) = @_;
+    my $datename;
+    if (defined $headlines
+        && ref $headlines eq 'ARRAY'
+        && @$headlines) {
+        $datename = "$year-$month-$day-".join('-', @$headlines);
+    } else {
+        $datename = "$year-$month-$day";
+    }
 
     while (glob("$txt_dir/*.txt")) {
         next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
@@ -852,9 +877,21 @@ sub text_filename($$$) {
     return $filename;
 }
 
-sub save_diary_entry($$$$) {
-    my ($year,$month,$day,$title,$body) = @_;
-    my $filename = text_filename($year,$month,$day);
+sub save_diary_entry {
+    my ($year, $month, $day, $title, $body);
+    my $filename;
+    if (ref $_[0] eq 'HASH') {
+        # New way of passing arguments.
+        # this can take 'headlines' option additionally.
+        my %opt = %{ shift() };
+        ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
+        $filename = text_filename($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
+    } else {
+        # Original way of passing arguments.
+        ($year,$month,$day,$title,$body) = @_;
+        $filename = text_filename($year, $month, $day);
+    }
+
 
     # backup($filename);
     
