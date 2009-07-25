@@ -20,9 +20,11 @@
 # Modified by Kengo Koseki (id:koseki2)
 #    http://d.hatena.ne.jp/koseki2/
 #
+package hw_main;
+
 use strict;
 use warnings;
-my $VERSION = "1.4.2.5";
+our $VERSION = "1.4.2.6";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -34,7 +36,7 @@ use File::Temp qw(tempdir tempfile);
 use File::Spec;
 use Pod::Usage;
 
-my $enable_encode = eval('use Encode; 1');
+our $enable_encode = eval('use Encode; 1');
 
 # Prototypes.
 sub login();
@@ -56,41 +58,41 @@ sub error_exit(@);
 sub load_config();
 
 # Hatena user id (if empty, I will ask you later).
-my $username = '';
+our $username = '';
 # Hatena password (if empty, I will ask you later).
-my $password = '';
+our $password = '';
 # Hatena group name (for hatena group user only).
-my $groupname = '';
+our $groupname = '';
 
 # Default file names.
-my $touch_file = 'touch.txt';
-my $cookie_file = 'cookie.txt';
-my $config_file = 'config.txt';
-my $target_file = '';
+our $touch_file = 'touch.txt';
+our $cookie_file = 'cookie.txt';
+our $config_file = 'config.txt';
+our $target_file = '';
 
 # Load diary date.
-my $load_date = '';
+our $load_date = '';
 # Diff diary date.
-my $diff_date = '';
+our $diff_date = '';
 
 # Filter command.
 # e.g. 'iconv -f euc-jp -t utf-8 %s'
 # where %s is filename, output is stdout.
-my $filter_command = '';
+our $filter_command = '';
 
 # Proxy setting.
-my $http_proxy = '';
+our $http_proxy = '';
 
 # Directory for "YYYY-MM-DD.txt".
-my $txt_dir = ".";
+our $txt_dir = ".";
 
 # Client and server encodings.
-my $client_encoding = '';
-my $server_encoding = '';
+our $client_encoding = '';
+our $server_encoding = '';
 
 # Hatena URL.
-my $hatena_url = 'http://d.hatena.ne.jp';
-my $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
+our $hatena_url = 'http://d.hatena.ne.jp';
+our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
 
 # Crypt::SSLeay check.
 eval {
@@ -102,19 +104,19 @@ if ($@) {
 }
 
 # Option for LWP::UserAgent.
-my %ua_option = (
+our %ua_option = (
     agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
     timeout => 180,
 );
 
 # Other variables.
-my $delete_title = 'delete';
-my $cookie_jar;
-my $user_agent;
-my $rkm; # session id for posting.
+our $delete_title = 'delete';
+our $cookie_jar;
+our $user_agent;
+our $rkm; # session id for posting.
 
 # Handle command-line option.
-my %cmd_opt = (
+our %cmd_opt = (
     'd' => 0,   # "debug" flag.
     't' => 0,   # "trivial" flag.
     'u' => "",  # "username" option.
