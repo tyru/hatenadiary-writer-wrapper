@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.0');
+our $VERSION = qv('0.0.1');
 
 use File::Spec;
 use Pod::Usage;
@@ -14,6 +14,7 @@ use Pod::Usage;
 our %HWW_COMMAND = (
     help => \&help,
     version => \&version,
+    release => \&release,
 );
 
 
@@ -35,6 +36,12 @@ sub debug {
 sub is_hww_command {
     my ($self, $cmd) = @_;
     $self->can($cmd) && exists $HWW_COMMAND{$cmd};
+}
+
+sub call_hw {
+    my ($self, @args) = @_;
+    my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
+    system 'perl', $hw, @args;
 }
 
 
@@ -84,6 +91,11 @@ sub version {
 Hatena Diary Writer Wrapper version $HWW::VERSION
 EOD
     exit;
+}
+
+sub release {
+    my $self = shift;
+    $self->call_hw('-c');
 }
 
 

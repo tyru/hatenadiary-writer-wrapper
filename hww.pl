@@ -6,13 +6,19 @@ use warnings;
 use utf8;
 
 use FindBin;
+our $BASE_DIR;
 our $HWW_LIB;
 BEGIN {
-    $HWW_LIB = "$FindBin::Bin/hwwlib";
+    $BASE_DIR = $FindBin::Bin;
+    $HWW_LIB  = "$FindBin::Bin/hwwlib";
 }
 use lib $HWW_LIB;
 
 use HWW;
+
+# for using subroutine which manipulates
+# API without module.
+require 'hw.pl';
 
 
 use Getopt::Long;
