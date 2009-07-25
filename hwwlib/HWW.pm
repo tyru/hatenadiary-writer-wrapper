@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.4');
+our $VERSION = qv('0.0.5');
 
 use File::Spec;
 use Pod::Usage;
@@ -58,9 +58,12 @@ sub sub_alias {
 sub_alias getopt => \&hww_main::getopt;
 
 sub call_hw {
+
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
     my @debug = $hww_main::debug ? qw(-d) : ();
-    system 'perl', $hw, @debug, @_;
+    my @cookie = $hww_main::no_cookie ? () : qw(-c);
+
+    system 'perl', $hw, @debug, @cookie, @_;
 }
 
 sub require_modules {
@@ -142,13 +145,26 @@ EOD
 }
 
 sub release {
-    my $self = shift;
-    call_hw('-c');
+    my ($self, $args) = @_;
+
+    my $trivial;
+    getopt($args, {
+        trivial => \$trivial,
+        t => \$trivial,
+    });
+
+    my @hww_args;
+    if ($trivial) {
+        push @hww_args, '-t';
+    }
+
+    call_hw(@hww_args);
 }
 
 sub update {
-    my $self = shift;
-    $self->release(@_);
+    my ($self, $args) = @_;
+    unshift @$args, '-t';
+    $self->release($args);
 }
 
 sub load {
@@ -203,14 +219,14 @@ sub load {
         logout() if ($user_agent);
 
     } else {
-        my $ymd = shift || $self->dispatch('help', 'load');
-        call_hw('-c', '-l', $ymd);
+        my $ymd = shift @$args || $self->dispatch('help', 'load');
+        call_hw('-l', $ymd);
     }
 }
 
 # currently only checking duplicated entries.
 sub verify {
-    my $self = shift;
+    my ($self) = @_;
 
     my $txt_dir = do {
         package hw_main;

@@ -23,7 +23,10 @@ use HWW;
 require 'hw.pl';
 
 
-use Getopt::Long;
+# gnu_compat: --opt="..." is allowed.
+# no_bundling: single character option is not bundled.
+# no_ignore_case: no ignore case on long option.
+use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 use File::Spec;
 
 
@@ -86,10 +89,15 @@ my ($hww_args, $subcmd, $subcmd_args) = parse_opt(@ARGV);
 my $show_help;
 my $show_version;
 our $debug;    # HWW::debug() see this.
+our $no_cookie;
 getopt($hww_args, {
     help => \$show_help,
     version => \$show_version,
+    d => \$debug,
     debug => \$debug,
+
+    C => \$no_cookie,
+    'no-cookie' => \$no_cookie,
 }) or do {
     warning "arguments error";
     sleep 1;
