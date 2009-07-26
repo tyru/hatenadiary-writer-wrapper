@@ -278,15 +278,6 @@ sub main {
             print_message("Post OK.");
         }
 
-        # Rename if found new/deleted headlines.
-        my @headline = find_headlines($body);
-        my $newfile = text_filename($year, $month, $day, \@headline);
-        if (basename($file) ne basename($newfile)) {
-            print_message("Rename $file to $newfile");
-            rename $file, $newfile or die "can't rename $file to $newfile:$!";
-        }
-
-
         sleep(1);
 
         $count++;
@@ -797,15 +788,6 @@ sub load_config() {
         }
     }
     close($CONF);
-}
-
-sub find_headlines {
-    my ($body) = @_;
-    my @headline;
-    while ($body =~ s/^\*([^\n\*]+)\*//m) {
-        push @headline, $1;
-    }
-    return @headline;
 }
 
 

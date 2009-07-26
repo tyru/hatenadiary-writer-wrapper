@@ -5,20 +5,22 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.5');
+our $VERSION = qv('0.0.6');
 
 use File::Spec;
 use Pod::Usage;
 use File::Basename;
+use FileHandle;
 
 
 our %HWW_COMMAND = (
-    help => \&help,
-    version => \&version,
-    release => \&release,
-    update => \&update,
-    load => \&load,
-    verify => \&verify,
+    help => 'help',
+    version => 'version',
+    release => 'release',
+    update => 'update',
+    load => 'load',
+    verify => 'verify',
+    'apply-headline' => 'apply_headline',
 );
 
 
@@ -27,11 +29,21 @@ our %HWW_COMMAND = (
 ### util commands ###
 
 sub warning {
-    warn "warning: ", sprintf(@_), "\n";
+    if ($hww_main::debug) {
+        my ($filename, $line) = (caller)[1, 2];
+        warn "warning: at $filename line $line:", @_, "\n";
+    } else {
+        warn "warning: ", @_, "\n";
+    }
 }
 
 sub error {
-    die "error: ", sprintf(@_), "\n";
+    if ($hww_main::debug) {
+        my ($filename, $line) = (caller)[1, 2];
+        die "error: at $filename line $line:", @_, "\n";
+    } else {
+        die "error: ", @_, "\n";
+    }
 }
 
 sub debug {
@@ -46,7 +58,7 @@ sub puts {
 
 sub is_hww_command {
     my $cmd = shift;
-    __PACKAGE__->can($cmd) && exists $HWW_COMMAND{$cmd};
+    exists $HWW_COMMAND{$cmd};
 }
 
 sub sub_alias {
@@ -94,6 +106,15 @@ sub get_entrydate {
     }
 }
 
+sub find_headlines {
+    my ($body) = @_;
+    my @headline;
+    while ($body =~ s/^\*([^\n\*]+)\*//m) {
+        push @headline, $1;
+    }
+    return @headline;
+}
+
 
 
 ### dispatch ###
@@ -108,7 +129,8 @@ sub dispatch {
     }
 
     debug("dispatch '$cmd'");
-    $self->$cmd($args);
+    my $subname = $HWW_COMMAND{$cmd};
+    $self->$subname($args);
 }
 
 
@@ -173,6 +195,7 @@ sub load {
     my $all;
     getopt($args, {
         all => \$all,
+        a => \$all,
     }) or error("load: arguments error");
 
     if ($all) {
@@ -264,6 +287,45 @@ sub verify {
         }
     } else {
         puts("ok: not found any bad conditions.");
+    }
+}
+ 
+sub apply_headline {
+    my ($self, $args) = @_;
+
+    my $all;
+    getopt($args, {
+        all => \$all,
+        a => \$all,
+    });
+
+    if ($all) {
+    } else {
+        my $filename = shift @$args || $self->dispatch('help', 'apply_headline');
+
+        my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
+        my @headline = find_headlines(do { local $/; <$FH> });
+        $FH->close;
+        debug("found headline(s):".join(', ', @headline));
+
+        my $date = get_entrydate($filename);
+        unless (defined $date) {
+            error("$filename: bad format: can't get filename's date");
+        }
+
+        # <year>-<month>-<day>-<headlines>.txt
+        my $new_filename = hw_main::text_filename(
+            $date->{year},
+            $date->{month},
+            $date->{day},
+            \@headline,
+        );
+
+        unless (basename($filename) eq basename($new_filename)) {
+            puts("rename $filename -> $new_filename");
+            rename $filename, $new_filename
+                or error("$filename: Can't rename $filename $new_filename");
+        }
     }
 }
 
