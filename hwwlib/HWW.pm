@@ -5,7 +5,7 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.8');
+our $VERSION = qv('0.0.9');
 
 use File::Spec;
 use Pod::Usage;
@@ -24,8 +24,14 @@ our %HWW_COMMAND = (
     verify => 'verify',
     'apply-headline' => 'apply_headline',
     touch => 'touch',
+    'gen-html' => 'gen_html',
 );
 
+# TODO
+# - write the document (under hwwlib/pod/)
+# - the option which hw.pl can use should also be used in hww.pl
+# - use Hatena AtomPub API. rewrite hw_main 's subroutine.
+# - add the command which generates html.
 
 
 
@@ -90,7 +96,8 @@ sub require_modules {
         }
     }
     if (@failed) {
-        error("you need to install %s.", join(', ', @failed));
+        my $failed = join ', ', @failed;
+        error("you need to install $failed.");
     }
 }
 
@@ -263,6 +270,9 @@ sub verify {
         # import package global variables.
         our $txt_dir;
     };
+    # TODO
+    # - get $txt_dir from arguments.
+    # - verify html dir(option).
 
 
     # check if a entry duplicates other entries.
@@ -346,9 +356,65 @@ sub touch {
     my ($self, $args) = @_;
 
     my $filename = File::Spec->catfile($hww_main::TEXT_DIR, 'touch.txt');
-    my $FH = FileHandle->new($filename, 'w') or error(":$!");
+    my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
     $FH->print(POSIX::strftime("%Y%m%d%H%M%S", localtime));
     $FH->close;
+}
+
+sub gen_html {
+    my ($self, $args) = @_;
+
+    require_modules(qw(Text::Hatena));
+
+    my ($in, $out) = @$args;
+    if (! defined $in || ! defined $out) {
+        $self->dispatch('help', ['gen_html'])
+    }
+
+    my $gen_html = sub {
+        my ($in, $out) = @_;
+        unless (defined get_entrydate($in)) {
+            return;
+        }
+
+
+        my $IN = FileHandle->new($in, 'r') or error("$in:$!");
+
+        my @text = <$IN>;
+        # cut title.
+        shift @text;
+        # cut blank lines in order not to generate blank section.
+        shift @text while ($text[0] =~ /^\s*$/);
+
+        my $html = Text::Hatena->parse(join "\n", @text);
+        $IN->close;
+
+        # *.txt -> *.html
+        $out =~ s/\.txt$/.html/;
+        puts("gen_html: $in -> $out");
+
+        my $OUT = FileHandle->new($out, 'w') or error("$out:$!");
+        $OUT->print($html) or error("can't write to $html");
+        $OUT->close;
+    };
+
+    if (-d $in && (-d $out || ! -e $out)) {
+        # TODO generate only non-existent file(option).
+        unless (-e $out) {
+            mkdir $out;
+        }
+        for my $infile (glob "$in/*.txt") {
+            my $outfile = File::Spec->catfile($out, basename($infile));
+            $gen_html->($infile, $outfile);
+        }
+
+    } elsif (-f $in && (-f $out || ! -e $out)) {
+        $gen_html->($in, $out);
+
+    } else {
+        # arguments error. show help.
+        $self->dispatch('help', ['gen_html']);
+    }
 }
 
 
