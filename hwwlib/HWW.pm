@@ -5,13 +5,14 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.7');
+our $VERSION = qv('0.0.8');
 
 use File::Spec;
 use Pod::Usage;
 use File::Basename;
 use FileHandle;
 use Scalar::Util qw(blessed);
+use POSIX ();
 
 
 our %HWW_COMMAND = (
@@ -197,9 +198,11 @@ sub load {
     my ($self, $args) = @_;
 
     my $all;
+    my $draft;
     getopt($args, {
         all => \$all,
         a => \$all,
+        # draft => \$draft,    # TODO
     }) or error("load: arguments error");
 
     if ($all) {
@@ -341,6 +344,11 @@ sub apply_headline {
 
 sub touch {
     my ($self, $args) = @_;
+
+    my $filename = File::Spec->catfile($hww_main::TEXT_DIR, 'touch.txt');
+    my $FH = FileHandle->new($filename, 'w') or error(":$!");
+    $FH->print(POSIX::strftime("%Y%m%d%H%M%S", localtime));
+    $FH->close;
 }
 
 
