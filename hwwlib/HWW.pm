@@ -5,12 +5,13 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.6');
+our $VERSION = qv('0.0.7');
 
 use File::Spec;
 use Pod::Usage;
 use File::Basename;
 use FileHandle;
+use Scalar::Util qw(blessed);
 
 
 our %HWW_COMMAND = (
@@ -21,6 +22,7 @@ our %HWW_COMMAND = (
     load => 'load',
     verify => 'verify',
     'apply-headline' => 'apply_headline',
+    touch => 'touch',
 );
 
 
@@ -94,7 +96,7 @@ sub require_modules {
 sub get_entrydate {
     my $path = shift;
 
-    if (basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+).txt?\Z/) {
+    if (basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.txt\Z/) {
         return {
             year  => $1,
             month => $2,
@@ -122,7 +124,9 @@ sub find_headlines {
 sub dispatch {
     my ($self, $cmd, $args) = @_;
 
-    $self = bless {}, $self;
+    unless (blessed $self) {
+        $self = bless {}, $self;
+    }
 
     unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
@@ -152,7 +156,7 @@ sub help {
 
     my $podpath = File::Spec->catdir($hww_main::HWW_LIB, 'pod', "hww-$cmd.pod");
     unless (-f $podpath) {
-        error("we have not written the document of '$cmd' yet. :$!");
+        error("we have not written the document of '$cmd' yet.");
     }
 
     debug("show pod '$podpath'");
@@ -242,7 +246,7 @@ sub load {
         logout() if ($user_agent);
 
     } else {
-        my $ymd = shift @$args || $self->dispatch('help', 'load');
+        my $ymd = shift @$args || $self->dispatch('help', ['load']);
         call_hw('-l', $ymd);
     }
 }
@@ -299,9 +303,9 @@ sub apply_headline {
         a => \$all,
     });
 
-    if ($all) {
-    } else {
-        my $filename = shift @$args || $self->dispatch('help', 'apply_headline');
+
+    my $apply = sub {
+        my $filename = shift || $self->dispatch('help', ['apply-headline']);
 
         my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
         my @headline = find_headlines(do { local $/; <$FH> });
@@ -309,9 +313,7 @@ sub apply_headline {
         debug("found headline(s):".join(', ', @headline));
 
         my $date = get_entrydate($filename);
-        unless (defined $date) {
-            error("$filename: bad format: can't get filename's date");
-        }
+        return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
         my $new_filename = hw_main::text_filename(
@@ -326,7 +328,19 @@ sub apply_headline {
             rename $filename, $new_filename
                 or error("$filename: Can't rename $filename $new_filename");
         }
+    };
+
+    if ($all) {
+        for my $file (glob "$hww_main::TEXT_DIR/*.txt") {
+            $apply->($file);
+        }
+    } else {
+        $apply->(shift @$args || $self->dispatch('help', ['apply-headline']));
     }
+}
+
+sub touch {
+    my ($self, $args) = @_;
 }
 
 
