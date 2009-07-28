@@ -5,7 +5,13 @@ use warnings;
 use utf8;
 
 use version;
-our $VERSION = qv('0.0.9');
+our $VERSION = qv('0.0.10');
+
+# import util subs.
+use HWW::UtilSub;
+
+
+use Data::Dumper;
 
 use File::Spec;
 use Pod::Usage;
@@ -22,6 +28,7 @@ our %HWW_COMMAND = (
     update => 'update',
     load => 'load',
     verify => 'verify',
+    'show-entry' => 'show_entry',
     'apply-headline' => 'apply_headline',
     touch => 'touch',
     'gen-html' => 'gen_html',
@@ -31,99 +38,11 @@ our %HWW_COMMAND = (
 # - write the document (under hwwlib/pod/)
 # - the option which hw.pl can use should also be used in hww.pl
 # - use Hatena AtomPub API. rewrite hw_main 's subroutine.
-# - add the command which generates html.
 
 
 
-### util commands ###
 
-sub warning {
-    if ($hww_main::debug) {
-        my ($filename, $line) = (caller)[1, 2];
-        warn "warning: at $filename line $line:", @_, "\n";
-    } else {
-        warn "warning: ", @_, "\n";
-    }
-}
-
-sub error {
-    if ($hww_main::debug) {
-        my ($filename, $line) = (caller)[1, 2];
-        die "error: at $filename line $line:", @_, "\n";
-    } else {
-        die "error: ", @_, "\n";
-    }
-}
-
-sub debug {
-    warn "debug: ", @_, "\n" if $hww_main::debug;
-}
-
-# not 'say'.
-# but print with newline.
-sub puts {
-    print @_, "\n";
-}
-
-sub is_hww_command {
-    my $cmd = shift;
-    exists $HWW_COMMAND{$cmd};
-}
-
-sub sub_alias {
-    my ($to, $from) = @_;
-    no strict 'refs';
-    *$to = $from;
-}
-
-sub_alias getopt => \&hww_main::getopt;
-
-sub call_hw {
-
-    my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
-    my @debug = $hww_main::debug ? qw(-d) : ();
-    my @cookie = $hww_main::no_cookie ? () : qw(-c);
-
-    system 'perl', $hw, @debug, @cookie, @_;
-}
-
-sub require_modules {
-    my @failed;
-    for my $m (@_) {
-        eval "require $m";
-        if ($@) {
-            push @failed, $m;
-        }
-    }
-    if (@failed) {
-        my $failed = join ', ', @failed;
-        error("you need to install $failed.");
-    }
-}
-
-sub get_entrydate {
-    my $path = shift;
-
-    if (basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.txt\Z/) {
-        return {
-            year  => $1,
-            month => $2,
-            day   => $3,
-            rest  => $4,
-        };
-    } else {
-        return undef;
-    }
-}
-
-sub find_headlines {
-    my ($body) = @_;
-    my @headline;
-    while ($body =~ s/^\*([^\n\*]+)\*//m) {
-        push @headline, $1;
-    }
-    return @headline;
-}
+alias 'CODE', getopt => 'hww_main::getopt';
 
 
 
@@ -132,15 +51,24 @@ sub find_headlines {
 sub dispatch {
     my ($self, $cmd, $args) = @_;
 
+    if ($hww_main::debug) {
+        my ($filename, $line) = (caller)[1,2];
+        local $Data::Dumper::Indent = 0;
+        local $Data::Dumper::Terse = 1;
+        my $args = join ', ', map { Dumper($_) } @_;
+        debug("dispatch($args) is called from at $filename line $line");
+    }
+
     unless (blessed $self) {
         $self = bless {}, $self;
     }
-
     unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
+    dumper(\@_);
     debug("dispatch '$cmd'");
+
     my $subname = $HWW_COMMAND{$cmd};
     $self->$subname($args);
 }
@@ -154,8 +82,14 @@ sub help {
     my $cmd = exists $args->[0] ? $args->[0] : undef;
 
     unless (defined $cmd) {
-        debug("show HWW.pm pod");
-        pod2usage(-verbose => 2, -input => __FILE__);
+        puts("available commands:");
+        for my $command (keys %HWW_COMMAND) {
+            puts("  $command");
+        }
+        puts;
+        puts("and if you want to know hww.pl's option, perldoc -F hww.pl");
+
+        exit 0;    # end.
     }
 
     unless (is_hww_command($cmd)) {
@@ -212,6 +146,7 @@ sub load {
         # draft => \$draft,    # TODO
     }) or error("load: arguments error");
 
+
     if ($all) {
         require_modules(qw(XML::TreePP));
 
@@ -256,7 +191,7 @@ sub load {
         logout() if ($user_agent);
 
     } else {
-        my $ymd = shift @$args || $self->dispatch('help', ['load']);
+        my $ymd = shift(@$args) || $self->arg_error;
         call_hw('-l', $ymd);
     }
 }
@@ -265,11 +200,6 @@ sub load {
 sub verify {
     my ($self) = @_;
 
-    my $txt_dir = do {
-        package hw_main;
-        # import package global variables.
-        our $txt_dir;
-    };
     # TODO
     # - get $txt_dir from arguments.
     # - verify html dir(option).
@@ -278,10 +208,10 @@ sub verify {
     # check if a entry duplicates other entries.
     my %entry;
     my @duplicated;
-    for my $file (map { basename $_ } glob "$txt_dir/*.txt") {
+    for my $file (get_entries()) {
         my $date = get_entrydate($file);
-        next    unless defined $date;
-
+        # no checking because get_entries()
+        # might return only existed file.
         my $ymd = sprintf "%s-%s-%s",
                             $date->{year},
                             $date->{month},
@@ -306,6 +236,39 @@ sub verify {
         puts("ok: not found any bad conditions.");
     }
 }
+
+# show entries in many ways.
+sub show_entry {
+    my ($self, $args) = @_;
+
+    my $all;
+    my $no_caption;
+    getopt($args, {
+        all => \$all,
+        a => \$all,
+        C => \$no_caption,
+        'no-caption' => \$no_caption,
+    });
+
+    if ($all) {
+        puts("all entries:") unless $no_caption;
+        for (get_entries()) {
+            print "  " unless $no_caption;
+            puts($_);
+        }
+    } else {
+        # updated only.
+        puts("updated entries:") unless $no_caption;
+        for my $entry (get_entries()) {
+            if ((-e $entry && -e $hw_main::touch_file)
+                && -M $entry < -M $hw_main::touch_file)
+            {
+                print "  " unless $no_caption;
+                puts($entry);
+            }
+        }
+    }
+}
  
 sub apply_headline {
     my ($self, $args) = @_;
@@ -318,7 +281,7 @@ sub apply_headline {
 
 
     my $apply = sub {
-        my $filename = shift || $self->dispatch('help', ['apply-headline']);
+        my $filename = shift || $self->arg_error;
 
         my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
         my @headline = find_headlines(do { local $/; <$FH> });
@@ -344,18 +307,18 @@ sub apply_headline {
     };
 
     if ($all) {
-        for my $file (glob "$hww_main::TEXT_DIR/*.txt") {
+        for my $file (glob "$hw_main::txt_dir/*.txt") {
             $apply->($file);
         }
     } else {
-        $apply->(shift @$args || $self->dispatch('help', ['apply-headline']));
+        $apply->(shift(@$args) || $self->arg_error);
     }
 }
 
 sub touch {
     my ($self, $args) = @_;
 
-    my $filename = File::Spec->catfile($hww_main::TEXT_DIR, 'touch.txt');
+    my $filename = File::Spec->catfile($hw_main::txt_dir, 'touch.txt');
     my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
     $FH->print(POSIX::strftime("%Y%m%d%H%M%S", localtime));
     $FH->close;
@@ -368,7 +331,7 @@ sub gen_html {
 
     my ($in, $out) = @$args;
     if (! defined $in || ! defined $out) {
-        $self->dispatch('help', ['gen_html'])
+        $self->arg_error;
     }
 
     my $gen_html = sub {
@@ -386,6 +349,7 @@ sub gen_html {
         # cut blank lines in order not to generate blank section.
         shift @text while ($text[0] =~ /^\s*$/);
 
+        # TODO use POE(option)?
         my $html = Text::Hatena->parse(join "\n", @text);
         $IN->close;
 
@@ -413,43 +377,9 @@ sub gen_html {
 
     } else {
         # arguments error. show help.
-        $self->dispatch('help', ['gen_html']);
+        $self->arg_error;
     }
 }
 
 
 1;
-__END__
-
-=head1 NAME
-
-    hww.pl - Hatena Diary Writer Wrapper
-
-
-=head1 SYNOPSIS
-
-    $ perl hww.pl [OPTIONS] COMMAND [ARGS]
-
-
-=head1 OPTIONS
-
-    these options for 'hww.pl'.
-    if you see the help of command options, do it.
-    $ perl hww.pl help <command>
-
-=over
-
-=item -h,--help
-
-show this help text.
-
-=item -v,--version
-
-show version.
-
-=back
-
-
-=head1 AUTHOR
-
-tyru <tyru.exe@gmail.com>

@@ -8,15 +8,14 @@ use utf8;
 use FindBin;
 our $BASE_DIR;
 our $HWW_LIB;
-our $TEXT_DIR;
 BEGIN {
     $BASE_DIR = $FindBin::Bin;
-    $HWW_LIB  = "$FindBin::Bin/hwwlib";
-    $TEXT_DIR = "$FindBin::Bin/text";
+    $HWW_LIB  = "$FindBin::Bin/lib-hww";
 }
 use lib $HWW_LIB;
 
 use HWW;
+use HWW::UtilSub;
 
 # for using subroutine which manipulates
 # API without module.
@@ -43,15 +42,8 @@ sub version () {
 }
 
 
-sub warning {
-    warn "warning: ", @_, "\n"
-}
-
-sub error {
-    die "error: ", @_, "\n";
-}
-
-
+# separate options into hww.pl's options and hw.pl's options.
+# (like git)
 sub parse_opt {
     my @hww_opt;
     my $subcmd;
@@ -64,7 +56,7 @@ sub parse_opt {
             if ($a =~ /^-/) {
                 push @hww_opt, $a;
             } else {
-                $subcmd = $a;
+                $subcmd = $a;    # found command
             }
         }
     }
@@ -78,6 +70,7 @@ sub getopt {
     local @ARGV = @$argv;
     my $result = GetOptions(%$opt);
 
+    # update arguments. delete all processed options.
     $argv = [@ARGV];
     return $result;
 }
@@ -88,17 +81,56 @@ my ($hww_args, $subcmd, $subcmd_args) = parse_opt(@ARGV);
 
 my $show_help;
 my $show_version;
-our $debug;    # HWW::debug() see this.
+our $debug;
 our $no_cookie;
-getopt($hww_args, {
+# our $trivial;
+# our $username;
+# our $password;
+# our $agent;
+# our $timeout;
+# our $group;
+# our $entry_file;
+# our $config_file;
+# our $no_timestamp;
+
+# do not change $hww_args.
+my %hww_opt = (
     help => \$show_help,
     version => \$show_version,
-    d => \$debug,
     debug => \$debug,
 
     C => \$no_cookie,
     'no-cookie' => \$no_cookie,
-}) or do {
+
+    # t => \$trivial,
+    # trivial => \$trivial,
+    # 
+    # u => \$username,
+    # username => \$username,
+    # 
+    # p => \$password,
+    # password => \$password,
+    # 
+    # a => \$agent,
+    # agent => \$agent,
+    # 
+    # T => \$timeout,
+    # 
+    # g => \$group,
+    # group => \$group,
+    # 
+    # f => \$entry_file,
+    # file => \$entry_file,
+    # 
+    # M => \$no_timestamp,
+    # 
+    # n => \$config_file,
+    # 
+    # S => \$ssl,
+    # ssl => \$ssl,
+);
+
+getopt($hww_args, \%hww_opt) or do {
     warning "arguments error";
     sleep 1;
     usage;
@@ -110,3 +142,47 @@ usage   unless defined $subcmd;
 
 HWW->dispatch($subcmd, $subcmd_args);
 
+
+__END__
+
+=head1 NAME
+
+    hww.pl - Hatena Diary Writer Wrapper
+
+
+=head1 SYNOPSIS
+
+    $ perl hww.pl [OPTIONS] COMMAND [ARGS]
+
+
+=head1 OPTIONS
+
+    these options for 'hww.pl'.
+    if you see the help of command options, do it.
+    $ perl hww.pl help <command>
+
+=over
+
+=item -h,--help
+
+show this help text.
+
+=item -v,--version
+
+show version.
+
+=item -d, --debug
+
+debug mode.
+
+=item -C, --no-cookie
+
+don't use cookie.
+(don't call hw.pl with '-c' option)
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
