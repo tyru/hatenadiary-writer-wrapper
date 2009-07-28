@@ -1,0 +1,29 @@
+
+=head1 NAME
+
+    hww-gen-html - generate htmls from entry files
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl gen-html [<directory> <directory>|<file> <file>]
+
+
+=head1 DESCRIPTION
+
+if two paths are both directories (or second path doesn't exist),
+generate htmls in second directory from entry files in first directory
+if two path are both files (or second path doesn't exist),
+generate a html to second path from first path.
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

@@ -1,0 +1,35 @@
+
+=head1 NAME
+
+    hww-load - load entries from hatena diary
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl load [-a|--all|<text>]
+
+
+=head1 DESCRIPTION
+
+### NOT WRITTEN YET ###
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+fetch all entries.
+
+=item -d, --draft
+
+### NOT IMPLEMENTED YET ###
+fetch all draft entries.
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

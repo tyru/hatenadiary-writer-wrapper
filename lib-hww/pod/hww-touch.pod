@@ -1,0 +1,26 @@
+
+=head1 NAME
+
+    hww-touch - update 'touch.txt'
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl touch
+
+
+=head1 DESCRIPTION
+
+update 'touch.txt'.
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

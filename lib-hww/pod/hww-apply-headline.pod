@@ -1,0 +1,32 @@
+
+=head1 NAME
+
+    hww-apply-headline - rename if modified headlines.
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl apply-headline
+
+
+=head1 DESCRIPTION
+
+rename filename of entry files if new/deleted headlines found.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+check and rename all files.
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

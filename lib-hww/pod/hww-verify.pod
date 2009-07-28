@@ -1,0 +1,26 @@
+
+=head1 NAME
+
+    hww-verify - verify misc information
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl verify
+
+
+=head1 DESCRIPTION
+
+currently this command just verify that a entry file doesn't duplicate other entry files.
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

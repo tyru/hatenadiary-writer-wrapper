@@ -1,0 +1,25 @@
+
+=head1 NAME
+
+    hww-release - upload entries to hatena diary as trivial
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl update
+
+
+=head1 DESCRIPTION
+
+this command is identical to 'release' command with '--trivial' option.
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

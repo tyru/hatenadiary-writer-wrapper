@@ -1,0 +1,37 @@
+
+=head1 NAME
+
+    hww-show-entry - show information about entry files
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl show-entry
+
+
+=head1 DESCRIPTION
+
+currently this command just shows updated entries to be uploaded.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+show all entry files.
+
+=item -C, --no-caption
+
+do not show caption and indent.
+(this option for other executable commands (pipeline).)
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

@@ -22,14 +22,6 @@ use HWW::UtilSub;
 require 'hw.pl';
 
 
-# gnu_compat: --opt="..." is allowed.
-# no_bundling: single character option is not bundled.
-# no_ignore_case: no ignore case on long option.
-use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
-use File::Spec;
-
-
-
 
 
 ### sub ###
@@ -41,39 +33,6 @@ sub version () {
     HWW->version(@_);
 }
 
-
-# separate options into hww.pl's options and hw.pl's options.
-# (like git)
-sub parse_opt {
-    my @hww_opt;
-    my $subcmd;
-    my @subcmd_opt;
-
-    for my $a (@_) {
-        if (defined $subcmd) {
-            push @subcmd_opt, $a;
-        } else {
-            if ($a =~ /^-/) {
-                push @hww_opt, $a;
-            } else {
-                $subcmd = $a;    # found command
-            }
-        }
-    }
-
-    return (\@hww_opt, $subcmd, \@subcmd_opt);
-}
-
-sub getopt {
-    my ($argv, $opt) = @_;
-
-    local @ARGV = @$argv;
-    my $result = GetOptions(%$opt);
-
-    # update arguments. delete all processed options.
-    $argv = [@ARGV];
-    return $result;
-}
 
 
 ### main ###

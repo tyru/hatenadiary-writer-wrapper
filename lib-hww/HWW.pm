@@ -42,10 +42,6 @@ our %HWW_COMMAND = (
 
 
 
-alias 'CODE', getopt => 'hww_main::getopt';
-
-
-
 ### dispatch ###
 
 sub dispatch {
@@ -53,9 +49,7 @@ sub dispatch {
 
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1,2];
-        local $Data::Dumper::Indent = 0;
-        local $Data::Dumper::Terse = 1;
-        my $args = join ', ', map { Dumper($_) } @_;
+        my $args = join ', ', map { dumper($_) } @_;
         debug("dispatch($args) is called from at $filename line $line");
     }
 
@@ -66,7 +60,7 @@ sub dispatch {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
-    dumper(\@_);
+    dump(\@_);
     debug("dispatch '$cmd'");
 
     my $subname = $HWW_COMMAND{$cmd};
@@ -317,6 +311,9 @@ sub apply_headline {
 
 sub touch {
     my ($self, $args) = @_;
+
+    # TODO parse given date string,
+    # and replace the line in touch.txt with that date.
 
     my $filename = File::Spec->catfile($hw_main::txt_dir, 'touch.txt');
     my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");

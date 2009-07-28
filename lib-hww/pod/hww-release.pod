@@ -1,0 +1,36 @@
+
+=head1 NAME
+
+    hww-release - upload entries to hatena diary
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl release
+
+
+=head1 DESCRIPTION
+
+upload entries to hatena diary.
+this command calls hw.pl internally.
+
+we will rewrite old subroutines to use Hatena AtomPub API in the future.
+so this command won't call hw.pl at that time.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -t, --trivial
+
+upload entries as trivial. see also perldoc -F hw.pl about '-t' option.
+this is identical with 'update' command.
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

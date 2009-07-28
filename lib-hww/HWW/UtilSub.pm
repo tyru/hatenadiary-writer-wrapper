@@ -2,6 +2,7 @@ package HWW::UtilSub;
 
 use strict;
 use warnings;
+use utf8;
 
 use base qw(Exporter);
 
@@ -21,6 +22,10 @@ use File::Spec ();
 use File::Basename ();
 use FileHandle ();
 use POSIX ();
+# gnu_compat: --opt="..." is allowed.
+# no_bundling: single character option is not bundled.
+# no_ignore_case: no ignore case on long option.
+use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 
 
 
@@ -49,8 +54,14 @@ sub debug {
     warn "debug: ", @_, "\n" if $hww_main::debug;
 }
 
+sub dump {
+    debug(dumper(@_));
+}
+
 sub dumper {
-    debug(Data::Dumper::Dumper(@_));
+    local $Data::Dumper::Indent = 0;
+    local $Data::Dumper::Terse = 1;
+    Data::Dumper::Dumper(@_);
 }
 
 # not 'say'.
@@ -64,11 +75,16 @@ sub is_hww_command {
     exists $HWW::HWW_COMMAND{$cmd};
 }
 
+# NOTE: unused
 sub alias {
+    my $pkg = caller;
     my ($type, $to, $from) = @_;
     no strict 'refs';
     if (defined *{$from}{$type}) {
-        *$to = *{$from}{$type};
+        *{"${pkg}::$to"} = *{$from}{$type};
+        debug("imported $from of $type to ${pkg}::$to");
+    } else {
+        warning("not found reference $from of $type");
     }
 }
 
@@ -127,8 +143,8 @@ sub get_entries {
     } glob "$dir/*.txt"
 }
 
-# get misc time from 'touch.txt'.
-# NOTE: this sub is not used
+# get misc info about time from 'touch.txt'.
+# NOTE: unused
 sub get_touchdate {
     my $touch_time = do {
         my $FH = FileHandle->new($hw_main::touch_file, 'r') or error(":$!");
@@ -151,6 +167,39 @@ sub get_touchdate {
     };
 }
 
+sub getopt {
+    my ($argv, $opt) = @_;
+
+    local @ARGV = @$argv;
+    my $result = GetOptions(%$opt);
+
+    # update arguments. delete all processed options.
+    $argv = [@ARGV];
+    return $result;
+}
+
+# separate options into hww.pl's options and hw.pl's options.
+# (like git)
+sub parse_opt {
+    my @hww_opt;
+    my $subcmd;
+    my @subcmd_opt;
+
+    for my $a (@_) {
+        if (defined $subcmd) {
+            push @subcmd_opt, $a;
+        } else {
+            if ($a =~ /^-/) {
+                push @hww_opt, $a;
+            } else {
+                $subcmd = $a;    # found command
+            }
+        }
+    }
+
+    return (\@hww_opt, $subcmd, \@subcmd_opt);
+}
+
 
 
 ### util subs (need $self) ###
@@ -160,15 +209,25 @@ sub arg_error {
     my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
     debug("arg_error: called at $filename line $line");
 
-    my %rev_dict = reverse %hww_main::HWW_COMMAND;
+    $subname =~ s/.*:://;    # delete package's name
+    my %rev_dict = reverse %HWW::HWW_COMMAND;
     my $cmdname = $rev_dict{$subname};
+
+    unless (defined $cmdname) {
+        # internal error (my mistake...)
+        error("can't find ${subname}'s command name");
+    }
 
     eval {
         error("$cmdname: arguments error. show ${cmdname}'s help...");
     };
+    warn $@;
+    STDERR->flush;
 
+    sleep 1;
     $self->dispatch('help', [$cmdname]);
 }
+
 
 
 
