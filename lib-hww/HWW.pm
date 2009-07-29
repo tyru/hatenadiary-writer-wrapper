@@ -32,6 +32,7 @@ our %HWW_COMMAND = (
     'apply-headline' => 'apply_headline',
     touch => 'touch',
     'gen-html' => 'gen_html',
+    # 'update-index' => 'update_index',
 );
 
 # TODO
@@ -137,7 +138,8 @@ sub load {
     getopt($args, {
         all => \$all,
         a => \$all,
-        # draft => \$draft,    # TODO
+        draft => \$draft,
+        d => \$draft,
     }) or error("load: arguments error");
 
 
@@ -180,6 +182,96 @@ sub load {
             }
 
             save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+        }
+
+        logout() if ($user_agent);
+
+    } elsif ($draft) {
+        require_modules(qw(LWP::Authen::Wsse XML::TreePP));
+
+        package hw_main;
+
+        my $draft_dir = shift(@$args) || $self->arg_error;
+        unless (-d $draft_dir) {
+            mkdir $draft_dir or error_exit("can't mkdir $draft_dir:$!");
+        }
+
+        # apply patch dynamically.
+        {
+            no strict 'refs';
+
+            *save_diary_draft = sub ($$$) {
+                my ($epoch, $title, $body) = @_;
+                my $filename = draft_filename($epoch);
+
+                my $OUT;
+                if (not open $OUT, ">", $filename) {
+                    error_exit("$!:$filename");
+                }
+                print $OUT $title."\n";
+                print $OUT $body;
+                close $OUT;
+                print_debug("save_diary_entry: return 1 (OK)");
+                return 1;
+            };
+
+            *draft_filename = sub ($) {
+                my ($epoch) = @_;
+                return "$draft_dir/$epoch.txt";
+            };
+        }
+
+        # import and declare package global variables.
+        our $user_agent;
+        our $cookie_jar;
+        our $hatena_url;
+        our $username;
+        our $password;
+
+
+        login() unless ($user_agent);
+
+        $user_agent->cookie_jar($cookie_jar);
+
+        # $user_agent->credentials("d.hatena.ne.jp", '', $username, $password);
+        {
+            # Override get_basic_credentials
+            # to return current username and password.
+            package LWP::UserAgent;
+            no warnings qw(redefine once);
+            *get_basic_credentials = sub { ($username, $password) };
+        }
+
+        # http://d.hatena.ne.jp/{user}/atom/draft
+        my $draft_collection_url = "$hatena_url/$username/atom/draft";
+        my $xml_parser = XML::TreePP->new;
+
+        # save draft entry.
+        print_message("Getting drafts...");
+        for (my $page_num = 1; ; $page_num++) {
+            my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
+            # $user_agent->simple_request() can't handle authentication response.
+            print_debug("GET $url");
+            my $r = $user_agent->request(
+                HTTP::Request::Common::GET($url)
+            );
+
+            unless ($r->is_success) {
+                error_exit("couldn't get drafts: ".$r->status_line);
+            }
+
+            my $drafts = $xml_parser->parse($r->content);
+            my $feed = $drafts->{feed};
+
+            unless (exists $feed->{entry}) {
+                # No more drafts found.
+                last;
+            }
+
+            for my $entry (@{ $feed->{entry} }) {
+                my $epoch = (split '/', $entry->{'link'}{'-href'})[-1];
+                save_diary_draft($epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
+            }
         }
 
         logout() if ($user_agent);

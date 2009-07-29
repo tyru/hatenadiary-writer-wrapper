@@ -51,7 +51,8 @@ sub error {
 }
 
 sub debug {
-    warn "debug: ", @_, "\n" if $hww_main::debug;
+    my $subname = (caller 1)[3];
+    warn "debug: $subname(): ", @_, "\n" if $hww_main::debug;
 }
 
 sub dump {
@@ -108,6 +109,7 @@ sub require_modules {
         my $failed = join ', ', @failed;
         error("you need to install $failed.");
     }
+    debug("required ".join(', ', @_));
 }
 
 sub get_entrydate {
@@ -170,11 +172,16 @@ sub get_touchdate {
 sub getopt {
     my ($argv, $opt) = @_;
 
+    debug('$opt = '.dumper($opt));
+    debug('before: $argv = '.dumper($argv));
+
     local @ARGV = @$argv;
     my $result = GetOptions(%$opt);
 
     # update arguments. delete all processed options.
-    $argv = [@ARGV];
+    @$argv = @ARGV;
+    debug('after: $argv = '.dumper($argv));
+
     return $result;
 }
 
@@ -218,6 +225,9 @@ sub arg_error {
         error("can't find ${subname}'s command name");
     }
 
+    # no need to localize $@ though
+    # because we are going to die :-)
+    local $@;
     eval {
         error("$cmdname: arguments error. show ${cmdname}'s help...");
     };
