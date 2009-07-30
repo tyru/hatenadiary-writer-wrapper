@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl update
+    perl hww.pl update [-t | --trivial]
 
 
 =head1 DESCRIPTION
@@ -16,7 +16,7 @@ this command is identical to 'release' command with '--trivial' option.
 
 =head1 OPTIONS
 
-No options.
+see 'perl hww.pl help release'.
 
 
 =head1 AUTHOR

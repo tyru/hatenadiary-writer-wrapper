@@ -6,17 +6,26 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl verify
+    perl hww.pl verify [--html] [--] [<directory>]
 
 
 =head1 DESCRIPTION
 
-currently this command just verify that a entry file doesn't duplicate other entry files.
+currently this command just verify that
+entry files or html files doesn't duplicate other files.
 
 
 =head1 OPTIONS
 
-No options.
+=over
+
+=item --html
+
+verify html directory.
+this changes suffix to verify to '*.html'.
+(default is '*.txt')
+
+=back
 
 
 =head1 AUTHOR

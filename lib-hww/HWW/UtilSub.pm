@@ -115,7 +115,8 @@ sub require_modules {
 sub get_entrydate {
     my $path = shift;
 
-    if (File::Basename::basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.txt\Z/) {
+    # $path may be html file.
+    if (File::Basename::basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.(html|txt)\Z/) {
         return {
             year  => $1,
             month => $2,
@@ -137,12 +138,16 @@ sub find_headlines {
 }
 
 sub get_entries {
-    my $dir = defined $_[0] ? shift : $hw_main::txt_dir;
+    my ($dir, $fileglob) = @_;
+    # set default value.
+    $dir      = defined $dir      ? $dir      : $hw_main::txt_dir;
+    $fileglob = defined $fileglob ? $fileglob : '*.txt';
+
     grep {
         -e $_ && -f $_
     } grep {
         defined get_entrydate($_)
-    } glob "$dir/*.txt"
+    } glob "$dir/$fileglob"
 }
 
 # get misc info about time from 'touch.txt'.

@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl gen-html [<directory> <directory>|<file> <file>]
+    perl hww.pl gen-html [--] [<directory> <directory> | <file> <file>]
 
 
 =head1 DESCRIPTION

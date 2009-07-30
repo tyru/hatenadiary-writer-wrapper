@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl load [-a|--all|<text>]
+    perl hww.pl load [-a | --all] [--] <file>
 
 
 =head1 DESCRIPTION

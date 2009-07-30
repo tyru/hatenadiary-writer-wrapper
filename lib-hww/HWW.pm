@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.0.12';
+our $VERSION = '0.0.13';
 
 # import util subs.
 use HWW::UtilSub;
@@ -33,6 +33,9 @@ our %HWW_COMMAND = (
     touch => 'touch',
     'gen-html' => 'gen_html',
     'update-index' => 'update_index',
+    # command for exec commands continually.
+    # chain => 'chain',
+    # ./hww.pl chain gen-html update-index
 );
 
 # TODO
@@ -110,6 +113,7 @@ EOD
 sub release {
     my ($self, $args) = @_;
 
+    # TODO '' after 'release'(option).
     my $trivial;
     getopt($args, {
         trivial => \$trivial,
@@ -293,18 +297,35 @@ sub load {
 
 # currently only checking duplicated entries.
 sub verify {
-    my ($self) = @_;
+    my ($self, $args) = @_;
 
     # TODO
     # - get $txt_dir from arguments.
     # - verify html dir(option).
+    my $verify_html;
+    getopt($args, {
+        html => \$verify_html,
+    });
 
+    my $dir = shift(@$args);
+    my $fileglob;
+    if ($verify_html) {
+        $fileglob = '*.html';
+    }
+
+
+    my @entry = get_entries($dir, $fileglob);
+    unless (@entry) {
+        puts("$dir: no entries found.");
+        exit 0;
+    }
 
     # check if a entry duplicates other entries.
+    puts("checking duplicated entries...");
     my %entry;
-    my @duplicated;
-    for my $file (get_entries()) {
+    for my $file (@entry) {
         my $date = get_entrydate($file);
+        dump($date);
         # no checking because get_entries()
         # might return only existed file.
         my $ymd = sprintf "%s-%s-%s",
@@ -313,19 +334,24 @@ sub verify {
                             $date->{day};
         if (exists $entry{$ymd}) {
             debug("$file is duplicated.");
-            push @duplicated, [$ymd, $file];
+            puts("foo:$ymd, $file");
+            push @{ $entry{$ymd}{file} }, $file;
         } else {
-            $entry{$ymd} = $file;
+            $entry{$ymd} = {
+                file => [$file]
+            };
         }
     }
 
+    my @duplicated = grep {
+        @{ $entry{$_}{file} } > 1
+    } keys %entry;
+
     if (@duplicated) {
         puts("duplicated entries here:");
-        for (@duplicated) {
-            # dulicated entry which was found at first
-            puts("  $entry{$_->[0]}");
-            # filepath
-            puts("  $_->[1]");
+        for my $ymd (@duplicated) {
+            puts("  $ymd:");
+            puts("    $_") for @{ $entry{$ymd}{file} };
         }
     } else {
         puts("ok: not found any bad conditions.");
@@ -429,6 +455,9 @@ sub touch {
 
 sub gen_html {
     my ($self, $args) = @_;
+
+
+    # TODO 'update-index' after gen-html(option).
 
     require_modules(qw(Text::Hatena));
 
