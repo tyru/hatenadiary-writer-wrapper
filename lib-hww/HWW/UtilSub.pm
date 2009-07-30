@@ -25,6 +25,7 @@ use POSIX ();
 # gnu_compat: --opt="..." is allowed.
 # no_bundling: single character option is not bundled.
 # no_ignore_case: no ignore case on long option.
+# XXX 'no_bundling' does not work?
 use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 
 
@@ -52,7 +53,8 @@ sub error {
 
 sub debug {
     my $subname = (caller 1)[3];
-    print "debug: $subname(): ", @_, "\n" if $hww_main::debug;
+    $subname = defined $subname ? "$subname(): " : '';
+    print "debug: $subname", @_, "\n" if $hww_main::debug;
 }
 
 sub dump {
@@ -174,7 +176,7 @@ sub get_touchdate {
     };
 }
 
-sub getopt {
+sub get_opt {
     my ($argv, $opt) = @_;
 
     debug('$opt = '.dumper($opt));

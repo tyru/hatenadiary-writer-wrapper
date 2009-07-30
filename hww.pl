@@ -17,11 +17,6 @@ use lib $HWW_LIB;
 use HWW;
 use HWW::UtilSub;
 
-# for using subroutine which manipulates
-# API without module.
-require 'hw.pl';
-
-
 
 
 ### sub ###
@@ -33,6 +28,28 @@ sub version () {
     HWW->version(@_);
 }
 
+sub restore_args {
+    my %opt = @_;
+    my @argv;
+
+    while (my ($k, $v) = each %opt) {
+        # deref.
+        $v = $$v;
+        # option was not given.
+        next    unless defined $v;
+
+        if ($k =~ s/(.*)=s$/$1/) {
+            debug("restore: option -$k => $v");
+            push @argv, "-$k", $v;
+        } else {
+            debug("restore: option -$k");
+            push @argv, "-$k";
+        }
+    }
+
+    return @argv;
+}
+
 
 
 ### main ###
@@ -42,15 +59,38 @@ my $show_help;
 my $show_version;
 our $debug;
 our $no_cookie;
-# our $trivial;
-# our $username;
-# our $password;
-# our $agent;
-# our $timeout;
-# our $group;
-# our $entry_file;
-# our $config_file;
-# our $no_timestamp;
+# hw.pl's options.
+our %hw_opt = (
+    t => \my $t,
+    # trivial => \$trivial,
+
+    'u=s' => \my $u,
+    # 'username=s' => \$username,
+
+    'p=s' => \my $p,
+    # 'password=s' => \$password,
+
+    'a=s' => \my $a,
+    # 'agent=s' => \$agent,
+
+    'T=s' => \my $T,
+    # 'timeout=s' => \$timeout,
+
+    'g=s' => \my $g,
+    # 'group=s' => \$group,
+
+    'f=s' => \my $f,
+    # 'file=s' => \$entry_file,
+
+    M => \my $M,
+
+    'n=s' => \my $n,
+    # 'config-file=s'
+
+    S => \my $S,
+    # ssl => \$ssl,
+);
+
 
 # do not change $hww_args.
 my %hww_opt = (
@@ -61,39 +101,25 @@ my %hww_opt = (
     C => \$no_cookie,
     'no-cookie' => \$no_cookie,
 
-    # t => \$trivial,
-    # trivial => \$trivial,
-    # 
-    # u => \$username,
-    # username => \$username,
-    # 
-    # p => \$password,
-    # password => \$password,
-    # 
-    # a => \$agent,
-    # agent => \$agent,
-    # 
-    # T => \$timeout,
-    # 
-    # g => \$group,
-    # group => \$group,
-    # 
-    # f => \$entry_file,
-    # file => \$entry_file,
-    # 
-    # M => \$no_timestamp,
-    # 
-    # n => \$config_file,
-    # 
-    # S => \$ssl,
-    # ssl => \$ssl,
+    %hw_opt,
 );
 
-getopt($hww_args, \%hww_opt) or do {
+get_opt($hww_args, \%hww_opt) or do {
     warning "arguments error";
     sleep 1;
     usage;
 };
+
+{
+    # restore $hww_args for hw.pl
+    local @ARGV = restore_args(%hw_opt);
+    debug('restored @ARGV: '.join(' ', @ARGV));
+
+    # for using subroutine which manipulates
+    # API without module.
+    require 'hw.pl';
+}
+
 
 usage   if $show_help;
 version if $show_version;

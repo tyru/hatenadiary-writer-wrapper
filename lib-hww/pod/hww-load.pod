@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl load [-a | --all] [--] <file>
+    perl hww.pl load [[-a | --all] <directory>] [--] <YYYY-MM-DD>
 
 
 =head1 DESCRIPTION
@@ -24,7 +24,6 @@ fetch all entries.
 
 =item -d, --draft
 
-### NOT IMPLEMENTED YET ###
 fetch all draft entries.
 
 =back

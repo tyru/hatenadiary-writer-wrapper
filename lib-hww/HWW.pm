@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.2.0';
+our $VERSION = '0.2.1';
 
 # import util subs.
 use HWW::UtilSub;
@@ -33,9 +33,14 @@ our %HWW_COMMAND = (
     touch => 'touch',
     'gen-html' => 'gen_html',
     'update-index' => 'update_index',
-    # command for exec commands continually.
+    # TODO command for exec commands continually.
     # chain => 'chain',
     # ./hww.pl chain gen-html update-index
+    #
+    # TODO commands to manipulate tags.
+    # 'add-tag' => 'add_tag',
+    # 'delete-tag' => 'delete_tag',
+    # 'rename-tag' => 'rename_tag',
 );
 
 # TODO
@@ -114,7 +119,7 @@ sub release {
     my ($self, $args) = @_;
 
     my $trivial;
-    getopt($args, {
+    get_opt($args, {
         trivial => \$trivial,
         t => \$trivial,
     });
@@ -138,7 +143,7 @@ sub load {
 
     my $all;
     my $draft;
-    getopt($args, {
+    get_opt($args, {
         all => \$all,
         a => \$all,
         draft => \$draft,
@@ -157,7 +162,14 @@ sub load {
         our $cookie_jar;
         our $hatena_url;
         our $username;
+        our $txt_dir;
 
+        if (@$args) {
+            $txt_dir = shift(@$args);
+        }
+        unless (-d $txt_dir) {
+            mkdir $txt_dir or error_exit("$txt_dir:$!");
+        }
 
         # Login if necessary.
         login() unless ($user_agent);
@@ -299,7 +311,7 @@ sub verify {
     my ($self, $args) = @_;
 
     my $verify_html;
-    getopt($args, {
+    get_opt($args, {
         html => \$verify_html,
     });
 
@@ -361,7 +373,7 @@ sub status {
 
     my $all;
     my $no_caption;
-    getopt($args, {
+    get_opt($args, {
         all => \$all,
         a => \$all,
         C => \$no_caption,
@@ -392,7 +404,7 @@ sub apply_headline {
     my ($self, $args) = @_;
 
     my $all;
-    getopt($args, {
+    get_opt($args, {
         all => \$all,
         a => \$all,
     });
@@ -463,7 +475,7 @@ sub gen_html {
 
     my $make_index;
     my $missing_only;
-    getopt($args, {
+    get_opt($args, {
         'update-index' => \$make_index,
         i => \$make_index,
         'missing-only' => \$missing_only,

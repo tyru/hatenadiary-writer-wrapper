@@ -24,7 +24,7 @@ package hw_main;
 
 use strict;
 use warnings;
-our $VERSION = "1.4.2.7";
+our $VERSION = "1.4.2.8";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -133,10 +133,8 @@ our %cmd_opt = (
     'D' => "",  # "diff" option.
 );
 
-if ($0 eq __FILE__) {
-    $Getopt::Std::STANDARD_HELP_VERSION = 1;
-    getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
-}
+$Getopt::Std::STANDARD_HELP_VERSION = 1;
+getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
 
 if ($cmd_opt{d}) {
     print_debug("Debug flag on.");
