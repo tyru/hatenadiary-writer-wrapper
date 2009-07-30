@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl apply-headline
+    perl hww.pl apply-headline [-a|--all|<file>]
 
 
 =head1 DESCRIPTION

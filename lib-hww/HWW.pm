@@ -4,9 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-# TODO don't use version.pm
-use version;
-our $VERSION = qv('0.0.11');
+our $VERSION = '0.0.12';
 
 # import util subs.
 use HWW::UtilSub;
@@ -22,6 +20,7 @@ use Scalar::Util qw(blessed);
 use POSIX ();
 
 
+# command vs subname
 our %HWW_COMMAND = (
     help => 'help',
     version => 'version',
@@ -195,7 +194,8 @@ sub load {
         require_modules(qw(LWP::Authen::Wsse XML::TreePP));
 
 
-        my $draft_dir = shift(@$args) || $self->arg_error;
+        my $draft_dir = shift(@$args);
+        $self->arg_error unless defined $draft_dir;
         unless (-d $draft_dir) {
             mkdir $draft_dir or error_exit("can't mkdir $draft_dir:$!");
         }
@@ -283,8 +283,11 @@ sub load {
         logout() if ($user_agent);
 
     } else {
-        my $ymd = shift(@$args) || $self->arg_error;
-        call_hw('-l', $ymd);
+        if (defined(my $ymd = shift(@$args))) {
+            call_hw('-l', $ymd);
+        } else {
+            $self->arg_error;
+        }
     }
 }
 
@@ -373,7 +376,8 @@ sub apply_headline {
 
 
     my $apply = sub {
-        my $filename = shift || $self->arg_error;
+        my $filename = shift;
+        $self->arg_error unless $filename;
 
         my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
         my @headline = find_headlines(do { local $/; <$FH> });
@@ -403,7 +407,11 @@ sub apply_headline {
             $apply->($file);
         }
     } else {
-        $apply->(shift(@$args) || $self->arg_error);
+        if (defined(my $file = shift(@$args))) {
+            $apply->($file);
+        } else {
+            $self->arg_error;
+        }
     }
 }
 

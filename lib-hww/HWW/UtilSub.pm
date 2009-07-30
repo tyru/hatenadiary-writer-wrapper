@@ -7,7 +7,7 @@ use utf8;
 use base qw(Exporter);
 
 # export all subroutine.
-our @EXPORT = do {
+our @EXPORT = our @EXPORT_OK = do {
     no strict 'refs';
     my @subname = grep { *$_{CODE} } keys %HWW::UtilSub::;
     debug("exporting ".join(', ', @subname));
