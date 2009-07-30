@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.1.3';
+our $VERSION = '0.2.0';
 
 # import util subs.
 use HWW::UtilSub;
@@ -28,7 +28,7 @@ our %HWW_COMMAND = (
     update => 'update',
     load => 'load',
     verify => 'verify',
-    'show-entry' => 'show_entry',
+    status => 'status',
     'apply-headline' => 'apply_headline',
     touch => 'touch',
     'gen-html' => 'gen_html',
@@ -355,8 +355,8 @@ sub verify {
     }
 }
 
-# show entries in many ways.
-sub show_entry {
+# show entry's status
+sub status {
     my ($self, $args) = @_;
 
     my $all;
