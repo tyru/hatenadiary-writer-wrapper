@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.1.1';
+our $VERSION = '0.1.2';
 
 # import util subs.
 use HWW::UtilSub;
@@ -453,11 +453,13 @@ sub touch {
 sub gen_html {
     my ($self, $args) = @_;
 
-    # TODO 'update-index' after gen-html(option).
     my $make_index;
+    my $missing_only;
     getopt($args, {
         'update-index' => \$make_index,
         i => \$make_index,
+        'missing-only' => \$missing_only,
+        m => \$missing_only,
     });
 
     require_modules(qw(Text::Hatena));
@@ -486,8 +488,6 @@ sub gen_html {
         my $html = Text::Hatena->parse(join "\n", @text);
         $IN->close;
 
-        # *.txt -> *.html
-        $out =~ s/\.txt$/.html/;
         puts("gen_html: $in -> $out");
 
         my $OUT = FileHandle->new($out, 'w') or error("$out:$!");
@@ -496,13 +496,19 @@ sub gen_html {
     };
 
     if (-d $in && (-d $out || ! -e $out)) {
-        # TODO generate only non-existent file(option).
         unless (-e $out) {
             mkdir $out;
         }
+
         for my $infile (glob "$in/*.txt") {
             my $outfile = File::Spec->catfile($out, basename($infile));
-            $gen_html->($infile, $outfile);
+            # *.txt -> *.html
+            $outfile =~ s/\.txt$/.html/;
+
+            # '--missing-only' option generate only non-existent file.
+            unless ($missing_only && -f $outfile) {
+                $gen_html->($infile, $outfile);
+            }
         }
 
         if ($make_index) {
@@ -511,6 +517,9 @@ sub gen_html {
 
     } elsif (-f $in && (-f $out || ! -e $out)) {
         $gen_html->($in, $out);
+
+        # *.txt -> *.html
+        $out =~ s/\.txt$/.html/;
 
         if ($make_index) {
             $self->dispatch('update-index', [dirname($out)]);

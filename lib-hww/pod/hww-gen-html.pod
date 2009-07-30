@@ -6,7 +6,8 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl gen-html [-i | --update-index] [--] [<directory> <directory> | <file> <file>]
+    perl hww.pl gen-html [-i | --update-index] [-m | --missing-only] [--] [<directory> <directory> | <file> <file>]
+
 
 
 =head1 DESCRIPTION
@@ -19,7 +20,18 @@ generate a html to second path from first path.
 
 =head1 OPTIONS
 
-No options.
+=over
+
+=item -i, --update-index
+
+exec 'update-index' command after this command.
+
+=item -m, --missing-only
+
+generate only missing html files.
+
+=back
+
 
 
 =head1 AUTHOR
