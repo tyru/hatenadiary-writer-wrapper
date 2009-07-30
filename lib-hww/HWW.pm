@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.1.2';
+our $VERSION = '0.1.3';
 
 # import util subs.
 use HWW::UtilSub;
@@ -441,12 +441,20 @@ sub apply_headline {
 sub touch {
     my ($self, $args) = @_;
 
-    # TODO parse given date string,
-    # and replace the line in touch.txt with that date.
-
     my $filename = File::Spec->catfile($hw_main::txt_dir, 'touch.txt');
     my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
-    $FH->print(POSIX::strftime("%Y%m%d%H%M%S", localtime));
+    # NOTE: I assume that this format is compatible
+    # between Date::Manip::UnixDate and POSIX::strftime.
+    my $touch_fmt = '%Y%m%d%H%M%S';
+
+    if (@$args) {
+        require_modules(qw(Date::Manip));
+        Date::Manip->import(qw(ParseDate UnixDate));
+        $FH->print(UnixDate(ParseDate(shift @$args), $touch_fmt));
+    } else {
+        $FH->print(POSIX::strftime($touch_fmt, localtime));
+    }
+
     $FH->close;
 }
 
