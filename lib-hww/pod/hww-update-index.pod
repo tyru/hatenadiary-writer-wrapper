@@ -1,0 +1,32 @@
+
+=head1 NAME
+
+    hww-update-index - make html from template file by HTML::Template
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl update-index <html directory>
+
+
+=head1 DESCRIPTION
+
+make index.html or other filename's html file from template file.
+this defines some parameter and generate html file by HTML::Template.
+
+
+=head1 THE SAMPLES OF THE TEMPLATE FILE
+
+
+
+
+=head1 OPTIONS
+
+No options.
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

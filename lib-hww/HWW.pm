@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.1.0';
+our $VERSION = '0.1.1';
 
 # import util subs.
 use HWW::UtilSub;
@@ -113,7 +113,6 @@ EOD
 sub release {
     my ($self, $args) = @_;
 
-    # TODO '' after 'release'(option).
     my $trivial;
     getopt($args, {
         trivial => \$trivial,
@@ -299,9 +298,6 @@ sub load {
 sub verify {
     my ($self, $args) = @_;
 
-    # TODO
-    # - get $txt_dir from arguments.
-    # - verify html dir(option).
     my $verify_html;
     getopt($args, {
         html => \$verify_html,
@@ -316,6 +312,7 @@ sub verify {
 
     my @entry = get_entries($dir, $fileglob);
     unless (@entry) {
+        $dir = defined $dir ? $dir : $hw_main::txt_dir;
         puts("$dir: no entries found.");
         exit 0;
     }
@@ -456,8 +453,12 @@ sub touch {
 sub gen_html {
     my ($self, $args) = @_;
 
-
     # TODO 'update-index' after gen-html(option).
+    my $make_index;
+    getopt($args, {
+        'update-index' => \$make_index,
+        i => \$make_index,
+    });
 
     require_modules(qw(Text::Hatena));
 
@@ -504,8 +505,16 @@ sub gen_html {
             $gen_html->($infile, $outfile);
         }
 
+        if ($make_index) {
+            $self->dispatch('update-index', [$out]);
+        }
+
     } elsif (-f $in && (-f $out || ! -e $out)) {
         $gen_html->($in, $out);
+
+        if ($make_index) {
+            $self->dispatch('update-index', [dirname($out)]);
+        }
 
     } else {
         # arguments error. show help.

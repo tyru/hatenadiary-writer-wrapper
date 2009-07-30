@@ -52,7 +52,7 @@ sub error {
 
 sub debug {
     my $subname = (caller 1)[3];
-    warn "debug: $subname(): ", @_, "\n" if $hww_main::debug;
+    print "debug: $subname(): ", @_, "\n" if $hww_main::debug;
 }
 
 sub dump {
