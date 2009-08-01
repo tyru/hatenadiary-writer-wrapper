@@ -269,6 +269,8 @@ sub arg_error {
         sleep 1;
     }
     $self->dispatch('help', [$cmdname]);
+
+    exit -1;
 }
 
 
