@@ -58,7 +58,6 @@ my ($hww_args, $subcmd, $subcmd_args) = split_opt(@ARGV);
 
 my $show_help;
 my $show_version;
-our $debug;
 our $no_cookie;
 # hw.pl's options.
 our %hw_opt = (
@@ -94,11 +93,17 @@ our %hw_opt = (
 
 
 # do not change $hww_args.
+our $debug;
+our $debug_stderr;
 my %hww_opt = (
     help => \$show_help,
     version => \$show_version,
+
     d => \$debug,
     debug => \$debug,
+
+    D => \$debug_stderr,
+    'debug-stderr' => \$debug_stderr,
 
     C => \$no_cookie,
     'no-cookie' => \$no_cookie,

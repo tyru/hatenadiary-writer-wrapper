@@ -58,7 +58,11 @@ sub error {
 sub debug {
     my $subname = (caller 1)[3];
     $subname = defined $subname ? "$subname(): " : '';
-    print "debug: $subname", @_, "\n" if $hww_main::debug;
+    if ($hww_main::debug_stderr) {
+        warn "debug: $subname", @_, "\n";
+    } elsif ($hww_main::debug) {
+        print "debug: $subname", @_, "\n";
+    }
 }
 
 sub dump {

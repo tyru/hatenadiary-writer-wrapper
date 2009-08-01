@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.9';
+our $VERSION = '0.4.10';
 
 # import util subs.
 use HWW::UtilSub;
