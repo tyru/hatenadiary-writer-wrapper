@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.7';
+our $VERSION = '0.4.8';
 
 # import util subs.
 use HWW::UtilSub;
@@ -280,7 +280,7 @@ sub load {
 
             my $draft_filename = sub ($) {
                 my ($epoch) = @_;
-                return "$draft_dir/$epoch.txt";
+                return File::Spec->catfile($draft_dir, "$epoch.txt");
             };
 
             no strict 'refs';
@@ -314,7 +314,7 @@ sub load {
         my $xml_parser = XML::TreePP->new;
 
         # save draft entry.
-        print_message("Getting drafts...");
+        print_message("getting drafts...");
         for (my $page_num = 1; ; $page_num++) {
             my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
             # $user_agent->simple_request() can't handle authentication response.
@@ -609,131 +609,122 @@ sub update_index {
     });
 
 
-    # apply patch dynamically.
-    {
-        package hw_main;
+    require_modules(qw(
+        HTML::TreeBuilder
+        HTML::Template
+        DateTime
+        Time::Local
+    ));
 
-        use HWW::UtilSub qw(require_modules debug puts);
-        require_modules(qw(
-            HTML::TreeBuilder
-            HTML::Template
-            DateTime
-            Time::Local
-        ));
+    my $update_index_main = sub {
+        my ($html_dir, $index_tmpl) = @_;
 
-        my $update_index_main = sub {
-            my ($html_dir, $index_tmpl) = @_;
-
-            unless (-f $index_tmpl) {
-                error_exit("$index_tmpl:$!");
-            }
+        unless (-f $index_tmpl) {
+            error_exit("$index_tmpl:$!");
+        }
 
 
-            my $template = HTML::Template->new(
-                filename => $index_tmpl,
-                die_on_bad_params => 0,    # No die if set non-existent parameter.
-            );
+        my $template = HTML::Template->new(
+            filename => $index_tmpl,
+            die_on_bad_params => 0,    # No die if set non-existent parameter.
+        );
 
-            my @entry;
-            for my $path (glob "$html_dir/*") {
-                my $basename = basename($path);
-                next    unless $basename =~ /^(\d{4})-(\d{2})-(\d{2})(?:-.+)?\.html$/;
-
-
-                my ($year, $month, $day);
-                my @date = ($year, $month, $day) = ($1, $2, $3);
-                my $epoch = Time::Local::timelocal(0, 0, 0, $day, $month - 1, $year - 1900);
+        my @entry;
+        for my $path (glob "$html_dir/*") {
+            my $basename = basename($path);
+            next    unless $basename =~ /^(\d{4})-(\d{2})-(\d{2})(?:-.+)?\.html$/;
 
 
-                my $tree = HTML::TreeBuilder->new_from_file($path);
+            my ($year, $month, $day);
+            my @date = ($year, $month, $day) = ($1, $2, $3);
+            my $epoch = Time::Local::timelocal(0, 0, 0, $day, $month - 1, $year - 1900);
 
-                my $title = do {
-                    my ($h3) = $tree->find('h3');
 
-                    my $title;
-                    if (defined $h3) {
-                        $title = $h3->as_text;
-                        $title =~ s/^\*?\d+\*//;
-                    } else {
-                        $title = "no title";
-                    };
+            my $tree = HTML::TreeBuilder->new_from_file($path);
 
-                    $title;
+            my $title = do {
+                my ($h3) = $tree->find('h3');
+
+                my $title;
+                if (defined $h3) {
+                    $title = $h3->as_text;
+                    $title =~ s/^\*?\d+\*//;
+                } else {
+                    $title = "no title";
                 };
 
-                my $summary = do {
-                    # Get the inner text of all tags.
-                    my $as_text;
-                    $as_text = sub {
-                        my ($elements, $text) = @_;
-                        $text = "" unless defined $text;
+                $title;
+            };
 
-                        while (defined(my $elem = shift @$elements)) {
-                            if (Scalar::Util::blessed($elem) && $elem->isa('HTML::Element')) {
-                                next    if lc($elem->tag) eq 'h3';    # Skip headline
-                                @_ = ([$elem->content_list, @$elements], $text);
-                                goto &$as_text;
-                            } else {
-                                my $s = "$elem";    # Stringify (call overload "")
-                                next    if $s =~ /\A\s*\Z/m;
-                                $s =~ s/\s*/ /m;    # Shrink all whitespaces
-                                $text .= $s;
-                            }
+            my $summary = do {
+                # Get the inner text of all tags.
+                my $as_text;
+                $as_text = sub {
+                    my ($elements, $text) = @_;
+                    $text = "" unless defined $text;
 
-                            return $text.' ...' if length($text) > $max_strlen;
+                    while (defined(my $elem = shift @$elements)) {
+                        if (Scalar::Util::blessed($elem) && $elem->isa('HTML::Element')) {
+                            next    if lc($elem->tag) eq 'h3';    # Skip headline
+                            @_ = ([$elem->content_list, @$elements], $text);
+                            goto &$as_text;
+                        } else {
+                            my $s = "$elem";    # Stringify (call overload "")
+                            next    if $s =~ /\A\s*\Z/m;
+                            $s =~ s/\s*/ /m;    # Shrink all whitespaces
+                            $text .= $s;
                         }
 
-                        return $text;
-                    };
-
-                    my $sm;
-                    for my $section ($tree->look_down(class => 'section')) {
-                        $sm .= $as_text->([$section->content_list]);
-                        last    if length($sm) >= $max_strlen;
+                        return $text.' ...' if length($text) > $max_strlen;
                     }
 
-                    $sm;
+                    return $text;
                 };
 
-                $tree = $tree->delete;    # For memory
+                my $sm;
+                for my $section ($tree->look_down(class => 'section')) {
+                    $sm .= $as_text->([$section->content_list]);
+                    last    if length($sm) >= $max_strlen;
+                }
+
+                $sm;
+            };
+
+            $tree = $tree->delete;    # For memory
 
 
-                # Newer to older
-                unshift @entry, {
-                    'date'    => join('-', @date),
-                    'year'    => $date[0],
-                    'month'   => $date[1],
-                    'day'     => $date[2],
-                    'epoch'   => $epoch,
-                    'title'   => $title,
-                    'link'    => $basename,
-                    'summary' => $summary,
-                };
+            # Newer to older
+            unshift @entry, {
+                'date'    => join('-', @date),
+                'year'    => $date[0],
+                'month'   => $date[1],
+                'day'     => $date[2],
+                'epoch'   => $epoch,
+                'title'   => $title,
+                'link'    => $basename,
+                'summary' => $summary,
+            };
 
-                # dump($entry[0]);
-            }
-            $template->param(entrylist => \@entry);
+            # dump($entry[0]);
+        }
+        $template->param(entrylist => \@entry);
 
-            my $now = DateTime->now;
-            $template->param(lastchanged_datetime => $now);
-            $template->param(lastchanged_year  => $now->year);
-            $template->param(lastchanged_month => $now->month);
-            $template->param(lastchanged_day   => $now->day);
-            $template->param(lastchanged_epoch => $now->epoch);
+        my $now = DateTime->now;
+        $template->param(lastchanged_datetime => $now);
+        $template->param(lastchanged_year  => $now->year);
+        $template->param(lastchanged_month => $now->month);
+        $template->param(lastchanged_day   => $now->day);
+        $template->param(lastchanged_epoch => $now->epoch);
 
 
-            # Output
-            my $index_html = File::Spec->catfile($html_dir, "index.html");
-            open my $OUT, '>', $index_html or error_exit("$index_html:$!");
-            print $OUT $template->output;
-            close $OUT;
+        # Output
+        my $index_html = File::Spec->catfile($html_dir, "index.html");
+        open my $OUT, '>', $index_html or error_exit("$index_html:$!");
+        print $OUT $template->output;
+        close $OUT;
 
-            debug("generated $index_html...");
-        };
-
-        no strict 'refs';
-        *update_index_main = $update_index_main;
-    }
+        debug("generated $index_html...");
+    };
 
 
     my $path = shift(@$args);
@@ -745,14 +736,14 @@ sub update_index {
         if (@$args) {
             my $dir = shift @$args;
             error("$dir:$!") unless -d $dir;
-            hw_main::update_index_main($dir, $path);
+            $update_index_main->($dir, $path);
         } else {
-            hw_main::update_index_main(dirname($path), $path);
+            $update_index_main->(dirname($path), $path);
         }
 
     } elsif (-d $path) {
         my $index_tmpl = File::Spec->catfile($path, 'index.tmpl');
-        hw_main::update_index_main($path, $index_tmpl);
+        $update_index_main->($path, $index_tmpl);
 
     } else {
         warning("$path is neither file nor directory.");

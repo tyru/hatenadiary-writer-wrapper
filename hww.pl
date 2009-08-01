@@ -53,7 +53,7 @@ sub restore_args {
 
 
 ### main ###
-my ($hww_args, $subcmd, $subcmd_args) = parse_opt(@ARGV);
+my ($hww_args, $subcmd, $subcmd_args) = split_opt(@ARGV);
 
 my $show_help;
 my $show_version;

@@ -214,24 +214,20 @@ sub get_touchdate {
 
 # separate options into hww.pl's options and hw.pl's options.
 # (like git)
-sub parse_opt {
+sub split_opt {
     my @hww_opt;
     my $subcmd;
-    my @subcmd_opt;
 
-    for my $a (@_) {
-        if (defined $subcmd) {
-            push @subcmd_opt, $a;
+    while (defined(my $a = shift)) {
+        if ($a =~ /^-/) {
+            push @hww_opt, $a;
         } else {
-            if ($a =~ /^-/) {
-                push @hww_opt, $a;
-            } else {
-                $subcmd = $a;    # found command
-            }
+            $subcmd = $a;    # found command
+            last;
         }
     }
 
-    return (\@hww_opt, $subcmd, \@subcmd_opt);
+    return (\@hww_opt, $subcmd, [@_]);
 }
 
 
