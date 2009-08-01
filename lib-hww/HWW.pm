@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.3.3';
+our $VERSION = '0.3.4';
 
 # import util subs.
 use HWW::UtilSub;
@@ -197,7 +197,6 @@ sub load {
     }) or error("arguments error");
 
 
-    # TODO use cookie
     if ($all) {
         package hw_main;
 

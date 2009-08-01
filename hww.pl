@@ -119,6 +119,9 @@ get_opt($hww_args, \%hww_opt) or do {
     # for using subroutine which manipulates
     # API without module.
     require 'hw.pl';
+
+    # use cookie. (default)
+    $hw_main::cmd_opt{c} = 1;
 }
 
 
