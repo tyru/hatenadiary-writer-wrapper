@@ -128,14 +128,18 @@ get_opt($hww_args, \%hww_opt) or do {
     local @ARGV = restore_hw_opt(%hw_opt);
     debug(sprintf 'restored @ARGV (for hw.pl): [%s]', join(' ', @ARGV));
 
-    # for using subroutine which manipulates
-    # API without module.
+    # load hw.pl and let it process @ARGV.
+    # (pass only hw.pl's options)
+    #
+    # to use subroutine which manipulates API without module.
     require 'hw.pl';
 }
+
+# apply the result options which was parsed in this script to hw.pl
 {
-    # use cookie. (default)
     no warnings 'once';
-    $hw_main::cmd_opt{c} = 1 unless $no_cookie;
+
+    $hw_main::cmd_opt{c} = 1 unless $no_cookie;    # use cookie. (default)
     $hw_main::cmd_opt{d} = 1 if $debug;
     # update %hw_main::cmd_opt with %hw_opt.
     %hw_main::cmd_opt = (%hw_main::cmd_opt, map {
@@ -143,7 +147,6 @@ get_opt($hww_args, \%hww_opt) or do {
         ((split '=')[0] => $hw_opt{$_}) :
         ()
     } keys %hw_opt);
-    dump(\%hw_main::cmd_opt);
 }
 
 

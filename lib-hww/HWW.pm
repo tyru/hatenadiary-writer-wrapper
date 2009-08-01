@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.12';
+our $VERSION = '0.4.13';
 
 # import util subs.
 use HWW::UtilSub;
@@ -54,22 +54,23 @@ our %HWW_COMMAND = (
 sub dispatch {
     my ($self, $cmd, $args) = @_;
 
-    if ($hww_main::debug) {
-        my ($filename, $line) = (caller)[1,2];
-        $filename = basename($filename);
-        my $args = join ', ', map { dumper($_) } @_;
-        debug("at $filename line $line: dispatch($args)");
-    }
-
     unless (blessed $self) {
         $self = bless {}, $self;
+    }
+
+    unless (defined $cmd) {
+        error("no command was given.");
     }
     unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
-    dump(\@_);
-    debug("dispatch '$cmd'");
+    # some debug messages.
+    my ($filename, $line) = (caller)[1,2];
+    $filename = basename($filename);
+    my $args_dumped = join ', ', map { dumper($_) } @_;
+    debug("at $filename line $line: dispatch($args_dumped)");
+    debug(sprintf "dispatch '$cmd' with [%s]", join(', ', @$args));
 
     my $subname = $HWW_COMMAND{$cmd};
     $self->$subname($args);
@@ -82,7 +83,7 @@ sub dispatch {
 # display help information about hww
 sub help {
     my ($self, $args) = @_;
-    my $cmd = exists $args->[0] ? $args->[0] : undef;
+    my $cmd = shift @$args;
 
     unless (defined $cmd) {
         pod2usage(-verbose => 1, -input => $0, -exitval => "NOEXIT");
