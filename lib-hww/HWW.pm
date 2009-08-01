@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.3';
+our $VERSION = '0.4.4';
 
 # import util subs.
 use HWW::UtilSub;
@@ -776,6 +776,7 @@ sub update_index {
 # perl hww.pl chain gen-html from to -- update-index index.tmpl to -- version
 sub chain {
     my ($self, $args) = @_;
+    return unless @$args;
 
     shift @$args while $args->[0] =~ /^-/;
 
@@ -786,7 +787,7 @@ sub chain {
     push @dispatch, do {
         my @command_args;
 
-        while ($_ = shift @$args) {
+        while (defined($_ = shift @$args)) {
             if ($_ eq '--') {
                 last;
             } else {
