@@ -152,7 +152,7 @@ sub get_entries {
     my ($dir, $fileglob) = @_;
 
     # set default value.
-    $dir      = $hw_main::txt_dir unless defined $dir;
+    $dir      = $HW::txt_dir unless defined $dir;
     $fileglob = '*.txt'           unless defined $fileglob;
 
     grep {
@@ -176,7 +176,7 @@ sub get_entries_hash {
 # NOTE: unused
 sub get_touchdate {
     my $touch_time = do {
-        my $FH = FileHandle->new($hw_main::touch_file, 'r') or error(":$!");
+        my $FH = FileHandle->new($HW::touch_file, 'r') or error(":$!");
         chomp(my $line = <$FH>);
         $FH->close;
 

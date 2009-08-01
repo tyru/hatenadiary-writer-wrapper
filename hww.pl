@@ -14,6 +14,7 @@ BEGIN {
 }
 use lib $HWW_LIB;
 
+use HW;    # to use subroutines which manipulates API without module.
 use HWW;
 use HWW::UtilSub;
 
@@ -130,33 +131,20 @@ get_opt($hww_args, \%hww_opt) or do {
     usage();
 };
 
-{
-    # restore $hww_args for hw.pl
-    local @ARGV = restore_hw_opt(%hw_opt);
-    debug(sprintf 'restored @ARGV (for hw.pl): [%s]', join(' ', @ARGV));
+# restore $hww_args for hw.pl
+my @argv = restore_hw_opt(%hw_opt);
+# pass only hw.pl's options
+HW::parse_opt(@argv);
 
-    # load hw.pl and let it process @ARGV.
-    # (pass only hw.pl's options)
-    #
-    # to use subroutine which manipulates API without module.
-    require 'hw.pl';
-    no warnings 'once';
-    error("unknown options were given in hw.pl") unless $hw_main::parsed_options;
-}
-
+$HW::cmd_opt{c} = 1 unless $no_cookie;
+$HW::cmd_opt{d} = 1 if $debug;
 # apply the result options which was parsed in this script to hw.pl
-{
-    no warnings 'once';
-
-    $hw_main::cmd_opt{c} = 1 unless $no_cookie;    # use cookie. (default)
-    $hw_main::cmd_opt{d} = 1 if $debug;
-    # update %hw_main::cmd_opt with %hw_opt.
-    %hw_main::cmd_opt = (%hw_main::cmd_opt, map {
-        defined $hw_opt{$_} ?    # if option was given
-        ((split '=')[0] => $hw_opt{$_}) :
-        ()
-    } keys %hw_opt);
-}
+# update %HW::cmd_opt with %hw_opt.
+%HW::cmd_opt = (%HW::cmd_opt, map {
+    defined $hw_opt{$_} ?    # if option was given
+    ((split '=')[0] => $hw_opt{$_}) :
+    ()
+} keys %hw_opt);
 
 
 usage()   if $show_help;

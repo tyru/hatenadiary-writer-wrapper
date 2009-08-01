@@ -20,11 +20,11 @@
 # Modified by Kengo Koseki (id:koseki2)
 #    http://d.hatena.ne.jp/koseki2/
 #
-package hw_main;
+package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.4.2.9";
+our $VERSION = "1.5.0";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -114,7 +114,6 @@ our $delete_title = 'delete';
 our $cookie_jar;
 our $user_agent;
 our $rkm; # session id for posting.
-our $parsed_options;
 
 # Handle command-line option.
 our %cmd_opt = (
@@ -134,37 +133,6 @@ our %cmd_opt = (
     'D' => "",  # "diff" option.
 );
 
-$Getopt::Std::STANDARD_HELP_VERSION = 1;
-getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
-$parsed_options = 1;
-
-if ($cmd_opt{d}) {
-    print_debug("Debug flag on.");
-    print_debug("Cookie flag on.") if $cmd_opt{c};
-    print_debug("Trivial flag on.") if $cmd_opt{t};
-    VERSION_MESSAGE();
-}
-
-# Override config file name (before load_config).
-$config_file = $cmd_opt{n} if $cmd_opt{n};
-
-# Override global vars with config file.
-load_config() if -e($config_file);
-
-# Override global vars with command-line options.
-$username = $cmd_opt{u} if $cmd_opt{u};
-$password = $cmd_opt{p} if $cmd_opt{p};
-$groupname = $cmd_opt{g} if $cmd_opt{g};
-$ua_option{agent} = $cmd_opt{a} if $cmd_opt{a};
-$ua_option{timeout} = $cmd_opt{T} if $cmd_opt{T};
-$target_file = $cmd_opt{f} if $cmd_opt{f};
-$load_date = $cmd_opt{l} if $cmd_opt{l};
-$diff_date = $cmd_opt{D} if $cmd_opt{D};
-
-# Change $hatena_url to Hatena group URL if ($groupname is defined).
-if ($groupname) {
-    $hatena_url = "http://$groupname.g.hatena.ne.jp";
-}
 
 if ($0 eq __FILE__) {
     # Start.
@@ -178,6 +146,44 @@ if ($0 eq __FILE__) {
 
     # no-error exit.
     exit(0);
+}
+
+
+
+
+sub parse_opt {
+    local @ARGV = @_;
+
+    local $Getopt::Std::STANDARD_HELP_VERSION = 1;
+    getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
+
+    if ($cmd_opt{d}) {
+        print_debug("Debug flag on.");
+        print_debug("Cookie flag on.") if $cmd_opt{c};
+        print_debug("Trivial flag on.") if $cmd_opt{t};
+        VERSION_MESSAGE();
+    }
+
+    # Override config file name (before load_config).
+    $config_file = $cmd_opt{n} if $cmd_opt{n};
+
+    # Override global vars with config file.
+    load_config() if -e($config_file);
+
+    # Override global vars with command-line options.
+    $username = $cmd_opt{u} if $cmd_opt{u};
+    $password = $cmd_opt{p} if $cmd_opt{p};
+    $groupname = $cmd_opt{g} if $cmd_opt{g};
+    $ua_option{agent} = $cmd_opt{a} if $cmd_opt{a};
+    $ua_option{timeout} = $cmd_opt{T} if $cmd_opt{T};
+    $target_file = $cmd_opt{f} if $cmd_opt{f};
+    $load_date = $cmd_opt{l} if $cmd_opt{l};
+    $diff_date = $cmd_opt{D} if $cmd_opt{D};
+
+    # Change $hatena_url to Hatena group URL if ($groupname is defined).
+    if ($groupname) {
+        $hatena_url = "http://$groupname.g.hatena.ne.jp";
+    }
 }
 
 # Load diary main sequence. -l option

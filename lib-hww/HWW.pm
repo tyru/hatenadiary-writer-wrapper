@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.16';
+our $VERSION = '1.0.0';
 
 # import util subs.
 use HWW::UtilSub;
@@ -44,7 +44,7 @@ our %HWW_COMMAND = (
 
 # TODO
 # - write the document (under hwwlib/pod/)
-# - use Hatena AtomPub API. rewrite hw_main 's subroutine.
+# - use Hatena AtomPub API. rewrite HW 's subroutine.
 
 
 
@@ -133,9 +133,9 @@ sub init {
     });
 
     if ($read_config) {
-        $txt_dir = $hw_main::txt_dir;
-        $config_file = $hw_main::config_file;
-        $cookie_file = $hw_main::cookie_file;
+        $txt_dir = $HW::txt_dir;
+        $config_file = $HW::config_file;
+        $cookie_file = $HW::cookie_file;
     }
     my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
 
@@ -208,7 +208,7 @@ sub load {
 
 
     if ($all) {
-        package hw_main;
+        package HW;
 
         use HWW::UtilSub qw(require_modules get_entries_hash);
         require_modules(qw(XML::TreePP));
@@ -266,7 +266,7 @@ sub load {
         # unstable.
         # sometimes I can't login.
         # (something wrong with cookie.txt ?)
-        package hw_main;
+        package HW;
 
         use HWW::UtilSub qw(require_modules);
         require_modules(qw(LWP::Authen::Wsse XML::TreePP));
@@ -389,7 +389,7 @@ sub verify {
 
     my @entry = get_entries($dir, $fileglob);
     unless (@entry) {
-        $dir = defined $dir ? $dir : $hw_main::txt_dir;
+        $dir = defined $dir ? $dir : $HW::txt_dir;
         puts("$dir: no entries found.");
         exit 0;
     }
@@ -455,8 +455,8 @@ sub status {
         # updated only.
         puts("updated entries:") unless $no_caption;
         for my $entry (get_entries()) {
-            if ((-e $entry && -e $hw_main::touch_file)
-                && -M $entry < -M $hw_main::touch_file)
+            if ((-e $entry && -e $HW::touch_file)
+                && -M $entry < -M $HW::touch_file)
             {
                 print "  " unless $no_caption;
                 puts($entry);
@@ -489,7 +489,7 @@ sub apply_headline {
         return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
-        my $new_filename = hw_main::text_filename(
+        my $new_filename = HW::text_filename(
             $date->{year},
             $date->{month},
             $date->{day},
@@ -504,7 +504,7 @@ sub apply_headline {
     };
 
     if ($all) {
-        for my $file (glob "$hw_main::txt_dir/*.txt") {
+        for my $file (glob "$HW::txt_dir/*.txt") {
             $apply->($file);
         }
     } else {
@@ -521,7 +521,7 @@ sub apply_headline {
 sub touch {
     my ($self, $args) = @_;
 
-    my $filename = File::Spec->catfile($hw_main::txt_dir, 'touch.txt');
+    my $filename = File::Spec->catfile($HW::txt_dir, 'touch.txt');
     my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
     # NOTE: I assume that this format is compatible
     # between Date::Manip::UnixDate and POSIX::strftime.
