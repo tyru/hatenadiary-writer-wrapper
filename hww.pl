@@ -121,6 +121,7 @@ get_opt($hww_args, \%hww_opt) or do {
     require 'hw.pl';
 
     # use cookie. (default)
+    no warnings 'once';
     $hw_main::cmd_opt{c} = 1;
 }
 
