@@ -24,7 +24,7 @@ package hw_main;
 
 use strict;
 use warnings;
-our $VERSION = "1.4.2.8";
+our $VERSION = "1.4.2.9";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -114,6 +114,7 @@ our $delete_title = 'delete';
 our $cookie_jar;
 our $user_agent;
 our $rkm; # session id for posting.
+our $parsed_options;
 
 # Handle command-line option.
 our %cmd_opt = (
@@ -135,6 +136,7 @@ our %cmd_opt = (
 
 $Getopt::Std::STANDARD_HELP_VERSION = 1;
 getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error_exit("Unknown option.");
+$parsed_options = 1;
 
 if ($cmd_opt{d}) {
     print_debug("Debug flag on.");

@@ -140,6 +140,8 @@ get_opt($hww_args, \%hww_opt) or do {
     #
     # to use subroutine which manipulates API without module.
     require 'hw.pl';
+    no warnings 'once';
+    error("unknown options were given in hw.pl") unless $hw_main::parsed_options;
 }
 
 # apply the result options which was parsed in this script to hw.pl
