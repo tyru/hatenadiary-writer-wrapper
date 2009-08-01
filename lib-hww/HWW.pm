@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.10';
+our $VERSION = '0.4.11';
 
 # import util subs.
 use HWW::UtilSub;
@@ -189,18 +189,21 @@ sub load {
 
     my $all;
     my $draft;
+    my $missing_only;
     get_opt($args, {
         all => \$all,
         a => \$all,
         draft => \$draft,
         d => \$draft,
+        'missing-only' => \$missing_only,
+        m => \$missing_only,
     }) or error("arguments error");
 
 
     if ($all) {
         package hw_main;
 
-        use HWW::UtilSub qw(require_modules);
+        use HWW::UtilSub qw(require_modules get_entries_hash);
         require_modules(qw(XML::TreePP));
 
         # import and declare package global variables.
@@ -234,6 +237,7 @@ sub load {
 
         my $xml_parser = XML::TreePP->new;
         my $entries = $xml_parser->parse($r->content);
+        my %current_entries = get_entries_hash();
 
         for my $entry (@{ $entries->{diary}{day} }) {
             my ($year, $month, $day);
@@ -243,7 +247,9 @@ sub load {
                 error_exit($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
             }
 
-            save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+            unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
+                save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+            }
         }
 
         logout() if ($user_agent);
@@ -266,6 +272,7 @@ sub load {
             my $save_diary_draft = sub ($$$) {
                 my ($epoch, $title, $body) = @_;
                 my $filename = draft_filename($epoch);
+                return if $missing_only && -f $filename;
 
                 my $OUT;
                 if (not open $OUT, ">", $filename) {
@@ -274,7 +281,7 @@ sub load {
                 print $OUT $title."\n";
                 print $OUT $body;
                 close $OUT;
-                print_debug("save_diary_entry: return 1 (OK)");
+                print_debug("save_diary_entry: wrote $filename");
                 return 1;
             };
 
@@ -488,7 +495,8 @@ sub apply_headline {
             $apply->($file);
         }
     } else {
-        if (defined(my $file = shift(@$args))) {
+        my $file;
+        if (defined($file = shift(@$args)) && -f $file) {
             $apply->($file);
         } else {
             $self->arg_error;

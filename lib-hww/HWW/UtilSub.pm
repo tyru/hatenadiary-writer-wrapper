@@ -160,6 +160,16 @@ sub get_entries {
     } glob "$dir/$fileglob"
 }
 
+sub get_entries_hash {
+    my @entries = get_entries(@_);
+    my %hash;
+    for my $date (map { get_entrydate($_) } @entries) {
+        my $ymd = join '-', @$date{qw(year month day)};
+        $hash{$ymd} = $date;
+    }
+    %hash;
+}
+
 # get misc info about time from 'touch.txt'.
 # NOTE: unused
 sub get_touchdate {
