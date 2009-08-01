@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl update-index [-m <length> | --max-length <length>] [--] [<html directory> | <template file>]
+    perl hww.pl update-index [-m <length> | --max-length <length>] [-i | --update-index] [-I <template file>] [--] [<html directory> | <template file>]
 
 
 =head1 DESCRIPTION
@@ -100,6 +100,19 @@ this might be published at 'http://tyru.yu-nagi.com/hateda-mirror/index.html'.
 
 define max length of summary's literal bytes.
 but currently this option value is recognized as string bytes.
+
+=item -i, --update-index
+
+if this option was given and if two directories were given,
+this performs 'perl hww.pl update-index <destination directory>'.
+
+or if this option was given and if two files were given,
+this performs 'perl hww.pl update-index <directory of destination file>'.
+
+=item -I <template file>
+
+this performs 'perl hww.pl update-index <template file> <destination directory>'.
+do nothing if two files were given and this option was given.
 
 =back
 
