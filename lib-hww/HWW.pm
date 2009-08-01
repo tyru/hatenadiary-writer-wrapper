@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.11';
+our $VERSION = '0.4.12';
 
 # import util subs.
 use HWW::UtilSub;
@@ -79,6 +79,7 @@ sub dispatch {
 
 ### hww commands ###
 
+# display help information about hww
 sub help {
     my ($self, $args) = @_;
     my $cmd = exists $args->[0] ? $args->[0] : undef;
@@ -109,12 +110,14 @@ sub help {
     pod2usage(-verbose => 2, -input => $podpath, -exitval => "NOEXIT");
 }
 
+# display version information about hww
 sub version {
     print <<EOD;
 Hatena Diary Writer Wrapper version $HWW::VERSION
 EOD
 }
 
+# TODO write help pod
 sub init {
     my ($self, $args) = @_;
 
@@ -161,6 +164,7 @@ EOT
     chmod 0600, $cookie_file;
 }
 
+# upload entries to hatena diary
 sub release {
     my ($self, $args) = @_;
 
@@ -178,12 +182,14 @@ sub release {
     call_hw(@hww_args);
 }
 
+# upload entries to hatena diary as trivial
 sub update {
     my ($self, $args) = @_;
     unshift @$args, '-t';
     $self->release($args);
 }
 
+# load entries from hatena diary
 sub load {
     my ($self, $args) = @_;
 
@@ -255,6 +261,10 @@ sub load {
         logout() if ($user_agent);
 
     } elsif ($draft) {
+        # FIXME
+        # unstable.
+        # sometimes I can't login.
+        # (something wrong with cookie.txt ?)
         package hw_main;
 
         use HWW::UtilSub qw(require_modules);
@@ -281,7 +291,7 @@ sub load {
                 print $OUT $title."\n";
                 print $OUT $body;
                 close $OUT;
-                print_debug("save_diary_entry: wrote $filename");
+                print_debug("save_diary_draft: wrote $filename");
                 return 1;
             };
 
@@ -359,7 +369,8 @@ sub load {
     }
 }
 
-# currently only checking duplicated entries.
+# verify misc information
+# NOTE: currently only checking duplicated entries.
 sub verify {
     my ($self, $args) = @_;
 
@@ -420,7 +431,7 @@ sub verify {
     }
 }
 
-# show entry's status
+# show information about entry files
 sub status {
     my ($self, $args) = @_;
 
@@ -452,7 +463,8 @@ sub status {
         }
     }
 }
- 
+
+# rename if modified headlines.
 sub apply_headline {
     my ($self, $args) = @_;
 
@@ -504,6 +516,7 @@ sub apply_headline {
     }
 }
 
+# update 'touch.txt'
 sub touch {
     my ($self, $args) = @_;
 
@@ -525,6 +538,7 @@ sub touch {
     $FH->close;
 }
 
+# generate htmls from entry files
 sub gen_html {
     my ($self, $args) = @_;
 
@@ -589,16 +603,16 @@ sub gen_html {
         }
 
         if (defined $index_tmpl) {
-            $self->dispatch('update-index', [$index_tmpl, $out])
+            $self->dispatch('update-index' => [$index_tmpl, $out])
         } elsif ($make_index) {
-            $self->dispatch('update-index', [$out]);
+            $self->dispatch('update-index' => [$out]);
         }
 
     } elsif (-f $in && (-f $out || ! -e $out)) {
         $gen_html->($in, $out);
 
         if ($make_index) {
-            $self->dispatch('update-index', [dirname($out)]);
+            $self->dispatch('update-index' => [dirname($out)]);
         }
 
     } else {
@@ -607,6 +621,7 @@ sub gen_html {
     }
 }
 
+# make html from template file by HTML::Template
 sub update_index {
     my ($self, $args) = @_;
 
@@ -760,7 +775,8 @@ sub update_index {
     }
 }
 
-# perl hww.pl chain gen-html from to -- update-index index.tmpl to -- version
+# chain commands with '--'
+#   perl hww.pl chain gen-html from to -- update-index index.tmpl to -- version
 sub chain {
     my ($self, $args) = @_;
     return unless @$args;

@@ -68,6 +68,7 @@ sub debug {
 sub dump {
     debug(dumper(@_));
 }
+*CORE::GLOBAL::dump = \&dump;
 
 sub dumper {
     local $Data::Dumper::Indent = 0;
@@ -125,7 +126,7 @@ sub require_modules {
 sub get_entrydate {
     my $path = shift;
 
-    # $path may be html file.
+    # $path might be html file.
     if (File::Basename::basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.(html|txt)\Z/) {
         return {
             year  => $1,
@@ -149,12 +150,13 @@ sub find_headlines {
 
 sub get_entries {
     my ($dir, $fileglob) = @_;
+
     # set default value.
-    $dir      = defined $dir      ? $dir      : $hw_main::txt_dir;
-    $fileglob = defined $fileglob ? $fileglob : '*.txt';
+    $dir      = $hw_main::txt_dir unless defined $dir;
+    $fileglob = '*.txt'           unless defined $fileglob;
 
     grep {
-        -e $_ && -f $_
+        -e $_ && -f _
     } grep {
         defined get_entrydate($_)
     } glob "$dir/$fileglob"
@@ -197,8 +199,8 @@ sub get_touchdate {
 {
     # gnu_compat: --opt="..." is allowed.
     # no_bundling: single character option is not bundled.
+    # no_auto_abbrev: single character option is not bundled.(which?)
     # no_ignore_case: no ignore case on long option.
-    # XXX 'no_bundling' does not work?
     my $parser = Getopt::Long::Parser->new(
         config => [qw(
             gnu_compat

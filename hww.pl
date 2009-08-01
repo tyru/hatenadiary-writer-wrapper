@@ -54,6 +54,10 @@ sub restore_hw_opt {
 
 
 ### main ###
+unless (@ARGV) {
+    usage();
+    exit -1;
+}
 my ($hww_args, $subcmd, $subcmd_args) = split_opt(@ARGV);
 
 my $show_help;
@@ -62,33 +66,24 @@ our $no_cookie;
 # hw.pl's options.
 our %hw_opt = (
     t => \my $t,
-    # trivial => \$trivial,
 
     'u=s' => \my $u,
-    # 'username=s' => \$username,
 
     'p=s' => \my $p,
-    # 'password=s' => \$password,
 
     'a=s' => \my $a,
-    # 'agent=s' => \$agent,
 
     'T=s' => \my $T,
-    # 'timeout=s' => \$timeout,
 
     'g=s' => \my $g,
-    # 'group=s' => \$group,
 
     'f=s' => \my $f,
-    # 'file=s' => \$entry_file,
 
     M => \my $M,
 
     'n=s' => \my $n,
-    # 'config-file=s'
 
     S => \my $S,
-    # ssl => \$ssl,
 );
 
 
@@ -109,12 +104,23 @@ my %hww_opt = (
     'no-cookie' => \$no_cookie,
 
     %hw_opt,
+
+    # TODO long version of hw.pl's options
+    # trivial => \$trivial,
+    # 'username=s' => \$username,
+    # 'password=s' => \$password,
+    # 'agent=s' => \$agent,
+    # 'timeout=s' => \$timeout,
+    # 'group=s' => \$group,
+    # 'file=s' => \$entry_file,
+    # 'config-file=s'
+    # ssl => \$ssl,
 );
 
 get_opt($hww_args, \%hww_opt) or do {
     warning "arguments error";
     sleep 1;
-    usage;
+    usage();
 };
 
 {
@@ -141,11 +147,11 @@ get_opt($hww_args, \%hww_opt) or do {
 }
 
 
-usage   if $show_help;
-version if $show_version;
-usage   unless defined $subcmd;
+usage()   if $show_help;
+version() if $show_version;
+usage()   unless defined $subcmd;
 
-HWW->dispatch($subcmd, $subcmd_args);
+HWW->dispatch($subcmd => $subcmd_args);
 
 
 __END__
