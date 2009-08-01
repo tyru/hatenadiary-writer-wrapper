@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.2.1';
+our $VERSION = '0.3.0';
 
 # import util subs.
 use HWW::UtilSub;
@@ -24,6 +24,7 @@ use POSIX ();
 our %HWW_COMMAND = (
     help => 'help',
     version => 'version',
+    init => 'init',
     release => 'release',
     update => 'update',
     load => 'load',
@@ -45,7 +46,6 @@ our %HWW_COMMAND = (
 
 # TODO
 # - write the document (under hwwlib/pod/)
-# - the option which hw.pl can use should also be used in hww.pl
 # - use Hatena AtomPub API. rewrite hw_main 's subroutine.
 
 
@@ -115,6 +115,52 @@ EOD
     exit;
 }
 
+sub init {
+    my ($self, $args) = @_;
+
+    my $txt_dir = "text";
+    my $config_file = "config.txt";
+    my $cookie_file = "cookie.txt";
+
+    my $read_config;
+    get_opt($args, {
+        config => \$read_config,
+        c => \$read_config,
+    });
+
+    if ($read_config) {
+        $txt_dir = $hw_main::txt_dir;
+        $config_file = $hw_main::config_file;
+        $cookie_file = $hw_main::cookie_file;
+    }
+    my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
+
+
+    unless (-e $txt_dir) {
+        mkdir $txt_dir;
+    }
+
+    unless (-e $config_file) {
+        my $CONF = FileHandle->new($config_file, 'w') or error("$config_file:$!");
+        $CONF->print(<<EOT);
+id:yourid
+txt_dir:$txt_dir
+touch:$touch_file
+client_encoding:utf-8
+server_encoding:euc-jp
+EOT
+        $CONF->close;
+    }
+
+    unless (-e $cookie_file) {
+        # touch
+        my $TOUCH = FileHandle->new($cookie_file, 'w') or error("$cookie_file:$!");
+        $TOUCH->close;
+    }
+
+    chmod 0600, $cookie_file;
+}
+
 sub release {
     my ($self, $args) = @_;
 
@@ -148,9 +194,10 @@ sub load {
         a => \$all,
         draft => \$draft,
         d => \$draft,
-    }) or error("load: arguments error");
+    }) or error("arguments error");
 
 
+    # TODO use cookie
     if ($all) {
         package hw_main;
 
@@ -462,6 +509,7 @@ sub touch {
     if (@$args) {
         require_modules(qw(Date::Manip));
         Date::Manip->import(qw(ParseDate UnixDate));
+        # NOTE: this parser is not compatible with 'rake touch <string>'.
         $FH->print(UnixDate(ParseDate(shift @$args), $touch_fmt));
     } else {
         $FH->print(POSIX::strftime($touch_fmt, localtime));
@@ -537,9 +585,6 @@ sub gen_html {
 
     } elsif (-f $in && (-f $out || ! -e $out)) {
         $gen_html->($in, $out);
-
-        # *.txt -> *.html
-        $out =~ s/\.txt$/.html/;
 
         if ($make_index) {
             $self->dispatch('update-index', [dirname($out)]);

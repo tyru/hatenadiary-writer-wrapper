@@ -34,20 +34,26 @@ use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
 ### util subs ###
 
 sub warning {
+    my $subname = (caller 1)[3];
+    $subname = defined $subname ? " $subname:" : "";
+
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1, 2];
-        warn "warning: at $filename line $line:", @_, "\n";
+        warn "warning:$subname at $filename line $line:", @_, "\n";
     } else {
-        warn "warning: ", @_, "\n";
+        warn "warning:$subname ", @_, "\n";
     }
 }
 
 sub error {
+    my $subname = (caller 1)[3];
+    $subname = defined $subname ? " $subname:" : "";
+
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1, 2];
-        die "error: at $filename line $line:", @_, "\n";
+        die "error:$subname at $filename line $line:", @_, "\n";
     } else {
-        die "error: ", @_, "\n";
+        die "error:$subname ", @_, "\n";
     }
 }
 
