@@ -22,11 +22,7 @@ use File::Spec ();
 use File::Basename ();
 use FileHandle ();
 use POSIX ();
-# gnu_compat: --opt="..." is allowed.
-# no_bundling: single character option is not bundled.
-# no_ignore_case: no ignore case on long option.
-# XXX 'no_bundling' does not work?
-use Getopt::Long qw(:config gnu_compat no_bundling no_ignore_case);
+use Getopt::Long ();
 
 
 
@@ -182,20 +178,36 @@ sub get_touchdate {
     };
 }
 
-sub get_opt {
-    my ($argv, $opt) = @_;
+{
+    # gnu_compat: --opt="..." is allowed.
+    # no_bundling: single character option is not bundled.
+    # no_ignore_case: no ignore case on long option.
+    # XXX 'no_bundling' does not work?
+    my $parser = Getopt::Long::Parser->new(
+        config => [qw(
+            gnu_compat
+            no_bundling
+            no_auto_abbrev
+            no_ignore_case
+        )]
+    );
 
-    debug('$opt = '.dumper($opt));
-    debug('before: $argv = '.dumper($argv));
+    sub get_opt {
+        my ($argv, $opt) = @_;
 
-    local @ARGV = @$argv;
-    my $result = GetOptions(%$opt);
+        debug('$opt = '.dumper($opt));
+        debug('before: $argv = '.dumper($argv));
 
-    # update arguments. delete all processed options.
-    @$argv = @ARGV;
-    debug('after: $argv = '.dumper($argv));
+        local @ARGV = @$argv;
+        my $result = $parser->getoptions(%$opt);
+        # my $result = GetOptions(%$opt);
 
-    return $result;
+        # update arguments. delete all processed options.
+        @$argv = @ARGV;
+        debug('after: $argv = '.dumper($argv));
+
+        return $result;
+    }
 }
 
 # separate options into hww.pl's options and hw.pl's options.
@@ -247,7 +259,12 @@ sub arg_error {
     warn $@;
     STDERR->flush;
 
-    sleep 1;
+    if ($hww_main::debug) {
+        print "press enter to continue...";
+        <STDIN>;
+    } else {
+        sleep 1;
+    }
     $self->dispatch('help', [$cmdname]);
 }
 

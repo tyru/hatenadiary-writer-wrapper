@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.3.1';
+our $VERSION = '0.3.2';
 
 # import util subs.
 use HWW::UtilSub;
@@ -602,7 +602,7 @@ sub update_index {
     my $max_strlen = 200;
     get_opt($args, {
         'max-length=s' => \$max_strlen,
-        # 'm' => \$max_strlen,
+        'm=s' => \$max_strlen,
     });
 
 
@@ -610,7 +610,7 @@ sub update_index {
     {
         package hw_main;
 
-        use HWW::UtilSub qw(require_modules dump);
+        use HWW::UtilSub qw(require_modules debug puts);
         require_modules(qw(
             HTML::TreeBuilder
             HTML::Template
@@ -686,17 +686,18 @@ sub update_index {
                         return $text;
                     };
 
-                    my $max_strlen = 200;    # TODO get this value from option
                     my $sm;
                     for my $section ($tree->look_down(class => 'section')) {
                         $sm .= $as_text->($section);
                         last    if length($sm) >= $max_strlen;
                     }
 
-                    # Take the head of $max_strlen literal bytes.
+                    # Take $max_strlen literal bytes of the head.
+                    # NOTE: currently take $max_strlen bytes of the head.
                     if (length($sm) >= $max_strlen) {
                         $sm  = substr $sm, 0, $max_strlen;
                         $sm .= " ...";
+                        puts("truncate $max_strlen bytes: $basename: $sm");
                     }
 
                     $sm;
@@ -717,7 +718,7 @@ sub update_index {
                     'summary' => $summary,
                 };
 
-                dump($entry[0]);
+                # dump($entry[0]);
             }
             $template->param(entrylist => \@entry);
 
@@ -734,6 +735,8 @@ sub update_index {
             open my $OUT, '>', $index_html or error_exit("$index_html:$!");
             print $OUT $template->output;
             close $OUT;
+
+            debug("generated $index_html...");
         };
 
         no strict 'refs';
