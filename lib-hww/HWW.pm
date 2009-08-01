@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.1';
+our $VERSION = '0.4.2';
 
 # import util subs.
 use HWW::UtilSub;
@@ -84,6 +84,8 @@ sub help {
     my $cmd = exists $args->[0] ? $args->[0] : undef;
 
     unless (defined $cmd) {
+        pod2usage(-verbose => 1, -input => $0, -exitval => "NOEXIT");
+        
         puts("available commands:");
         for my $command (keys %HWW_COMMAND) {
             puts("  $command");
