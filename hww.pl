@@ -86,6 +86,21 @@ our %hw_opt = (
     S => \my $S,
 );
 
+# this is additinal options which I added.
+# not hw.pl's options.
+our %hw_opt_long = (
+    trivial => $hw_opt{t},
+    'username=s' => $hw_opt{'u=s'},
+    'password=s' => $hw_opt{'p=s'},
+    'agent=s' => $hw_opt{'a=s'},
+    'timeout=s' => $hw_opt{'T=s'},
+    'group=s' => $hw_opt{'g=s'},
+    'file=s' => $hw_opt{'f=s'},
+    'no-replace' => $hw_opt{M},
+    'config-file=s' => $hw_opt{'n=s'},
+    ssl => $hw_opt{S},
+);
+
 
 # do not change $hww_args.
 our $debug;
@@ -104,17 +119,7 @@ my %hww_opt = (
     'no-cookie' => \$no_cookie,
 
     %hw_opt,
-
-    # TODO long version of hw.pl's options
-    # trivial => \$trivial,
-    # 'username=s' => \$username,
-    # 'password=s' => \$password,
-    # 'agent=s' => \$agent,
-    # 'timeout=s' => \$timeout,
-    # 'group=s' => \$group,
-    # 'file=s' => \$entry_file,
-    # 'config-file=s'
-    # ssl => \$ssl,
+    %hw_opt_long,
 );
 
 get_opt($hww_args, \%hww_opt) or do {
