@@ -28,7 +28,8 @@ sub version () {
     HWW->version(@_);
 }
 
-sub restore_args {
+# for hw.pl
+sub restore_hw_opt {
     my %opt = @_;
     my @argv;
 
@@ -113,16 +114,25 @@ get_opt($hww_args, \%hww_opt) or do {
 
 {
     # restore $hww_args for hw.pl
-    local @ARGV = restore_args(%hw_opt);
-    debug('restored @ARGV: '.join(' ', @ARGV));
+    local @ARGV = restore_hw_opt(%hw_opt);
+    debug(sprintf 'restored @ARGV (for hw.pl): [%s]', join(' ', @ARGV));
 
     # for using subroutine which manipulates
     # API without module.
     require 'hw.pl';
-
+}
+{
     # use cookie. (default)
     no warnings 'once';
-    $hw_main::cmd_opt{c} = 1;
+    $hw_main::cmd_opt{c} = 1 unless $no_cookie;
+    $hw_main::cmd_opt{d} = 1 if $debug;
+    # update %hw_main::cmd_opt with %hw_opt.
+    %hw_main::cmd_opt = (%hw_main::cmd_opt, map {
+        defined $hw_opt{$_} ?    # if option was given
+        ((split '=')[0] => $hw_opt{$_}) :
+        ()
+    } keys %hw_opt);
+    dump(\%hw_main::cmd_opt);
 }
 
 
