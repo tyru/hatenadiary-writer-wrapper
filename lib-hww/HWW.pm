@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.6';
+our $VERSION = '0.4.7';
 
 # import util subs.
 use HWW::UtilSub;
@@ -113,7 +113,6 @@ sub version {
     print <<EOD;
 Hatena Diary Writer Wrapper version $HWW::VERSION
 EOD
-    exit;
 }
 
 sub init {
