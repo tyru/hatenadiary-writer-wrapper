@@ -12,6 +12,7 @@
 =head1 DESCRIPTION
 
 rename filename of entry files if new/deleted headlines found.
+if you want to name the entry files, you don't need to use this.
 
 
 =head1 OPTIONS

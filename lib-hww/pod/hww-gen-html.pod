@@ -14,8 +14,12 @@
 
 if two paths are both directories (or second path doesn't exist),
 generate htmls in second directory from entry files in first directory
+
 if two path are both files (or second path doesn't exist),
 generate a html to second path from first path.
+
+and if you give '-i' option, exec 'update-index' command
+after this command performed.
 
 
 =head1 OPTIONS

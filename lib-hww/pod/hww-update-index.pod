@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl update-index [<html directory> | <template file>]
+    perl hww.pl update-index [-m <length> | --max-length <length>] [--] [<html directory> | <template file>]
 
 
 =head1 DESCRIPTION
@@ -18,11 +18,90 @@ this defines some parameter and generate html file by HTML::Template.
 =head1 THE SAMPLES OF THE TEMPLATE FILE
 
 
+  <TMPL_LOOP NAME="entrylist">
+    <br />
+    <a href=<TMPL_VAR NAME="link">>
+      <TMPL_VAR NAME="date"> <TMPL_VAR NAME="title">
+    </a>
+
+    <br />
+    <!-- uncomment the following if you want to show the simple summary. -->
+    <!-- <TMPL_VAR NAME="summary"> -->
+  </TMPL_LOOP>
+
+
+this is my 'index.html'.
+this might be published at 'http://tyru.yu-nagi.com/hateda-mirror/index.html'.
+
+  <?xml version="1.0" encoding="UTF-8"?>
+  <html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
+    <head>
+      <meta http-equiv="Content-Type" content="text/HTML; charset=UTF-8" />
+      <meta http-equiv="Content-Style-Type" content="text/css" />
+      <meta http-equiv="Content-Script-Type" content="text/javascript" />
+
+      <meta name="keywords" content="" />
+      <meta name="description" content="" />
+      <meta name="robots" content="index, follow" />
+      <meta name="author" content="tyru" />
+      <meta name="generator" content="gVim" />
+      <!-- vim:ts=2:sw=2:sts=0:tw=80:et: -->
+
+      <style type="text/css">
+        div.entry {
+        }
+        div.summary {
+          border: 1px solid #000;
+          background-color: #ccc;
+        }
+      </style>
+
+
+      <title>mirror of http://d.hatena.ne.jp/tyru/</title>
+
+    </head>
+    <body>
+
+      this is mirror of hatena diary.<br />
+      this file will be updated as needed.<br />
+      <br />
+      <br />
+      <br />
+
+      <TMPL_LOOP NAME="entrylist">
+        <br />
+
+        <div class="entry">
+          <a href=<TMPL_VAR NAME="link">>
+            <TMPL_VAR NAME="date"> <TMPL_VAR NAME="title">
+          </a>
+          <br />
+          <div class="summary">
+            <TMPL_VAR NAME="summary">
+          </div>
+        </div>
+      </TMPL_LOOP>
+
+      <br />
+      <br />
+      <hr />
+      Last Changed:<TMPL_VAR NAME="lastchanged_datetime">
+
+    </body>
+  </html>
+
 
 
 =head1 OPTIONS
 
-No options.
+=over
+
+=item -m <length>, --max-length <length>
+
+define max length of summary's literal bytes.
+but currently this option value is recognized as string bytes.
+
+=back
 
 
 =head1 AUTHOR

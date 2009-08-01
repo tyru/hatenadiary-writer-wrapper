@@ -6,12 +6,16 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl load [[-a | --all] <directory>] [--] <YYYY-MM-DD>
+    perl hww.pl load [-a | --all] [-d | --draft] [--] <directory>
+    or
+    perl hww.pl load <YYYY-MM-DD>
 
 
 =head1 DESCRIPTION
 
-### NOT WRITTEN YET ###
+load entries from hatena diary.
+if you don't give any options, load diary of YYYY-MM-DD.
+see hw.pl's '-l' option.
 
 
 =head1 OPTIONS

@@ -1,12 +1,12 @@
 
 =head1 NAME
 
-    hww-release - upload entries to hatena diary as trivial
+    hww-update - upload entries to hatena diary as trivial
 
 
 =head1 SYNOPSIS
 
-    perl hww.pl update [-t | --trivial]
+    perl hww.pl update [release command options]
 
 
 =head1 DESCRIPTION

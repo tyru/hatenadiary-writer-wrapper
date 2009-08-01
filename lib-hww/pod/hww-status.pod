@@ -1,12 +1,12 @@
 
 =head1 NAME
 
-    hww-show-entry - show information about entry files
+    hww-status - show information about entry files
 
 
 =head1 SYNOPSIS
 
-    perl hww.pl show-entry [-a | --all] [-C | --no-caption]
+    perl hww.pl status [-a | --all] [-C | --no-caption]
 
 
 =head1 DESCRIPTION

@@ -14,8 +14,11 @@
 upload entries to hatena diary.
 this command calls hw.pl internally.
 
-we will rewrite old subroutines to use Hatena AtomPub API in the future.
-so this command won't call hw.pl at that time.
+
+=head1 TODO
+
+we will rewrite old subroutines which does not use Hatena AtomPub API in the future.
+(these old subroutines were written when Hatena AtomPub API does not exist)
 
 
 =head1 OPTIONS

@@ -6,12 +6,16 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl touch
+    perl hww.pl touch [<date format>]
 
 
 =head1 DESCRIPTION
 
-update 'touch.txt'.
+update 'touch.txt' in current date.
+this command updates touch.txt's DATA (not mtime).
+<date format> was parsed by Date::Manip module.
+so if you want to make touch.txt's date older or newer,
+you need to install Date::Manip.
 
 
 =head1 OPTIONS
