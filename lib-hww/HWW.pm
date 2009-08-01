@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.4';
+our $VERSION = '0.4.5';
 
 # import util subs.
 use HWW::UtilSub;
@@ -664,27 +664,24 @@ sub update_index {
 
                 my $summary = do {
                     # Get the inner text of all tags.
-                    # TODO
-                    # - make this sub tail recursion
-                    # - return $text if $max_strlen <= length($text)
                     my $as_text;
                     $as_text = sub {
-                        my $section = shift || return "";
-                        my @elements = $section->content_list();
+                        my ($elements, $text) = @_;
+                        $text = "" unless defined $text;
 
-                        return ""   unless @elements;
-
-                        my $text = "";
-                        for my $elem (@elements) {
+                        while (defined(my $elem = shift @$elements)) {
                             if (Scalar::Util::blessed($elem) && $elem->isa('HTML::Element')) {
                                 next    if lc($elem->tag) eq 'h3';    # Skip headline
-                                $text .= $as_text->($elem);
+                                @_ = ([$elem->content_list, @$elements], $text);
+                                goto &$as_text;
                             } else {
-                                my $s = "$elem";    # Stringify
+                                my $s = "$elem";    # Stringify (call overload "")
                                 next    if $s =~ /\A\s*\Z/m;
                                 $s =~ s/\s*/ /m;    # Shrink all whitespaces
                                 $text .= $s;
                             }
+
+                            return $text.' ...' if length($text) > $max_strlen;
                         }
 
                         return $text;
@@ -692,16 +689,8 @@ sub update_index {
 
                     my $sm;
                     for my $section ($tree->look_down(class => 'section')) {
-                        $sm .= $as_text->($section);
+                        $sm .= $as_text->([$section->content_list]);
                         last    if length($sm) >= $max_strlen;
-                    }
-
-                    # Take $max_strlen literal bytes of the head.
-                    # NOTE: currently take $max_strlen bytes of the head.
-                    if (length($sm) >= $max_strlen) {
-                        $sm  = substr $sm, 0, $max_strlen;
-                        $sm .= " ...";
-                        puts("truncate $max_strlen bytes: $basename: $sm");
                     }
 
                     $sm;
