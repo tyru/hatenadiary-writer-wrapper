@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.3.0';
+our $VERSION = '0.3.1';
 
 # import util subs.
 use HWW::UtilSub;
@@ -599,11 +599,11 @@ sub gen_html {
 sub update_index {
     my ($self, $args) = @_;
 
-
-    my $path = shift(@$args);
-    unless (defined $path) {
-        $self->arg_error;
-    }
+    my $max_strlen = 200;
+    get_opt($args, {
+        'max-length=s' => \$max_strlen,
+        # 'm' => \$max_strlen,
+    });
 
 
     # apply patch dynamically.
@@ -662,7 +662,7 @@ sub update_index {
                     # Get the inner text of all tags.
                     # TODO
                     # - make this sub tail recursion
-                    # - return $text if $max_count <= length($text)
+                    # - return $text if $max_strlen <= length($text)
                     my $as_text;
                     $as_text = sub {
                         my $section = shift || return "";
@@ -686,16 +686,16 @@ sub update_index {
                         return $text;
                     };
 
-                    my $max_count = 200;    # TODO get this value from option
+                    my $max_strlen = 200;    # TODO get this value from option
                     my $sm;
                     for my $section ($tree->look_down(class => 'section')) {
                         $sm .= $as_text->($section);
-                        last    if length($sm) >= $max_count;
+                        last    if length($sm) >= $max_strlen;
                     }
 
-                    # Take the head of $max_count literal bytes.
-                    if (length($sm) >= $max_count) {
-                        $sm  = substr $sm, 0, $max_count;
+                    # Take the head of $max_strlen literal bytes.
+                    if (length($sm) >= $max_strlen) {
+                        $sm  = substr $sm, 0, $max_strlen;
                         $sm .= " ...";
                     }
 
@@ -740,6 +740,11 @@ sub update_index {
         *update_index_main = $update_index_main;
     }
 
+
+    my $path = shift(@$args);
+    unless (defined $path) {
+        $self->arg_error;
+    }
 
     if (-f $path) {
         hw_main::update_index_main(dirname($path), $path);
