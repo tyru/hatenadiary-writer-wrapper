@@ -96,6 +96,7 @@ our %hw_opt = (
 my %hww_opt = (
     help => \$show_help,
     version => \$show_version,
+    d => \$debug,
     debug => \$debug,
 
     C => \$no_cookie,
@@ -148,11 +149,11 @@ __END__
 
 =over
 
-=item -h,--help
+=item --help
 
 show this help text.
 
-=item -v,--version
+=item --version
 
 show version.
 
