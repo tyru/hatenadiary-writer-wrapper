@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.3.5';
+our $VERSION = '0.3.6';
 
 # import util subs.
 use HWW::UtilSub;
@@ -749,7 +749,13 @@ sub update_index {
     }
 
     if (-f $path) {
-        hw_main::update_index_main(dirname($path), $path);
+        if (@$args) {
+            my $dir = shift @$args;
+            error("$dir:$!") unless -d $dir;
+            hw_main::update_index_main($dir, $path);
+        } else {
+            hw_main::update_index_main(dirname($path), $path);
+        }
 
     } elsif (-d $path) {
         my $index_tmpl = File::Spec->catfile($path, 'index.tmpl');
