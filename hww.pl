@@ -22,10 +22,12 @@ use HWW::UtilSub;
 ### sub ###
 sub usage () {
     HWW->dispatch('help');
+    exit -1;
 }
 
 sub version () {
     HWW->version(@_);
+    exit -1;
 }
 
 # for hw.pl
