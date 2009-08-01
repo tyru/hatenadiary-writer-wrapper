@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.3.6';
+our $VERSION = '0.4.0';
 
 # import util subs.
 use HWW::UtilSub;
@@ -34,10 +34,8 @@ our %HWW_COMMAND = (
     touch => 'touch',
     'gen-html' => 'gen_html',
     'update-index' => 'update_index',
-    # TODO command for exec commands continually.
-    # chain => 'chain',
-    # ./hww.pl chain gen-html update-index
-    #
+    chain => 'chain',
+
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
     # 'delete-tag' => 'delete_tag',
@@ -58,8 +56,9 @@ sub dispatch {
 
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1,2];
+        $filename = basename($filename);
         my $args = join ', ', map { dumper($_) } @_;
-        debug("dispatch($args) is called from at $filename line $line");
+        debug("at $filename line $line: dispatch($args)");
     }
 
     unless (blessed $self) {
@@ -765,6 +764,37 @@ sub update_index {
         warning("$path is neither file nor directory.");
         STDERR->flush;
         $self->arg_error;
+    }
+}
+
+# perl hww.pl chain gen-html from to -- update-index index.tmpl to -- version
+sub chain {
+    my ($self, $args) = @_;
+
+    shift @$args while $args->[0] =~ /^-/;
+
+    # @$args: (foo -x -- bar -y -- baz -z)
+    # @dispatch:   ([qw(foo -x)], [qw(bar -y)], [qw(baz -z)])
+
+    my @dispatch;
+    push @dispatch, do {
+        my @command_args;
+
+        while ($_ = shift @$args) {
+            if ($_ eq '--') {
+                last;
+            } else {
+                push @command_args, $_;
+            }
+        }
+
+        \@command_args;
+    } while @$args;
+
+
+    for (@dispatch) {
+        my ($command, @args) = @$_;
+        $self->dispatch($command => \@args);
     }
 }
 

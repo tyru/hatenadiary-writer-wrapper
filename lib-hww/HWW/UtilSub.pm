@@ -35,6 +35,7 @@ sub warning {
 
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1, 2];
+        $filename = File::Basename::basename($filename);
         warn "warning:$subname at $filename line $line:", @_, "\n";
     } else {
         warn "warning:$subname ", @_, "\n";
@@ -47,6 +48,7 @@ sub error {
 
     if ($hww_main::debug) {
         my ($filename, $line) = (caller)[1, 2];
+        $filename = File::Basename::basename($filename);
         die "error:$subname at $filename line $line:", @_, "\n";
     } else {
         die "error:$subname ", @_, "\n";
@@ -239,6 +241,7 @@ sub parse_opt {
 sub arg_error {
     my $self = shift;
     my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
+    $filename = File::Basename::basename($filename);
     debug("arg_error: called at $filename line $line");
 
     $subname =~ s/.*:://;    # delete package's name
