@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.0';
+our $VERSION = '0.4.1';
 
 # import util subs.
 use HWW::UtilSub;
@@ -91,7 +91,7 @@ sub help {
         puts;
         puts("and if you want to know hww.pl's option, perldoc -F hww.pl");
 
-        exit 0;    # end.
+        return;
     }
 
     unless (is_hww_command($cmd)) {
@@ -104,7 +104,7 @@ sub help {
     }
 
     debug("show pod '$podpath'");
-    pod2usage(-verbose => 2, -input => $podpath);
+    pod2usage(-verbose => 2, -input => $podpath, -exitval => "NOEXIT");
 }
 
 sub version {
