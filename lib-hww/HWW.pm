@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '0.4.2';
+our $VERSION = '0.4.3';
 
 # import util subs.
 use HWW::UtilSub;
@@ -522,10 +522,12 @@ sub gen_html {
     my ($self, $args) = @_;
 
     my $make_index;
+    my $index_tmpl;
     my $missing_only;
     get_opt($args, {
         'update-index' => \$make_index,
         i => \$make_index,
+        'I=s' => \$index_tmpl,
         'missing-only' => \$missing_only,
         m => \$missing_only,
     });
@@ -579,7 +581,9 @@ sub gen_html {
             }
         }
 
-        if ($make_index) {
+        if (defined $index_tmpl) {
+            $self->dispatch('update-index', [$index_tmpl, $out])
+        } elsif ($make_index) {
             $self->dispatch('update-index', [$out]);
         }
 
