@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.5";
+our $VERSION = "1.5.6";
 
 use HWWrapper::UtilSub;
 
@@ -247,14 +247,14 @@ sub release {
     if ($cmd_opt{f}) {
         # Do not check timestamp.
         push(@files, $cmd_opt{f});
-        debug("release: files: option -f: @files");
+        debug("files: option -f: @files");
     } else {
         while (glob("$txt_dir/*.txt")) {
             # Check timestamp.
             next if (-e($touch_file) and (-M($_) > -M($touch_file)));
             push(@files, $_);
         }
-        debug("release: files: current dir ($txt_dir): @files");
+        debug("files: current dir ($txt_dir): @files");
     }
 
     # Process it.
@@ -305,7 +305,7 @@ sub release {
         unless ($cmd_opt{f}) {
             # Touch file.
             my $FILE;
-            open($FILE, "> $touch_file") or die "$!:$touch_file\n";
+            open($FILE, '>', $touch_file) or die "$!:$touch_file\n";
             print $FILE $self->get_timestamp();
             close($FILE);
         }
@@ -319,9 +319,9 @@ sub login() {
     $user_agent->env_proxy;
     if ($http_proxy) {
         $user_agent->proxy('http', $http_proxy);
-        debug("login: proxy for http: $http_proxy");
+        debug("proxy for http: $http_proxy");
         $user_agent->proxy('https', $http_proxy);
-        debug("login: proxy for https: $http_proxy");
+        debug("proxy for https: $http_proxy");
     }
 
     # Ask username if not set.
@@ -332,13 +332,13 @@ sub login() {
 
     # If "cookie" flag is on, and cookie file exists, do not login.
     if ($cmd_opt{c} and -e($cookie_file)) {
-        debug("login: Loading cookie jar.");
+        debug("Loading cookie jar.");
 
         $cookie_jar = HTTP::Cookies->new;
         $cookie_jar->load($cookie_file);
         $cookie_jar->scan(\&get_rkm);
 
-        debug("login: \$cookie_jar = " . $cookie_jar->as_string);
+        debug("\$cookie_jar = " . $cookie_jar->as_string);
 
         puts("Skip login.");
 
@@ -371,9 +371,9 @@ sub login() {
             HTTP::Request::Common::POST("$hatena_sslregister_url", \%form)
         );
 
-        debug("login: " . $r->status_line);
+        debug($r->status_line);
 
-        debug("login: \$r = " . $r->content());
+        debug("\$r = " . $r->content());
     } else {
         # For older version.
 
@@ -382,7 +382,7 @@ sub login() {
             HTTP::Request::Common::POST("$hatena_url/login", \%form)
         );
 
-        debug("login: " . $r->status_line);
+        debug($r->status_line);
 
         if (not $r->is_redirect) {
             error("Login: Unexpected response: ", $r->status_line);
@@ -401,14 +401,14 @@ sub login() {
 
     puts("Login OK.");
 
-    debug("login: Making cookie jar.");
+    debug("Making cookie jar.");
 
     $cookie_jar = HTTP::Cookies->new;
     $cookie_jar->extract_cookies($r);
     $cookie_jar->save($cookie_file);
     $cookie_jar->scan(\&get_rkm);
 
-    debug("login: \$cookie_jar = " . $cookie_jar->as_string);
+    debug("\$cookie_jar = " . $cookie_jar->as_string);
 }
 
 # get session id.
@@ -417,7 +417,7 @@ sub get_rkm($$$$$$$$$$$) {
     my ($version, $key, $val) = @_;
     if ($key eq 'rk') {
         $rkm = md5_base64($val);
-        debug("get_rkm: \$rkm = " . $rkm);
+        debug("\$rkm = " . $rkm);
     }
 }
 
@@ -440,7 +440,7 @@ sub logout() {
 
     $user_agent->cookie_jar($cookie_jar);
     my $r = $user_agent->get("$hatena_url/logout");
-    debug("logout: " . $r->status_line);
+    debug($r->status_line);
 
     if (not $r->is_redirect and not $r->is_success) {
         error("Logout: Unexpected response: ", $r->status_line);
@@ -489,7 +489,7 @@ sub doit_and_retry($$) {
         if ($ok or not $cmd_opt{c}) {
             last;
         }
-        debug("try_it: $msg");
+        debug($msg);
         unlink($cookie_file);
         puts("Old cookie. Retry login.");
         $self->login();
@@ -506,7 +506,7 @@ sub delete_it($) {
     my $self = shift;
     my ($date) = @_;
 
-    debug("delete_it: $date");
+    debug($date);
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -521,21 +521,21 @@ sub delete_it($) {
         )
     );
 
-    debug("delete_it: " . $r->status_line);
+    debug($r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
         error("Delete: Unexpected response: ", $r->status_line);
     }
 
-    debug("delete_it: Location: " . $r->header("Location"));
+    debug("Location: " . $r->header("Location"));
 
     # Check the result. ERROR if the location ends with the date.
     # (Note that delete error != post error)
     if ($r->header("Location") =~ m(/$date$)) {                    # /)){
-        debug("delete_it: returns 0 (ERROR).");
+        debug("returns 0 (ERROR).");
         return 0;
     } else {
-        debug("delete_it: returns 1 (OK).");
+        debug("returns 1 (OK).");
         return 1;
     }
 }
@@ -544,7 +544,7 @@ sub create_it($$$) {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    debug("create_it: $year-$month-$day.");
+    debug("$year-$month-$day.");
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -570,20 +570,20 @@ sub create_it($$$) {
         )
     );
 
-    debug("create_it: " . $r->status_line);
+    debug($r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
         error("Create: Unexpected response: ", $r->status_line);
     }
 
-    debug("create_it: Location: " . $r->header("Location"));
+    debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
-        debug("create_it: returns 1 (OK).");
+        debug("returns 1 (OK).");
         return 1;
     } else {
-        debug("create_it: returns 0 (ERROR).");
+        debug("returns 0 (ERROR).");
 
         return 0;
     }
@@ -593,7 +593,7 @@ sub post_it($$$$$$) {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
-    debug("post_it: $year-$month-$day.");
+    debug("$year-$month-$day.");
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -621,20 +621,20 @@ sub post_it($$$$$$) {
         )
     );
 
-    debug("post_it: " . $r->status_line);
+    debug($r->status_line);
 
     if (not $r->is_redirect) {
         error("Post: Unexpected response: ", $r->status_line);
     }
 
-    debug("post_it: Location: " . $r->header("Location"));
+    debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
-        debug("post_it: returns 1 (OK).");
+        debug("returns 1 (OK).");
         return 1;
     } else {
-        debug("post_it: returns 0 (ERROR).");
+        debug("returns 0 (ERROR).");
         return 0;
     }
 }
@@ -675,9 +675,9 @@ sub read_title_body($) {
     if ($filter_command) {
         $input = sprintf("$filter_command |", $file);
     }
-    debug("read_title_body: input: $input");
+    debug("input: $input");
     my $FILE;
-    if (not open($FILE, $input)) {
+    if (not open($FILE, '<', $input)) {
         error("$!:$input");
     }
     my $title = <$FILE>; # first line.
@@ -704,13 +704,13 @@ sub find_image_file($) {
         my $imgfile = "$path$base.$ext";
         if (-e $imgfile) {
             if ($cmd_opt{f}) {
-                debug("find_image_file: -f option, always update: $imgfile");
+                debug("-f option, always update: $imgfile");
                 return $imgfile;
             } elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
-                debug("find_image_file: skip $imgfile (not updated).");
+                debug("skip $imgfile (not updated).");
                 next;
             } else {
-                debug("find_image_file: $imgfile");
+                debug($imgfile);
                 return $imgfile;
             }
         }
@@ -725,7 +725,7 @@ sub replace_timestamp($) {
 
     # Read.
     my $FILE;
-    open($FILE, $filename) or error("$!: $filename");
+    open($FILE, '<', $filename) or error("$!: $filename");
     my $file = join('', <$FILE>);
     close($FILE);
 
@@ -735,8 +735,8 @@ sub replace_timestamp($) {
 
     # Write if replaced.
     if ($newfile ne $file) {
-        debug("replace_timestamp: $filename");
-        open($FILE, "> $filename") or error("$!: $filename");
+        debug($filename);
+        open($FILE, '>', $filename) or error("$!: $filename");
         print $FILE $newfile;
         close($FILE);
     }
@@ -752,7 +752,7 @@ sub load_config() {
     my $self = shift;
     debug("Loading config file ($config_file).");
     my $CONF;
-    if (not open($CONF, $config_file)) {
+    if (not open($CONF, '<', $config_file)) {
         error("Can't open $config_file.");
     }
     while (<$CONF>) {
@@ -763,35 +763,35 @@ sub load_config() {
             # skip blank line.
         } elsif (/^id:([^:]+)$/) {
             $username = $1;
-            debug("load_config: id:$username");
+            debug("id:$username");
         } elsif (/^g:([^:]+)$/) {
             $groupname = $1;
-            debug("load_config: g:$groupname");
+            debug("g:$groupname");
         } elsif (/^password:(.*)$/) {
             $password = $1;
-            debug("load_config: password:********");
+            debug("password:********");
         } elsif (/^cookie:(.*)$/) {
             $cookie_file = glob($1);
             $cmd_opt{c} = 1; # If cookie file is specified, Assume '-c' is given.
-            debug("load_config: cookie:$cookie_file");
+            debug("cookie:$cookie_file");
         } elsif (/^proxy:(.*)$/) {
             $http_proxy = $1;
-            debug("load_config: proxy:$http_proxy");
+            debug("proxy:$http_proxy");
         } elsif (/^client_encoding:(.*)$/) {
             $client_encoding = $1;
-            debug("load_config: client_encoding:$client_encoding");
+            debug("client_encoding:$client_encoding");
         } elsif (/^server_encoding:(.*)$/) {
             $server_encoding = $1;
-            debug("load_config: server_encoding:$server_encoding");
+            debug("server_encoding:$server_encoding");
         } elsif (/^filter:(.*)$/) {
             $filter_command = $1;
-            debug("load_config: filter:$filter_command");
+            debug("filter:$filter_command");
         } elsif (/^txt_dir:(.*)$/) {
             $txt_dir = glob($1);
-            debug("load_config: txt_dir:$txt_dir");
+            debug("txt_dir:$txt_dir");
         } elsif (/^touch:(.*)$/) {
             $touch_file = glob($1);
-            debug("load_config: touch:$touch_file");
+            debug("touch:$touch_file");
         } else {
             error("Unknown command '$_' in $config_file.");
         }
@@ -807,14 +807,14 @@ sub load_diary_entry($$$) {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    debug("load_it: $hatena_url/$username/edit?date=$year$month$day");
+    debug("$hatena_url/$username/edit?date=$year$month$day");
 
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
         HTTP::Request::Common::GET("$hatena_url/$username/edit?date=$year$month$day"));
 
-    debug("load_it: " . $r->status_line);
+    debug($r->status_line);
 
     if (not $r->is_success()) {
         error("Load: Unexpected response: ", $r->status_line);
@@ -850,7 +850,7 @@ sub load_diary_entry($$$) {
         Encode::from_to($body, $server_encoding, $client_encoding);
     }
 
-    debug("load_it: OK");
+    debug("OK");
     return ($title, $body);
 }
 
@@ -896,13 +896,13 @@ sub save_diary_entry {
     # $self->backup($filename);
     
     my $OUT;
-    if (not open($OUT, ">$filename")) {
+    if (not open($OUT, '>', $filename)) {
         error("$!:$filename");
     }
     print $OUT $title."\n";
     print $OUT $body;
     close($OUT);
-    debug("save_diary_entry: return 1 (OK)");
+    debug("wrote $filename");
     return 1;
 }
 

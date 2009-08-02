@@ -47,7 +47,7 @@ our %HWW_COMMAND = (
 );
 
 # TODO
-# - write the document (under hwwlib/pod/)
+# - write the document (under lib-hww/pod/)
 # - use Hatena AtomPub API. rewrite HW 's subs.
 # - HWのサブルーチンをHWWrapper::UtilSubで置き換えられる所は置き換える
 # - HWのデバッグメッセージを変更
