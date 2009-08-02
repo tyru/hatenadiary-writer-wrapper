@@ -14,7 +14,6 @@ BEGIN {
 }
 use lib $HWW_LIB;
 
-use HW;    # to use subroutines which manipulates API without module.
 use HWW;
 use HWW::UtilSub;
 
@@ -131,7 +130,7 @@ get_opt($hww_args, \%hww_opt) or do {
 # restore $hww_args for hw.pl
 my @argv = restore_hw_opt(%hw_opt);
 # pass only hw.pl's options
-HW::parse_opt(@argv);
+HWW->parse_opt(@argv);
 
 $HW::cmd_opt{c} = 1 unless $no_cookie;
 $HW::cmd_opt{d} = 1 if $debug;

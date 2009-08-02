@@ -4,7 +4,9 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.1.0';
+
+use base 'HW';
 
 # import util subs.
 use HWW::UtilSub;
@@ -212,33 +214,23 @@ sub load {
 
 
     if ($all) {
-        package HW;
-
-        use HWW::UtilSub qw(require_modules get_entries_hash);
         require_modules(qw(XML::TreePP));
 
-        # import and declare package global variables.
-        our $user_agent;
-        our $cookie_jar;
-        our $hatena_url;
-        our $username;
-        our $txt_dir;
-
         if (@$args) {
-            $txt_dir = shift(@$args);
+            $HW::txt_dir = shift(@$args);
         }
-        unless (-d $txt_dir) {
-            mkdir $txt_dir or error_exit("$txt_dir:$!");
+        unless (-d $HW::txt_dir) {
+            mkdir $HW::txt_dir or $self->error_exit("$HW::txt_dir:$!");
         }
 
         # Login if necessary.
-        login() unless ($user_agent);
+        $self->login() unless ($HW::user_agent);
 
-        $user_agent->cookie_jar($cookie_jar);
+        $HW::user_agent->cookie_jar($HW::cookie_jar);
 
-        my $export_url = "$hatena_url/$username/export";
-        print_debug("GET $export_url");
-        my $r = $user_agent->simple_request(
+        my $export_url = "$HW::hatena_url/$HW::username/export";
+        $self->print_debug("GET $export_url");
+        my $r = $HW::user_agent->simple_request(
             HTTP::Request::Common::GET($export_url)
         );
 
@@ -255,52 +247,51 @@ sub load {
             if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
                 ($year, $month, $day) = ($1, $2, $3);
             } else {
-                error_exit($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
+                $self->error_exit($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
             }
 
             unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
-                save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+                $self->save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
             }
         }
 
-        logout() if ($user_agent);
+        $self->logout() if ($HW::user_agent);
 
     } elsif ($draft) {
         # FIXME
         # unstable.
         # sometimes I can't login.
         # (something wrong with cookie.txt ?)
-        package HW;
-
-        use HWW::UtilSub qw(require_modules);
         require_modules(qw(LWP::Authen::Wsse XML::TreePP));
 
 
         my $draft_dir = shift(@$args);
         $self->arg_error unless defined $draft_dir;
         unless (-d $draft_dir) {
-            mkdir $draft_dir or error_exit("can't mkdir $draft_dir:$!");
+            mkdir $draft_dir or $self->error_exit("can't mkdir $draft_dir:$!");
         }
 
         # apply patch dynamically.
         {
             my $save_diary_draft = sub ($$$) {
+                my $self = shift;
                 my ($epoch, $title, $body) = @_;
-                my $filename = draft_filename($epoch);
+                my $filename = $self->draft_filename($epoch);
                 return if $missing_only && -f $filename;
 
                 my $OUT;
                 if (not open $OUT, ">", $filename) {
-                    error_exit("$!:$filename");
+                    $self->error_exit("$!:$filename");
                 }
                 print $OUT $title."\n";
                 print $OUT $body;
                 close $OUT;
-                print_debug("save_diary_draft: wrote $filename");
+                $self->print_debug("save_diary_draft: wrote $filename");
                 return 1;
             };
 
             my $draft_filename = sub ($) {
+                my $self = shift;
                 my ($epoch) = @_;
                 return File::Spec->catfile($draft_dir, "$epoch.txt");
             };
@@ -310,43 +301,36 @@ sub load {
             *draft_filename = $draft_filename;
         }
 
-        # import and declare package global variables.
-        our $user_agent;
-        our $cookie_jar;
-        our $hatena_url;
-        our $username;
-        our $password;
 
+        $self->login() unless ($HW::user_agent);
 
-        login() unless ($user_agent);
+        $HW::user_agent->cookie_jar($HW::cookie_jar);
 
-        $user_agent->cookie_jar($cookie_jar);
-
-        # $user_agent->credentials("d.hatena.ne.jp", '', $username, $password);
+        # $HW::user_agent->credentials("d.hatena.ne.jp", '', $HW::username, $HW::password);
         {
             # Override get_basic_credentials
             # to return current username and password.
             package LWP::UserAgent;
             no warnings qw(redefine once);
-            *get_basic_credentials = sub { ($username, $password) };
+            *get_basic_credentials = sub { ($HW::username, $HW::password) };
         }
 
         # http://d.hatena.ne.jp/{user}/atom/draft
-        my $draft_collection_url = "$hatena_url/$username/atom/draft";
+        my $draft_collection_url = "$HW::hatena_url/$HW::username/atom/draft";
         my $xml_parser = XML::TreePP->new;
 
         # save draft entry.
-        print_message("getting drafts...");
+        $self->print_message("getting drafts...");
         for (my $page_num = 1; ; $page_num++) {
             my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
-            # $user_agent->simple_request() can't handle authentication response.
-            print_debug("GET $url");
-            my $r = $user_agent->request(
+            # $HW::user_agent->simple_request() can't handle authentication response.
+            $self->print_debug("GET $url");
+            my $r = $HW::user_agent->request(
                 HTTP::Request::Common::GET($url)
             );
 
             unless ($r->is_success) {
-                error_exit("couldn't get drafts: ".$r->status_line);
+                $self->error_exit("couldn't get drafts: ".$r->status_line);
             }
 
             my $drafts = $xml_parser->parse($r->content);
@@ -359,11 +343,11 @@ sub load {
 
             for my $entry (@{ $feed->{entry} }) {
                 my $epoch = (split '/', $entry->{'link'}{'-href'})[-1];
-                save_diary_draft($epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
+                $self->save_diary_draft($epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
             }
         }
 
-        logout() if ($user_agent);
+        $self->logout() if ($HW::user_agent);
 
     } else {
         if (defined(my $ymd = shift(@$args))) {
@@ -493,7 +477,7 @@ sub apply_headline {
         return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
-        my $new_filename = HW::text_filename(
+        my $new_filename = $self->text_filename(
             $date->{year},
             $date->{month},
             $date->{day},
