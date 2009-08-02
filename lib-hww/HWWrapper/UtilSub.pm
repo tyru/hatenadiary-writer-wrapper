@@ -1,4 +1,4 @@
-package HWW::UtilSub;
+package HWWrapper::UtilSub;
 
 use strict;
 use warnings;
@@ -10,9 +10,7 @@ use subs qw(dump);
 # export all subroutine.
 our @EXPORT = our @EXPORT_OK = do {
     no strict 'refs';
-    my @subname = grep { *$_{CODE} } keys %HWW::UtilSub::;
-    debug("exporting ".join(', ', @subname));
-    @subname;
+    grep { defined *$_{CODE} } keys %HWWrapper::UtilSub::;
 };
 
 
@@ -31,7 +29,7 @@ use Carp ();
 ### util subs ###
 
 sub warning {
-    if ($hww_main::debug) {
+    if ($HWWrapper::debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
         $subname = defined $subname ? " $subname:" : "";
@@ -42,7 +40,7 @@ sub warning {
 }
 
 sub error {
-    if ($hww_main::debug) {
+    if ($HWWrapper::debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
         $subname = defined $subname ? " $subname:" : "";
@@ -58,9 +56,9 @@ sub error {
 sub debug {
     my $subname = (caller 1)[3];
     $subname = defined $subname ? "$subname(): " : '';
-    if ($hww_main::debug_stderr) {
+    if ($HWWrapper::debug_stderr) {
         warn "debug: $subname", @_, "\n";
-    } elsif ($hww_main::debug) {
+    } elsif ($HWWrapper::debug) {
         print "debug: $subname", @_, "\n";
     }
 }
@@ -84,7 +82,7 @@ sub puts {
 
 sub is_hww_command {
     my $cmd = shift;
-    exists $HWW::HWW_COMMAND{$cmd};
+    exists $HWWrapper::HWW_COMMAND{$cmd};
 }
 
 # NOTE: unused
@@ -102,8 +100,8 @@ sub alias {
 
 sub call_hw {
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
-    my @debug = $hww_main::debug ? qw(-d) : ();
-    my @cookie = $hww_main::no_cookie ? () : qw(-c);
+    my @debug = $HWWrapper::debug ? qw(-d) : ();
+    my @cookie = $HWWrapper::no_cookie ? () : qw(-c);
     my @args = ('perl', $hw, @debug, @cookie, @_);
     dump(\@args);
     Carp::confess("call_hw(): this is deprecated subroutine...");
@@ -216,17 +214,19 @@ sub get_touchdate {
     sub get_opt {
         my ($argv, $opt) = @_;
 
-        debug('$opt = '.dumper($opt));
-        debug('before: $argv = '.dumper($argv));
-
         local @ARGV = @$argv;
         my $result = $parser->getoptions(%$opt);
-        # my $result = GetOptions(%$opt);
+
+        if ($HWWrapper::debug) {
+            debug("non undefined options:");
+            for (grep { defined ${ $opt->{$_} } } keys %$opt) {
+                debug(sprintf "  [%s]:[%s]",
+                                $_, ${ $opt->{$_} });
+            }
+        }
 
         # update arguments. delete all processed options.
         @$argv = @ARGV;
-        debug('after: $argv = '.dumper($argv));
-
         return $result;
     }
 }
@@ -249,6 +249,29 @@ sub split_opt {
     return (\@hww_opt, $subcmd, [@_]);
 }
 
+# for hw.pl (now lib-hww/HW.pm)
+sub restore_hw_args {
+    my %opt = @_;
+    my @argv;
+
+    while (my ($k, $v) = each %opt) {
+        # deref.
+        $v = $$v;
+        # option was not given.
+        next    unless defined $v;
+
+        if ($k =~ s/(.*)=s$/$1/) {
+            debug("hw's option -$k => $v");
+            push @argv, "-$k", $v;
+        } else {
+            debug("hw's option -$k");
+            push @argv, "-$k";
+        }
+    }
+
+    return @argv;
+}
+
 
 
 ### util subs (need $self) ###
@@ -260,7 +283,7 @@ sub arg_error {
     debug("arg_error: called at $filename line $line");
 
     $subname =~ s/.*:://;    # delete package's name
-    my %rev_dict = reverse %HWW::HWW_COMMAND;
+    my %rev_dict = reverse %HWWrapper::HWW_COMMAND;
     my $cmdname = $rev_dict{$subname};
 
     unless (defined $cmdname) {
@@ -277,7 +300,7 @@ sub arg_error {
     warn $@;
     STDERR->flush;
 
-    if ($hww_main::debug) {
+    if ($HWWrapper::debug) {
         print "press enter to continue...";
         <STDIN>;
     } else {

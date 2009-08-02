@@ -24,9 +24,9 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.4";
+our $VERSION = "1.5.5";
 
-use HWW::UtilSub;
+use HWWrapper::UtilSub;
 
 
 use LWP::UserAgent;

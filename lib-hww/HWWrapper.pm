@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.8';
+our $VERSION = '1.1.9';
 
 use base 'HW';
 
@@ -60,6 +60,119 @@ our %HWW_COMMAND = (
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # (一回ログインした次が401 Authorizedになる)
+
+
+### parse_opt() ###
+# parse @ARGV and if HWW can't handle that option(s),
+# do $self->SUPER::parse_opt().
+
+# hw.pl's options.
+our %hw_opt = (
+    t => \my $t,
+
+    'u=s' => \my $u,
+
+    'p=s' => \my $p,
+
+    'a=s' => \my $a,
+
+    'T=s' => \my $T,
+
+    'g=s' => \my $g,
+
+    'f=s' => \my $f,
+
+    M => \my $M,
+
+    'n=s' => \my $n,
+
+    S => \my $S,
+);
+# this is additinal options which I added.
+# not hw.pl's options.
+our %hw_opt_long = (
+    trivial => $hw_opt{t},
+    'username=s' => $hw_opt{'u=s'},
+    'password=s' => $hw_opt{'p=s'},
+    'agent=s' => $hw_opt{'a=s'},
+    'timeout=s' => $hw_opt{'T=s'},
+    'group=s' => $hw_opt{'g=s'},
+    'file=s' => $hw_opt{'f=s'},
+    'no-replace' => $hw_opt{M},
+    'config-file=s' => $hw_opt{'n=s'},
+    ssl => $hw_opt{S},
+);
+
+my $show_help;
+my $show_version;
+our $debug;
+our $debug_stderr;
+our $no_cookie;
+# hww.pl's options.
+my %hww_opt = (
+    help => \$show_help,
+    version => \$show_version,
+
+    d => \$debug,
+    debug => \$debug,
+
+    D => \$debug_stderr,
+    'debug-stderr' => \$debug_stderr,
+
+    C => \$no_cookie,
+    'no-cookie' => \$no_cookie,
+
+    %hw_opt,
+    %hw_opt_long,
+);
+
+
+sub parse_opt {
+    my $self = shift;
+    my @argv = @_;
+    my ($hww_args, $cmd, $cmd_args) = split_opt(@argv);
+    my $tmp = [@$hww_args];
+
+    # parse hww.pl's options.
+    get_opt($hww_args, \%hww_opt) or do {
+        warning "arguments error";
+        sleep 1;
+        $self->dispatch('help');
+        exit -1;
+    };
+    debug(sprintf "%s -> %s, %s, %s",
+                    dumper(\@argv),
+                    dumper($tmp),
+                    dumper($cmd),
+                    dumper($cmd_args));
+
+    usage()   if $show_help;
+    version() if $show_version;
+    usage()   unless defined $cmd;
+    $HW::cmd_opt{c} = 1 unless $no_cookie;
+    $HW::cmd_opt{d} = 1 if $debug;
+
+
+    # restore arguments for hw.pl
+    @argv = restore_hw_args(%hw_opt);
+
+    # parse hw.pl's options.
+    # NOTE: even if @argv == 0, let it parse.
+    debug('let hw parse @argv...');
+    $self->SUPER::parse_opt(@argv);
+
+    # TODO do this in HW.pm
+    # apply the result options which was parsed in this script to hw.pl
+    # update %HW::cmd_opt with %hw_opt.
+    %HW::cmd_opt = (%HW::cmd_opt, map {
+        defined ${ $hw_opt{$_} } ?    # if option was given
+        ((split '=')[0] => $hw_opt{$_}) :
+        ()
+    } keys %hw_opt);
+
+    return ($cmd, $cmd_args);
+}
+
 
 
 ### dispatch() ###
@@ -245,10 +358,38 @@ sub load {
         unless ($r->is_success) {
             die "couldn't get entries:".$r->status_line;
         }
+        puts("got $export_url");
+
+        # NOTE: (2009-08-02)
+        # if there were no entries on hatena,
+        # $r->content returns
+        #
+        # <?xml version="1.0" encoding="UTF-8"?>
+        # <diary>
+        # </diary>
+        #
+        # so $entries
+        #
+        # {'diary' => ''}
 
         my $xml_parser = XML::TreePP->new;
         my $entries = $xml_parser->parse($r->content);
         my %current_entries = get_entries_hash();
+
+        unless (exists $entries->{diary}) {
+            error("invalid xml data returned from $HW::hatena_url")
+        }
+        # exists entries on hatena diary?
+        if (! ref $entries->{diary} && $entries->{diary} eq '') {
+            puts("no entries on hatena diary. ($HW::hatena_url)");
+            return;
+        }
+        unless (ref $entries->{diary} eq 'HASH'
+            && ref $entries->{diary}{day} eq 'ARRAY') {
+            error("invalid xml data returned from $HW::hatena_url")
+        }
+        debug(sprintf '%d entries received.', scalar @{ $entries->{diary}{day} });
+
 
         for my $entry (@{ $entries->{diary}{day} }) {
             my ($year, $month, $day);
@@ -259,7 +400,13 @@ sub load {
             }
 
             unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
-                $self->save_diary_entry($year, $month, $day, $entry->{'-title'}, $entry->{body});
+                $self->save_diary_entry(
+                    $year,
+                    $month,
+                    $day,
+                    $entry->{'-title'},
+                    $entry->{body}
+                );
             }
         }
 
@@ -340,6 +487,7 @@ sub load {
             unless ($r->is_success) {
                 error("couldn't get drafts: ".$r->status_line);
             }
+            puts("got $url");
 
             my $drafts = $xml_parser->parse($r->content);
             my $feed = $drafts->{feed};
