@@ -5,6 +5,7 @@ use warnings;
 use utf8;
 
 use base qw(Exporter);
+use subs qw(dump);
 
 # export all subroutine.
 our @EXPORT = our @EXPORT_OK = do {
@@ -30,12 +31,10 @@ use Getopt::Long ();
 ### util subs ###
 
 sub warning {
-    my $subname = (caller 1)[3];
-    $subname = defined $subname ? " $subname:" : "";
-
     if ($hww_main::debug) {
-        my ($filename, $line) = (caller)[1, 2];
+        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
+        $subname = defined $subname ? " $subname:" : "";
         warn "warning:$subname at $filename line $line:", @_, "\n";
     } else {
         warn "warning:$subname ", @_, "\n";
@@ -43,15 +42,13 @@ sub warning {
 }
 
 sub error {
-    my $subname = (caller 1)[3];
-    $subname = defined $subname ? " $subname:" : "";
-
     if ($hww_main::debug) {
-        my ($filename, $line) = (caller)[1, 2];
+        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
+        $subname = defined $subname ? " $subname:" : "";
         die "error:$subname at $filename line $line:", @_, "\n";
     } else {
-        die "error:$subname ", @_, "\n";
+        die "error: ", @_, "\n";
     }
 
     # from HW::error_exit()
