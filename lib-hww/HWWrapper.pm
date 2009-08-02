@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.12';
+our $VERSION = '1.1.13';
 
 use base 'HW';
 
@@ -56,6 +56,7 @@ our %HWW_COMMAND = (
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - hw.plのオプションを取り替える
 # (例えば-tはreleaseやupdateで指定できるのでいらない)
+# - テスト環境を整える
 
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
@@ -86,22 +87,16 @@ sub new {
 # hw.pl's options.
 our %hw_opt = (
     t => \$HW::cmd_opt{t},
-
     'u=s' => \$HW::cmd_opt{u},
-
     'p=s' => \$HW::cmd_opt{p},
-
     'a=s' => \$HW::cmd_opt{a},
-
     'T=s' => \$HW::cmd_opt{T},
-
     'g=s' => \$HW::cmd_opt{g},
-
     'f=s' => \$HW::cmd_opt{f},
-
     M => \$HW::cmd_opt{M},
-
     'n=s' => \$HW::cmd_opt{n},
+    # hw.pl's old option. hw.pl does not recognize this option.
+    # S => \$HW::cmd_opt{S},
 );
 # this is additinal options which I added.
 # not hw.pl's options.
@@ -178,15 +173,6 @@ sub parse_opt {
     # NOTE: even if @argv == 0, let it parse.
     debug('let hw parse @argv...');
     $self->SUPER::parse_opt(@argv);
-
-    # TODO do this in HW.pm
-    # apply the result options which was parsed in this script to hw.pl
-    # update %HW::cmd_opt with %hw_opt.
-    %HW::cmd_opt = (%HW::cmd_opt, map {
-        defined ${ $hw_opt{$_} } ?    # if option was given
-        ((split '=')[0] => $hw_opt{$_}) :
-        ()
-    } keys %hw_opt);
 
     return ($cmd, $cmd_args);
 }
