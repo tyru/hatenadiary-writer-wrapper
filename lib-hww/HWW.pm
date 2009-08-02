@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.0';
+our $VERSION = '1.1.1';
 
 use base 'HW';
 
@@ -49,7 +49,6 @@ our %HWW_COMMAND = (
 # TODO
 # - write the document (under hwwlib/pod/)
 # - use Hatena AtomPub API. rewrite HW 's subroutine.
-# - derived from HW.pm
 
 
 
@@ -122,6 +121,7 @@ sub version {
     print <<EOD;
 Hatena Diary Writer Wrapper version v$HWW::VERSION
 EOD
+    HW::VERSION_MESSAGE();
 }
 
 # TODO write help pod
@@ -220,7 +220,7 @@ sub load {
             $HW::txt_dir = shift(@$args);
         }
         unless (-d $HW::txt_dir) {
-            mkdir $HW::txt_dir or $self->error_exit("$HW::txt_dir:$!");
+            mkdir $HW::txt_dir or error("$HW::txt_dir:$!");
         }
 
         # Login if necessary.
@@ -229,7 +229,7 @@ sub load {
         $HW::user_agent->cookie_jar($HW::cookie_jar);
 
         my $export_url = "$HW::hatena_url/$HW::username/export";
-        $self->print_debug("GET $export_url");
+        debug("GET $export_url");
         my $r = $HW::user_agent->simple_request(
             HTTP::Request::Common::GET($export_url)
         );
@@ -247,7 +247,7 @@ sub load {
             if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
                 ($year, $month, $day) = ($1, $2, $3);
             } else {
-                $self->error_exit($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
+                error($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
             }
 
             unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
@@ -268,7 +268,7 @@ sub load {
         my $draft_dir = shift(@$args);
         $self->arg_error unless defined $draft_dir;
         unless (-d $draft_dir) {
-            mkdir $draft_dir or $self->error_exit("can't mkdir $draft_dir:$!");
+            mkdir $draft_dir or error("can't mkdir $draft_dir:$!");
         }
 
         # apply patch dynamically.
@@ -281,12 +281,12 @@ sub load {
 
                 my $OUT;
                 if (not open $OUT, ">", $filename) {
-                    $self->error_exit("$!:$filename");
+                    error("$!:$filename");
                 }
                 print $OUT $title."\n";
                 print $OUT $body;
                 close $OUT;
-                $self->print_debug("save_diary_draft: wrote $filename");
+                debug("save_diary_draft: wrote $filename");
                 return 1;
             };
 
@@ -320,17 +320,17 @@ sub load {
         my $xml_parser = XML::TreePP->new;
 
         # save draft entry.
-        $self->print_message("getting drafts...");
+        puts("getting drafts...");
         for (my $page_num = 1; ; $page_num++) {
             my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
             # $HW::user_agent->simple_request() can't handle authentication response.
-            $self->print_debug("GET $url");
+            debug("GET $url");
             my $r = $HW::user_agent->request(
                 HTTP::Request::Common::GET($url)
             );
 
             unless ($r->is_success) {
-                $self->error_exit("couldn't get drafts: ".$r->status_line);
+                error("couldn't get drafts: ".$r->status_line);
             }
 
             my $drafts = $xml_parser->parse($r->content);
@@ -632,7 +632,7 @@ sub update_index {
         my ($html_dir, $index_tmpl) = @_;
 
         unless (-f $index_tmpl) {
-            error_exit("$index_tmpl:$!");
+            error("$index_tmpl:$!");
         }
 
 
@@ -731,7 +731,7 @@ sub update_index {
 
         # Output
         my $index_html = File::Spec->catfile($html_dir, "index.html");
-        open my $OUT, '>', $index_html or error_exit("$index_html:$!");
+        open my $OUT, '>', $index_html or error("$index_html:$!");
         print $OUT $template->output;
         close $OUT;
 

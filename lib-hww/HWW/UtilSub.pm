@@ -53,6 +53,9 @@ sub error {
     } else {
         die "error:$subname ", @_, "\n";
     }
+
+    # from HW::error_exit()
+    unlink($HW::cookie_file);
 }
 
 sub debug {
@@ -281,6 +284,9 @@ sub arg_error {
         sleep 1;
     }
     $self->dispatch('help', [$cmdname]);
+
+    # from HW::error_exit()
+    unlink($HW::cookie_file);
 
     exit -1;
 }

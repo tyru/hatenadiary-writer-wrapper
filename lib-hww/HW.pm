@@ -24,7 +24,10 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.2";
+our $VERSION = "1.5.3";
+
+use HWW::UtilSub;
+
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -49,12 +52,9 @@ use subs qw(
     delete_it
     post_it
     get_timestamp
-    print_debug
-    print_message
     read_title_body
     find_image_file
     replace_timestamp
-    error_exit
     load_config
 );
 
@@ -100,7 +100,7 @@ eval {
     require Crypt::SSLeay;
 };
 if ($@) {
-    HW->print_message("WARNING: Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
+    puts("WARNING: Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
     $hatena_sslregister_url = 'http://www.hatena.ne.jp/login';
 }
 
@@ -158,12 +158,12 @@ sub parse_opt {
     local @ARGV = @_;
 
     local $Getopt::Std::STANDARD_HELP_VERSION = 1;
-    getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or $self->error_exit("Unknown option.");
+    getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error("Unknown option.");
 
     if ($cmd_opt{d}) {
-        $self->print_debug("Debug flag on.");
-        $self->print_debug("Cookie flag on.") if $cmd_opt{c};
-        $self->print_debug("Trivial flag on.") if $cmd_opt{t};
+        debug("Debug flag on.");
+        debug("Cookie flag on.") if $cmd_opt{c};
+        debug("Trivial flag on.") if $cmd_opt{t};
         VERSION_MESSAGE();
     }
 
@@ -197,10 +197,10 @@ sub load_main {
     # Login if necessary.
     $self->login() unless ($user_agent);
 
-    $self->print_message("Load $year-$month-$day.");
+    puts("Load $year-$month-$day.");
     my ($title, $body) = $self->load_diary_entry($year,$month,$day);
     $self->save_diary_entry($year,$month,$day,$title,$body);
-    $self->print_message("Load OK.");
+    puts("Load OK.");
 
     $self->logout() if ($user_agent);
 }
@@ -212,7 +212,7 @@ sub diff_main {
     # Login if necessary.
     $self->login() unless ($user_agent);
 
-    $self->print_message("Diff $year-$month-$day.");
+    puts("Diff $year-$month-$day.");
     my ($title, $body) = $self->load_diary_entry($year,$month,$day);
     $self->logout() if ($user_agent);
 
@@ -232,7 +232,7 @@ sub parse_date($) {
     my $self = shift;
     my ($date) = @_;
     if ($date !~ /\A(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?(?:\.txt)?\Z/) {
-        $self->error_exit("Illegal date format.");
+        error("Illegal date format.");
     }
     return ($1, $2, $3);
 }
@@ -247,14 +247,14 @@ sub main {
     if ($cmd_opt{f}) {
         # Do not check timestamp.
         push(@files, $cmd_opt{f});
-        $self->print_debug("main: files: option -f: @files");
+        debug("main: files: option -f: @files");
     } else {
         while (glob("$txt_dir/*.txt")) {
             # Check timestamp.
             next if (-e($touch_file) and (-M($_) > -M($touch_file)));
             push(@files, $_);
         }
-        $self->print_debug("main: files: current dir ($txt_dir): @files");
+        debug("main: files: current dir ($txt_dir): @files");
     }
 
     # Process it.
@@ -281,14 +281,14 @@ sub main {
 
         if ($title eq $delete_title) {
             # Delete entry.
-            $self->print_message("Delete $year-$month-$day.");
+            puts("Delete $year-$month-$day.");
             $self->delete_diary_entry($date);
-            $self->print_message("Delete OK.");
+            puts("Delete OK.");
         } else {
             # Update entry.
-            $self->print_message("Post $year-$month-$day.  " . ($imgfile ? " (image: $imgfile)" : ""));
+            puts("Post $year-$month-$day.  " . ($imgfile ? " (image: $imgfile)" : ""));
             $self->update_diary_entry($year, $month, $day, $title, $body, $imgfile);
-            $self->print_message("Post OK.");
+            puts("Post OK.");
         }
 
         sleep(1);
@@ -300,7 +300,7 @@ sub main {
     $self->logout() if ($user_agent);
 
     if ($count == 0) {
-        $self->print_message("No files are posted.");
+        puts("No files are posted.");
     } else {
         unless ($cmd_opt{f}) {
             # Touch file.
@@ -319,9 +319,9 @@ sub login() {
     $user_agent->env_proxy;
     if ($http_proxy) {
         $user_agent->proxy('http', $http_proxy);
-        $self->print_debug("login: proxy for http: $http_proxy");
+        debug("login: proxy for http: $http_proxy");
         $user_agent->proxy('https', $http_proxy);
-        $self->print_debug("login: proxy for https: $http_proxy");
+        debug("login: proxy for https: $http_proxy");
     }
 
     # Ask username if not set.
@@ -332,15 +332,15 @@ sub login() {
 
     # If "cookie" flag is on, and cookie file exists, do not login.
     if ($cmd_opt{c} and -e($cookie_file)) {
-        $self->print_debug("login: Loading cookie jar.");
+        debug("login: Loading cookie jar.");
 
         $cookie_jar = HTTP::Cookies->new;
         $cookie_jar->load($cookie_file);
         $cookie_jar->scan(\&get_rkm);
 
-        $self->print_debug("login: \$cookie_jar = " . $cookie_jar->as_string);
+        debug("login: \$cookie_jar = " . $cookie_jar->as_string);
 
-        $self->print_message("Skip login.");
+        puts("Skip login.");
 
         return;
     }
@@ -365,33 +365,33 @@ sub login() {
             $form{persistent} = "1";
         }
 
-        $self->print_message("Login to $hatena_sslregister_url as $form{name}.");
+        puts("Login to $hatena_sslregister_url as $form{name}.");
 
         $r = $user_agent->simple_request(
             HTTP::Request::Common::POST("$hatena_sslregister_url", \%form)
         );
 
-        $self->print_debug("login: " . $r->status_line);
+        debug("login: " . $r->status_line);
 
-        $self->print_debug("login: \$r = " . $r->content());
+        debug("login: \$r = " . $r->content());
     } else {
         # For older version.
 
-        $self->print_message("Login to $hatena_url as $form{name}.");
+        puts("Login to $hatena_url as $form{name}.");
         $r = $user_agent->simple_request(
             HTTP::Request::Common::POST("$hatena_url/login", \%form)
         );
 
-        $self->print_debug("login: " . $r->status_line);
+        debug("login: " . $r->status_line);
 
         if (not $r->is_redirect) {
-            $self->error_exit("Login: Unexpected response: ", $r->status_line);
+            error("Login: Unexpected response: ", $r->status_line);
         }
     }
 
     # Check to exist <meta http-equiv="refresh" content="1;URL=..." />
     unless (defined $r->header('refresh')) {
-        $self->print_debug("failed to login. retry...");
+        debug("failed to login. retry...");
         # $username = '';    # needless?
         $password = '';
         # Retry to login.
@@ -399,16 +399,16 @@ sub login() {
         goto &login;
     }
 
-    $self->print_message("Login OK.");
+    puts("Login OK.");
 
-    $self->print_debug("login: Making cookie jar.");
+    debug("login: Making cookie jar.");
 
     $cookie_jar = HTTP::Cookies->new;
     $cookie_jar->extract_cookies($r);
     $cookie_jar->save($cookie_file);
     $cookie_jar->scan(\&get_rkm);
 
-    $self->print_debug("login: \$cookie_jar = " . $cookie_jar->as_string);
+    debug("login: \$cookie_jar = " . $cookie_jar->as_string);
 }
 
 # get session id.
@@ -417,7 +417,7 @@ sub get_rkm($$$$$$$$$$$) {
     my ($version, $key, $val) = @_;
     if ($key eq 'rk') {
         $rkm = md5_base64($val);
-        HW->print_debug("get_rkm: \$rkm = " . $rkm);
+        debug("get_rkm: \$rkm = " . $rkm);
     }
 }
 
@@ -428,7 +428,7 @@ sub logout() {
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
     if ($cmd_opt{c} and -e($cookie_file)) {
-        $self->print_message("Skip logout.");
+        puts("Skip logout.");
         return;
     }
 
@@ -436,19 +436,19 @@ sub logout() {
     $form{name} = $username;
     $form{password} = $password;
 
-    $self->print_message("Logout from $hatena_url as $form{name}.");
+    puts("Logout from $hatena_url as $form{name}.");
 
     $user_agent->cookie_jar($cookie_jar);
     my $r = $user_agent->get("$hatena_url/logout");
-    $self->print_debug("logout: " . $r->status_line);
+    debug("logout: " . $r->status_line);
 
     if (not $r->is_redirect and not $r->is_success) {
-        $self->error_exit("Logout: Unexpected response: ", $r->status_line);
+        error("Logout: Unexpected response: ", $r->status_line);
     }
 
     unlink($cookie_file);
 
-    $self->print_message("Logout OK.");
+    puts("Logout OK.");
 }
 
 # Update entry.
@@ -489,15 +489,15 @@ sub doit_and_retry($$) {
         if ($ok or not $cmd_opt{c}) {
             last;
         }
-        $self->print_debug("try_it: $msg");
+        debug("try_it: $msg");
         unlink($cookie_file);
-        $self->print_message("Old cookie. Retry login.");
+        puts("Old cookie. Retry login.");
         $self->login();
         $retry++;
     }
 
     if (not $ok) {
-        $self->error_exit("try_it: Check username/password.");
+        error("try_it: Check username/password.");
     }
 }
 
@@ -506,7 +506,7 @@ sub delete_it($) {
     my $self = shift;
     my ($date) = @_;
 
-    $self->print_debug("delete_it: $date");
+    debug("delete_it: $date");
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -521,21 +521,21 @@ sub delete_it($) {
         )
     );
 
-    $self->print_debug("delete_it: " . $r->status_line);
+    debug("delete_it: " . $r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
-        $self->error_exit("Delete: Unexpected response: ", $r->status_line);
+        error("Delete: Unexpected response: ", $r->status_line);
     }
 
-    $self->print_debug("delete_it: Location: " . $r->header("Location"));
+    debug("delete_it: Location: " . $r->header("Location"));
 
     # Check the result. ERROR if the location ends with the date.
     # (Note that delete error != post error)
     if ($r->header("Location") =~ m(/$date$)) {                    # /)){
-        $self->print_debug("delete_it: returns 0 (ERROR).");
+        debug("delete_it: returns 0 (ERROR).");
         return 0;
     } else {
-        $self->print_debug("delete_it: returns 1 (OK).");
+        debug("delete_it: returns 1 (OK).");
         return 1;
     }
 }
@@ -544,7 +544,7 @@ sub create_it($$$) {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    $self->print_debug("create_it: $year-$month-$day.");
+    debug("create_it: $year-$month-$day.");
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -570,20 +570,20 @@ sub create_it($$$) {
         )
     );
 
-    $self->print_debug("create_it: " . $r->status_line);
+    debug("create_it: " . $r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
-        $self->error_exit("Create: Unexpected response: ", $r->status_line);
+        error("Create: Unexpected response: ", $r->status_line);
     }
 
-    $self->print_debug("create_it: Location: " . $r->header("Location"));
+    debug("create_it: Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
-        $self->print_debug("create_it: returns 1 (OK).");
+        debug("create_it: returns 1 (OK).");
         return 1;
     } else {
-        $self->print_debug("create_it: returns 0 (ERROR).");
+        debug("create_it: returns 0 (ERROR).");
 
         return 0;
     }
@@ -593,7 +593,7 @@ sub post_it($$$$$$) {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
-    $self->print_debug("post_it: $year-$month-$day.");
+    debug("post_it: $year-$month-$day.");
 
     $user_agent->cookie_jar($cookie_jar);
 
@@ -621,20 +621,20 @@ sub post_it($$$$$$) {
         )
     );
 
-    $self->print_debug("post_it: " . $r->status_line);
+    debug("post_it: " . $r->status_line);
 
     if (not $r->is_redirect) {
-        $self->error_exit("Post: Unexpected response: ", $r->status_line);
+        error("Post: Unexpected response: ", $r->status_line);
     }
 
-    $self->print_debug("post_it: Location: " . $r->header("Location"));
+    debug("post_it: Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
-        $self->print_debug("post_it: returns 1 (OK).");
+        debug("post_it: returns 1 (OK).");
         return 1;
     } else {
-        $self->print_debug("post_it: returns 0 (ERROR).");
+        debug("post_it: returns 0 (ERROR).");
         return 0;
     }
 }
@@ -665,28 +665,6 @@ Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
 EOD
 }
 
-# Debug print.
-sub print_debug(@) {
-    my $self = shift;
-    if ($cmd_opt{d}) {
-        print "DEBUG: ", @_, "\n";
-    }
-}
-
-# Print message.
-sub print_message(@) {
-    my $self = shift;
-    print @_, "\n";
-}
-
-# Error exit.
-sub error_exit(@) {
-    my $self = shift;
-    print "ERROR: ", @_, "\n";
-    unlink($cookie_file);
-    exit(1);
-}
-
 # Read title and body.
 sub read_title_body($) {
     my $self = shift;
@@ -697,10 +675,10 @@ sub read_title_body($) {
     if ($filter_command) {
         $input = sprintf("$filter_command |", $file);
     }
-    $self->print_debug("read_title_body: input: $input");
+    debug("read_title_body: input: $input");
     my $FILE;
     if (not open($FILE, $input)) {
-        $self->error_exit("$!:$input");
+        error("$!:$input");
     }
     my $title = <$FILE>; # first line.
     chomp($title);
@@ -709,7 +687,7 @@ sub read_title_body($) {
 
     # Convert encodings.
     if ($enable_encode and ($client_encoding ne $server_encoding)) {
-        $self->print_debug("Convert from $client_encoding to $server_encoding.");
+        debug("Convert from $client_encoding to $server_encoding.");
         Encode::from_to($title, $client_encoding, $server_encoding);
         Encode::from_to($body, $client_encoding, $server_encoding);
     }
@@ -726,13 +704,13 @@ sub find_image_file($) {
         my $imgfile = "$path$base.$ext";
         if (-e $imgfile) {
             if ($cmd_opt{f}) {
-                $self->print_debug("find_image_file: -f option, always update: $imgfile");
+                debug("find_image_file: -f option, always update: $imgfile");
                 return $imgfile;
             } elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
-                $self->print_debug("find_image_file: skip $imgfile (not updated).");
+                debug("find_image_file: skip $imgfile (not updated).");
                 next;
             } else {
-                $self->print_debug("find_image_file: $imgfile");
+                debug("find_image_file: $imgfile");
                 return $imgfile;
             }
         }
@@ -747,7 +725,7 @@ sub replace_timestamp($) {
 
     # Read.
     my $FILE;
-    open($FILE, $filename) or $self->error_exit("$!: $filename");
+    open($FILE, $filename) or error("$!: $filename");
     my $file = join('', <$FILE>);
     close($FILE);
 
@@ -757,8 +735,8 @@ sub replace_timestamp($) {
 
     # Write if replaced.
     if ($newfile ne $file) {
-        $self->print_debug("replace_timestamp: $filename");
-        open($FILE, "> $filename") or $self->error_exit("$!: $filename");
+        debug("replace_timestamp: $filename");
+        open($FILE, "> $filename") or error("$!: $filename");
         print $FILE $newfile;
         close($FILE);
     }
@@ -772,10 +750,10 @@ sub HELP_MESSAGE {
 # Load config file.
 sub load_config() {
     my $self = shift;
-    $self->print_debug("Loading config file ($config_file).");
+    debug("Loading config file ($config_file).");
     my $CONF;
     if (not open($CONF, $config_file)) {
-        $self->error_exit("Can't open $config_file.");
+        error("Can't open $config_file.");
     }
     while (<$CONF>) {
         chomp;
@@ -785,37 +763,37 @@ sub load_config() {
             # skip blank line.
         } elsif (/^id:([^:]+)$/) {
             $username = $1;
-            $self->print_debug("load_config: id:$username");
+            debug("load_config: id:$username");
         } elsif (/^g:([^:]+)$/) {
             $groupname = $1;
-            $self->print_debug("load_config: g:$groupname");
+            debug("load_config: g:$groupname");
         } elsif (/^password:(.*)$/) {
             $password = $1;
-            $self->print_debug("load_config: password:********");
+            debug("load_config: password:********");
         } elsif (/^cookie:(.*)$/) {
             $cookie_file = glob($1);
             $cmd_opt{c} = 1; # If cookie file is specified, Assume '-c' is given.
-            $self->print_debug("load_config: cookie:$cookie_file");
+            debug("load_config: cookie:$cookie_file");
         } elsif (/^proxy:(.*)$/) {
             $http_proxy = $1;
-            $self->print_debug("load_config: proxy:$http_proxy");
+            debug("load_config: proxy:$http_proxy");
         } elsif (/^client_encoding:(.*)$/) {
             $client_encoding = $1;
-            $self->print_debug("load_config: client_encoding:$client_encoding");
+            debug("load_config: client_encoding:$client_encoding");
         } elsif (/^server_encoding:(.*)$/) {
             $server_encoding = $1;
-            $self->print_debug("load_config: server_encoding:$server_encoding");
+            debug("load_config: server_encoding:$server_encoding");
         } elsif (/^filter:(.*)$/) {
             $filter_command = $1;
-            $self->print_debug("load_config: filter:$filter_command");
+            debug("load_config: filter:$filter_command");
         } elsif (/^txt_dir:(.*)$/) {
             $txt_dir = glob($1);
-            $self->print_debug("load_config: txt_dir:$txt_dir");
+            debug("load_config: txt_dir:$txt_dir");
         } elsif (/^touch:(.*)$/) {
             $touch_file = glob($1);
-            $self->print_debug("load_config: touch:$touch_file");
+            debug("load_config: touch:$touch_file");
         } else {
-            $self->error_exit("Unknown command '$_' in $config_file.");
+            error("Unknown command '$_' in $config_file.");
         }
     }
     close($CONF);
@@ -829,17 +807,17 @@ sub load_diary_entry($$$) {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    $self->print_debug("load_it: $hatena_url/$username/edit?date=$year$month$day");
+    debug("load_it: $hatena_url/$username/edit?date=$year$month$day");
 
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
         HTTP::Request::Common::GET("$hatena_url/$username/edit?date=$year$month$day"));
 
-    $self->print_debug("load_it: " . $r->status_line);
+    debug("load_it: " . $r->status_line);
 
     if (not $r->is_success()) {
-        $self->error_exit("Load: Unexpected response: ", $r->status_line);
+        error("Load: Unexpected response: ", $r->status_line);
     }
 
     # Check entry exist.
@@ -850,7 +828,7 @@ sub load_diary_entry($$$) {
     my $resp_date = $1;
 
     if($resp_date ne "$year$month$day") {
-        $self->error_exit("Load: Not exist entry.");
+        error("Load: Not exist entry.");
     }
     
     # Get title and body.
@@ -867,12 +845,12 @@ sub load_diary_entry($$$) {
 
     # Convert encodings.
     if ($enable_encode and ($client_encoding ne $server_encoding)) {
-        $self->print_debug("Convert from $client_encoding to $server_encoding.");
+        debug("Convert from $client_encoding to $server_encoding.");
         Encode::from_to($title, $server_encoding, $client_encoding);
         Encode::from_to($body, $server_encoding, $client_encoding);
     }
 
-    $self->print_debug("load_it: OK");
+    debug("load_it: OK");
     return ($title, $body);
 }
 
@@ -919,12 +897,12 @@ sub save_diary_entry {
     
     my $OUT;
     if (not open($OUT, ">$filename")) {
-        $self->error_exit("$!:$filename");
+        error("$!:$filename");
     }
     print $OUT $title."\n";
     print $OUT $body;
     close($OUT);
-    $self->print_debug("save_diary_entry: return 1 (OK)");
+    debug("save_diary_entry: return 1 (OK)");
     return 1;
 }
 
@@ -938,7 +916,7 @@ sub backup($) {
             $bakext++;
         }
         if (not rename("$filename", "$filename.$bakext")) {
-            $self->error_exit("$!:$filename");
+            error("$!:$filename");
         }
     }
 }
