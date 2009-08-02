@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.9';
+our $VERSION = '1.1.10';
 
 use base 'HW';
 
@@ -60,6 +60,23 @@ our %HWW_COMMAND = (
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # (一回ログインした次が401 Authorizedになる)
+
+
+
+
+
+### new() ###
+
+sub new {
+    my $self = bless {}, shift;
+
+    # if ($self->SUPER::can('new')) {
+    #     $self->SUPER::new(@_);
+    # }
+
+    return $self;
+}
+
 
 
 ### parse_opt() ###

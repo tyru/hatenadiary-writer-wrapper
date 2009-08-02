@@ -15,17 +15,18 @@ BEGIN {
 use lib $HWW_LIB;
 
 use HWWrapper;
+my $wrapper = HWWrapper->new;
 
 
 
 ### sub ###
 sub usage () {
-    HWWrapper->dispatch('help');
+    $wrapper->dispatch('help');
     exit -1;
 }
 
 sub version () {
-    HWWrapper->version(@_);
+    $wrapper->version(@_);
     exit -1;
 }
 
@@ -34,8 +35,8 @@ sub version () {
 ### main ###
 usage() unless @ARGV;
 
-my ($cmd, $cmd_args) = HWWrapper->parse_opt(@ARGV);
-HWWrapper->dispatch($cmd => $cmd_args);
+my ($cmd, $cmd_args) = $wrapper->parse_opt(@ARGV);
+$wrapper->dispatch($cmd => $cmd_args);
 
 
 __END__
