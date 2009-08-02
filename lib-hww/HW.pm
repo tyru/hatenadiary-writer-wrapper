@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.0";
+our $VERSION = "1.5.1";
 
 use LWP::UserAgent;
 use HTTP::Request::Common;
@@ -38,24 +38,25 @@ use Pod::Usage;
 
 our $enable_encode = eval('use Encode; 1');
 
-# Prototypes.
-sub login();
-sub get_rkm($$$$$$$$$$$);
-sub logout();
-sub update_diary_entry($$$$$$);
-sub delete_diary_entry($);
-sub doit_and_retry($$);
-sub create_it($$$);
-sub delete_it($);
-sub post_it($$$$$$);
-sub get_timestamp();
-sub print_debug(@);
-sub print_message(@);
-sub read_title_body($);
-sub find_image_file($);
-sub replace_timestamp($);
-sub error_exit(@);
-sub load_config();
+use subs qw(
+    login
+    get_rkm
+    logout
+    update_diary_entry
+    delete_diary_entry
+    doit_and_retry
+    create_it
+    delete_it
+    post_it
+    get_timestamp
+    print_debug
+    print_message
+    read_title_body
+    find_image_file
+    replace_timestamp
+    error_exit
+    load_config
+);
 
 # Hatena user id (if empty, I will ask you later).
 our $username = '';
@@ -116,6 +117,7 @@ our $user_agent;
 our $rkm; # session id for posting.
 
 # Handle command-line option.
+# TODO move this into hww.pl
 our %cmd_opt = (
     'd' => 0,   # "debug" flag.
     't' => 0,   # "trivial" flag.
@@ -198,7 +200,7 @@ sub load_main {
     save_diary_entry($year,$month,$day,$title,$body);
     print_message("Load OK.");
 
-    logout if ($user_agent);
+    logout() if ($user_agent);
 }
 
 sub diff_main {
@@ -209,7 +211,7 @@ sub diff_main {
 
     print_message("Diff $year-$month-$day.");
     my ($title, $body) = load_diary_entry($year,$month,$day);
-    logout if ($user_agent);
+    logout() if ($user_agent);
 
     my $src = $title."\n".$body;
 
@@ -290,7 +292,7 @@ sub main {
     }
 
     # Logout if necessary.
-    logout if ($user_agent);
+    logout() if ($user_agent);
 
     if ($count == 0) {
         print_message("No files are posted.");
@@ -299,7 +301,7 @@ sub main {
             # Touch file.
             my $FILE;
             open($FILE, "> $touch_file") or die "$!:$touch_file\n";
-            print $FILE get_timestamp;
+            print $FILE get_timestamp();
             close($FILE);
         }
     }
@@ -537,7 +539,7 @@ sub create_it($$$) {
             Content_Type => 'form-data',
             Content => [
                 mode => "enter",
-                timestamp => get_timestamp,
+                timestamp => get_timestamp(),
                 year => $year,
                 month => $month,
                 day => $day,
@@ -585,7 +587,7 @@ sub post_it($$$$$$) {
             Content_Type => 'form-data',
             Content => [
                 mode => "enter",
-                timestamp => get_timestamp,
+                timestamp => get_timestamp(),
                 year => $year,
                 month => $month,
                 day => $day,

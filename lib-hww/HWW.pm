@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.0.0';
+our $VERSION = '1.0.1';
 
 # import util subs.
 use HWW::UtilSub;
@@ -40,11 +40,14 @@ our %HWW_COMMAND = (
     # 'add-tag' => 'add_tag',
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
+    #
+    # diff => 'diff',
 );
 
 # TODO
 # - write the document (under hwwlib/pod/)
 # - use Hatena AtomPub API. rewrite HW 's subroutine.
+# - derived from HW.pm
 
 
 
@@ -53,6 +56,7 @@ our %HWW_COMMAND = (
 
 sub dispatch {
     my ($self, $cmd, $args) = @_;
+    $args = [] unless defined $args;
 
     unless (blessed $self) {
         $self = bless {}, $self;
@@ -114,7 +118,7 @@ sub help {
 # display version information about hww
 sub version {
     print <<EOD;
-Hatena Diary Writer Wrapper version $HWW::VERSION
+Hatena Diary Writer Wrapper version v$HWW::VERSION
 EOD
 }
 

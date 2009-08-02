@@ -57,10 +57,7 @@ sub restore_hw_opt {
 
 
 ### main ###
-unless (@ARGV) {
-    usage();
-    exit -1;
-}
+usage() unless @ARGV;
 my ($hww_args, $subcmd, $subcmd_args) = split_opt(@ARGV);
 
 my $show_help;
