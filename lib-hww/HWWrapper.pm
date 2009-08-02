@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.11';
+our $VERSION = '1.1.12';
 
 use base 'HW';
 
@@ -160,9 +160,13 @@ sub parse_opt {
                     dumper($cmd),
                     dumper($cmd_args));
 
-    usage()   if $show_help;
-    version() if $show_version;
-    usage()   unless defined $cmd;
+    if ($show_help || ! defined $cmd) {
+        $self->dispatch('help');
+        exit -1;
+    }
+    if ($show_version) {
+        $self->dispatch('version');
+    }
     $HW::cmd_opt{c} = 1 unless $no_cookie;
     $HW::cmd_opt{d} = 1 if $debug;
 
