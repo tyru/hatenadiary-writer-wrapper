@@ -218,8 +218,8 @@ sub get_touchdate {
         my $result = $parser->getoptions(%$opt);
 
         if ($HWWrapper::debug) {
-            debug("non undefined options:");
-            for (grep { defined ${ $opt->{$_} } } keys %$opt) {
+            debug("true value options:");
+            for (grep { ${ $opt->{$_} } } keys %$opt) {
                 debug(sprintf "  [%s]:[%s]",
                                 $_, ${ $opt->{$_} });
             }
@@ -258,7 +258,7 @@ sub restore_hw_args {
         # deref.
         $v = $$v;
         # option was not given.
-        next    unless defined $v;
+        next    unless $v;
 
         if ($k =~ s/(.*)=s$/$1/) {
             debug("hw's option -$k => $v");

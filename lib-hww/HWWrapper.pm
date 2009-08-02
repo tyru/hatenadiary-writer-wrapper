@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.10';
+our $VERSION = '1.1.11';
 
 use base 'HW';
 
@@ -85,39 +85,36 @@ sub new {
 
 # hw.pl's options.
 our %hw_opt = (
-    t => \my $t,
+    t => \$HW::cmd_opt{t},
 
-    'u=s' => \my $u,
+    'u=s' => \$HW::cmd_opt{u},
 
-    'p=s' => \my $p,
+    'p=s' => \$HW::cmd_opt{p},
 
-    'a=s' => \my $a,
+    'a=s' => \$HW::cmd_opt{a},
 
-    'T=s' => \my $T,
+    'T=s' => \$HW::cmd_opt{T},
 
-    'g=s' => \my $g,
+    'g=s' => \$HW::cmd_opt{g},
 
-    'f=s' => \my $f,
+    'f=s' => \$HW::cmd_opt{f},
 
-    M => \my $M,
+    M => \$HW::cmd_opt{M},
 
-    'n=s' => \my $n,
-
-    S => \my $S,
+    'n=s' => \$HW::cmd_opt{n},
 );
 # this is additinal options which I added.
 # not hw.pl's options.
 our %hw_opt_long = (
-    trivial => $hw_opt{t},
-    'username=s' => $hw_opt{'u=s'},
-    'password=s' => $hw_opt{'p=s'},
-    'agent=s' => $hw_opt{'a=s'},
-    'timeout=s' => $hw_opt{'T=s'},
-    'group=s' => $hw_opt{'g=s'},
-    'file=s' => $hw_opt{'f=s'},
-    'no-replace' => $hw_opt{M},
-    'config-file=s' => $hw_opt{'n=s'},
-    ssl => $hw_opt{S},
+    trivial => \$HW::cmd_opt{t},
+    'username=s' => \$HW::cmd_opt{u},
+    'password=s' => \$HW::cmd_opt{p},
+    'agent=s' => \$HW::cmd_opt{a},
+    'timeout=s' => \$HW::cmd_opt{T},
+    'group=s' => \$HW::cmd_opt{g},
+    'file=s' => \$HW::cmd_opt{f},
+    'no-replace' => \$HW::cmd_opt{M},
+    'config-file=s' => \$HW::cmd_opt{n},
 );
 
 my $show_help;
