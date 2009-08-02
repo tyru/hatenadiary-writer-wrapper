@@ -24,7 +24,7 @@ use File::Basename ();
 use FileHandle ();
 use POSIX ();
 use Getopt::Long ();
-
+use Carp ();
 
 
 
@@ -37,7 +37,7 @@ sub warning {
         $subname = defined $subname ? " $subname:" : "";
         warn "warning:$subname at $filename line $line:", @_, "\n";
     } else {
-        warn "warning:$subname ", @_, "\n";
+        warn "warning: ", @_, "\n";
     }
 }
 
@@ -104,8 +104,11 @@ sub call_hw {
     my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
     my @debug = $hww_main::debug ? qw(-d) : ();
     my @cookie = $hww_main::no_cookie ? () : qw(-c);
+    my @args = ('perl', $hw, @debug, @cookie, @_);
+    dump(\@args);
+    Carp::confess("call_hw(): this is deprecated subroutine...");
 
-    system 'perl', $hw, @debug, @cookie, @_;
+    # system 'perl', $hw, @debug, @cookie, @_;
 }
 
 sub require_modules {

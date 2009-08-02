@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.2';
+our $VERSION = '1.1.3';
 
 use base 'HW';
 
@@ -49,14 +49,16 @@ our %HWW_COMMAND = (
 # TODO
 # - write the document (under hwwlib/pod/)
 # - use Hatena AtomPub API. rewrite HW 's subs.
-# - HWの関数をHWW::UtilSubで置き換えられる所は置き換える
+# - HWのサブルーチンをHWW::UtilSubで置き換えられる所は置き換える
 # - HWのデバッグメッセージを変更
 # - hww.pl内の引数処理を、HWW.pm内に持っていって、HWWが処理できるものはそこで、処理できないものはHWでする
 # - HWがグローバル変数に頼るのをやめる($selfにつっこむ)
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # - バージョンとヘルプにHW.pmの結城さん達のcopyright入れる
 # - HW.pmのバージョンメッセージとヘルプメッセージは死なないようにする
-# - HWW -> HWWrapper
+# - まぎらわしいので HWW -> HWWrapper
+# - statusをグループや別のディレクトリの日記にも対応させる
+# - HW::*_main()のサブルーチンをリネームする
 
 
 
@@ -194,7 +196,7 @@ sub release {
         push @hww_args, '-t';
     }
 
-    call_hw(@hww_args);
+    $self->main();
 }
 
 # upload entries to hatena diary as trivial
@@ -359,7 +361,8 @@ sub load {
 
     } else {
         if (defined(my $ymd = shift(@$args))) {
-            call_hw('-l', $ymd);
+            $HW::load_date = $HW::cmd_opt{l} = $ymd;
+            $self->load_main();
         } else {
             $self->arg_error;
         }
