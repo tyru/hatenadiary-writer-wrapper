@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.7';
+our $VERSION = '1.1.8';
 
 use base 'HW';
 
@@ -53,16 +53,16 @@ our %HWW_COMMAND = (
 # - HWのデバッグメッセージを変更
 # - hww.pl内の引数処理を、HWWrapper.pm内に持っていって、HWWrapperが処理できるものはそこで、処理できないものはHWでする
 # - HWがグローバル変数に頼るのをやめる($selfにつっこむ)
+# - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
+# - hw.plのオプションを取り替える
+# (例えば-tはreleaseやupdateで指定できるのでいらない)
+
+# XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
-# - バージョンとヘルプにHW.pmの結城さん達のcopyright入れる
-# - HW.pmのバージョンメッセージとヘルプメッセージは死なないようにする
-# - statusをグループや別のディレクトリの日記にも対応させる
-# - HW::*_main()のサブルーチンをリネームする
+# (一回ログインした次が401 Authorizedになる)
 
 
-
-
-### dispatch ###
+### dispatch() ###
 
 sub dispatch {
     my ($self, $cmd, $args) = @_;
