@@ -1,15 +1,15 @@
-package HWW;
+package HWWrapper;
 
 use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.6';
+our $VERSION = '1.1.7';
 
 use base 'HW';
 
 # import util subs.
-use HWW::UtilSub;
+use HWWrapper::UtilSub;
 
 
 use Data::Dumper;
@@ -49,14 +49,13 @@ our %HWW_COMMAND = (
 # TODO
 # - write the document (under hwwlib/pod/)
 # - use Hatena AtomPub API. rewrite HW 's subs.
-# - HWのサブルーチンをHWW::UtilSubで置き換えられる所は置き換える
+# - HWのサブルーチンをHWWrapper::UtilSubで置き換えられる所は置き換える
 # - HWのデバッグメッセージを変更
-# - hww.pl内の引数処理を、HWW.pm内に持っていって、HWWが処理できるものはそこで、処理できないものはHWでする
+# - hww.pl内の引数処理を、HWWrapper.pm内に持っていって、HWWrapperが処理できるものはそこで、処理できないものはHWでする
 # - HWがグローバル変数に頼るのをやめる($selfにつっこむ)
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # - バージョンとヘルプにHW.pmの結城さん達のcopyright入れる
 # - HW.pmのバージョンメッセージとヘルプメッセージは死なないようにする
-# - まぎらわしいので HWW -> HWWrapper
 # - statusをグループや別のディレクトリの日記にも対応させる
 # - HW::*_main()のサブルーチンをリネームする
 
@@ -185,10 +184,9 @@ EOT
 sub release {
     my ($self, $args) = @_;
 
-    my $trivial;
     get_opt($args, {
-        trivial => \$trivial,
-        t => \$trivial,
+        trivial => $HW::cmd_opt{t},
+        t => $HW::cmd_opt{t},
     });
 
     my $dir = shift @$args;
@@ -196,13 +194,7 @@ sub release {
         $HW::txt_dir = $dir;
     }
 
-
-    my @hww_args;
-    if ($trivial) {
-        push @hww_args, '-t';
-    }
-
-    $self->main();
+    $self->SUPER::release();
 }
 
 # upload entries to hatena diary as trivial
@@ -368,7 +360,7 @@ sub load {
     } else {
         if (defined(my $ymd = shift(@$args))) {
             $HW::load_date = $HW::cmd_opt{l} = $ymd;
-            $self->load_main();
+            $self->SUPER::load();
         } else {
             $self->arg_error;
         }

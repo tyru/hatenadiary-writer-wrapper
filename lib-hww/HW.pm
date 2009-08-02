@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.3";
+our $VERSION = "1.5.4";
 
 use HWW::UtilSub;
 
@@ -139,11 +139,11 @@ our %cmd_opt = (
 if ($0 eq __FILE__) {
     # Start.
     # if ($cmd_opt{l}) {
-    #     load_main();
+    #     load_main();    # now load()
     # } elsif ($cmd_opt{D}) {
     #     diff_main();
     # } else {
-    #     main();
+    #     main();    # now release()
     # }
 
     # no-error exit.
@@ -190,7 +190,7 @@ sub parse_opt {
 }
 
 # Load diary main sequence. -l option
-sub load_main {
+sub load {
     my $self = shift;
     my ($year, $month, $day) = $self->parse_date($load_date);
 
@@ -238,7 +238,7 @@ sub parse_date($) {
 }
 
 # Main sequence.
-sub main {
+sub release {
     my $self = shift;
     my $count = 0;
     my @files;
@@ -247,14 +247,14 @@ sub main {
     if ($cmd_opt{f}) {
         # Do not check timestamp.
         push(@files, $cmd_opt{f});
-        debug("main: files: option -f: @files");
+        debug("release: files: option -f: @files");
     } else {
         while (glob("$txt_dir/*.txt")) {
             # Check timestamp.
             next if (-e($touch_file) and (-M($_) > -M($touch_file)));
             push(@files, $_);
         }
-        debug("main: files: current dir ($txt_dir): @files");
+        debug("release: files: current dir ($txt_dir): @files");
     }
 
     # Process it.
