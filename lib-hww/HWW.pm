@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.4';
+our $VERSION = '1.1.5';
 
 use base 'HW';
 
@@ -444,22 +444,39 @@ sub status {
         'no-caption' => \$no_caption,
     });
 
+    # if undef, $HW::txt_dir is used.
+    my $dir = shift @$args;
+    if (defined $dir) {
+        $HW::txt_dir = $dir;
+        $HW::touch_file = File::Spec->catfile($dir, 'touch.txt');
+        unless (-f $HW::touch_file) {
+            error("$HW::touch_file:$!");
+        }
+    }
+
+
     if ($all) {
         puts("all entries:") unless $no_caption;
-        for (get_entries()) {
+        for (get_entries($dir)) {
             print "  " unless $no_caption;
             puts($_);
         }
     } else {
         # updated only.
+        my @updated_entry = grep {
+            (-e $_ && -e $HW::touch_file)
+            && -M $_ < -M $HW::touch_file
+        } get_entries($dir);
+
+        unless (@updated_entry) {
+            puts("no files updated.");
+            return;
+        }
+
         puts("updated entries:") unless $no_caption;
-        for my $entry (get_entries()) {
-            if ((-e $entry && -e $HW::touch_file)
-                && -M $entry < -M $HW::touch_file)
-            {
-                print "  " unless $no_caption;
-                puts($entry);
-            }
+        for my $entry (@updated_entry) {
+            print "  " unless $no_caption;
+            puts($entry);
         }
     }
 }
