@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.3';
+our $VERSION = '1.1.4';
 
 use base 'HW';
 

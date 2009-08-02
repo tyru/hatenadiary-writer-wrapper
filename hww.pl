@@ -137,7 +137,7 @@ $HW::cmd_opt{d} = 1 if $debug;
 # apply the result options which was parsed in this script to hw.pl
 # update %HW::cmd_opt with %hw_opt.
 %HW::cmd_opt = (%HW::cmd_opt, map {
-    defined $hw_opt{$_} ?    # if option was given
+    defined ${ $hw_opt{$_} } ?    # if option was given
     ((split '=')[0] => $hw_opt{$_}) :
     ()
 } keys %hw_opt);
