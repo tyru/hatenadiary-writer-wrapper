@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.5';
+our $VERSION = '1.1.6';
 
 use base 'HW';
 
@@ -190,6 +190,12 @@ sub release {
         trivial => \$trivial,
         t => \$trivial,
     });
+
+    my $dir = shift @$args;
+    if (defined $dir) {
+        $HW::txt_dir = $dir;
+    }
+
 
     my @hww_args;
     if ($trivial) {
