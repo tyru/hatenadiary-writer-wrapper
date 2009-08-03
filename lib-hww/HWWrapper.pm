@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.14';
+our $VERSION = '1.1.15';
 
 use base 'HW';
 
@@ -170,6 +170,7 @@ sub parse_opt {
     }
     if ($show_version) {
         $self->dispatch('version');
+        exit -1;
     }
     $HW::cmd_opt{c} = 1 unless $no_cookie;
     $HW::cmd_opt{d} = 1 if $debug;
