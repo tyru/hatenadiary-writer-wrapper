@@ -40,18 +40,18 @@ sub warning {
 }
 
 sub error {
-    my $errmsg;
+    my @errmsg;
     if ($HWWrapper::debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
         $subname = defined $subname ? " $subname:" : "";
-        $errmsg = "error:$subname at $filename line $line:", @_, "\n";
+        @errmsg = ("error:$subname at $filename line $line:", @_, "\n");
     } else {
-        $errmsg = "error: ", @_, "\n";
+        @errmsg = ("error: ", @_, "\n");
     }
 
     unlink($HW::cookie_file);    # from HW::error_exit()
-    die $errmsg;
+    die @errmsg;
 }
 
 sub debug {
