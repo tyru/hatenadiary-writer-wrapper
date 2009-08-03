@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.18';
+our $VERSION = '1.1.19';
 
 use base 'HW';
 
@@ -273,7 +273,10 @@ sub init {
         c => \$read_config,
     });
 
-    if ($read_config) {
+    my $dir = shift @$args;
+    if (defined $dir) {
+        $txt_dir = $dir;
+    } elsif ($read_config) {
         $txt_dir = $HW::txt_dir;
         $config_file = $HW::config_file;
         $cookie_file = $HW::cookie_file;

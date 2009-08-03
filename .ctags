@@ -1,0 +1,6 @@
+--verbose
+--totals
+-R
+--exclude=lib
+--exclude=.git
+--languages=Perl
