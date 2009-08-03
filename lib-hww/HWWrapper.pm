@@ -16,10 +16,18 @@ use Data::Dumper;
 
 use File::Spec;
 use Pod::Usage;
-use File::Basename;
+use File::Basename qw(dirname basename);
 use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
+
+
+
+use FindBin qw($Bin);
+
+# redefine for test scripts...
+our $BASE_DIR = $Bin;
+our $HWW_LIB  = File::Spec->catfile($BASE_DIR, 'lib-hww');
 
 
 # command vs subname
@@ -61,6 +69,7 @@ our %HWW_COMMAND = (
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # (一回ログインした次が401 Authorizedになる)
+
 
 
 
@@ -233,7 +242,7 @@ sub help {
         error("'$cmd' is not a hww-command. See perl $0 help");
     }
 
-    my $podpath = File::Spec->catdir($hww_main::HWW_LIB, 'pod', "hww-$cmd.pod");
+    my $podpath = File::Spec->catdir($HWW_LIB, 'pod', "hww-$cmd.pod");
     unless (-f $podpath) {
         error("we have not written the document of '$cmd' yet.");
     }
