@@ -17,13 +17,11 @@ my @tests = (
         dies_ok { error("going to die!!") }, "error() dies ok";
     },
     sub {
-        require File::Spec;
-        unless (open STDERR, '>', File::Spec->devnull) {
-            diag "can't open STDERR:$!";
-            ok 0;
-        } else {
-            lives_ok { warning("warn") }, "warning() won't die";
-        }
+        lives_ok {
+            # trap STDOUT and STDERR
+            # (but can't stop warning() from dying)
+            output_from { warning("warn") }
+        }, "warning() won't die";
     },
 
     sub {
@@ -32,7 +30,6 @@ my @tests = (
             defined(get_entrydate("1990-08-16-path including \n and white space.txt")),
             "path including whitespaces are allowed"
         );
-
     },
     sub {
         ok find_headlines(<<EOB) == 1;
