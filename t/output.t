@@ -14,25 +14,16 @@ my $wrapper = HWWrapper->new;
 use HWWrapper::UtilSub;
 
 
-{
-    my @debugfiles;
+sub writedb {
+    my ($filename, $text) = @_;
 
-    sub suicide {
-        my $msg = shift;
-        unlink $_ for @debugfiles;
-        die $msg;
-    }
-
-    sub writedb {
-        my ($filename, $text) = @_;
-
-        require FileHandle;
-        my $DBFH = FileHandle->new($filename, 'w') or suicide "$filename:$!";
-        $DBFH->print($text);
-        $DBFH->close;
-
-        push @debugfiles, $filename;
-    }
+    require FileHandle;
+    my $DBFH = FileHandle->new($filename, 'w') or do {
+        diag "$filename: failed to create debug file...";
+        return;
+    };
+    $DBFH->print($text);
+    $DBFH->close;
 }
 
 
