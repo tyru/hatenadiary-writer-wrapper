@@ -50,37 +50,9 @@ __END__
 
 =head1 SYNOPSIS
 
-    $ perl hww.pl [OPTIONS] COMMAND [ARGS]
-
-
-=head1 OPTIONS
-
-    these options for 'hww.pl'.
-    if you see the help of command options, do it.
-    $ perl hww.pl help <command>
-
-=over
-
-=item --help
-
-show this help text.
-
-=item --version
-
-show version.
-
-=item -d, --debug
-
-debug mode.
-
-=item -C, --no-cookie
-
-don't use cookie.
-(don't call hw.pl with '-c' option)
-
-=back
+    $ perl hww.pl [--help] [--version] [-d | --debug] [-D | --debug-stderr] [-C | --no-cookie] COMMAND [ARGS]
 
 
 =head1 AUTHOR
 
-tyru <tyru.exe@gmail.com>
+    tyru <tyru.exe@gmail.com>
