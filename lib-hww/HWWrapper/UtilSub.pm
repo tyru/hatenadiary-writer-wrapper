@@ -50,7 +50,9 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
-    unlink($HW::cookie_file);    # from HW::error_exit()
+    if (loaded_hw()) {
+        unlink($HW::cookie_file);    # from HW::error_exit()
+    }
     die @errmsg;
 }
 
@@ -99,17 +101,6 @@ sub alias {
     }
 }
 
-sub call_hw {
-    my $hw = File::Spec->catfile($hww_main::BASE_DIR, 'hw.pl');
-    my @debug = $HWWrapper::debug ? qw(-d) : ();
-    my @cookie = $HWWrapper::no_cookie ? () : qw(-c);
-    my @args = ('perl', $hw, @debug, @cookie, @_);
-    dump(\@args);
-    Carp::confess("call_hw(): this is deprecated subroutine...");
-
-    # system 'perl', $hw, @debug, @cookie, @_;
-}
-
 sub require_modules {
     my @failed;
     for my $m (@_) {
@@ -127,9 +118,10 @@ sub require_modules {
 
 sub get_entrydate {
     my $path = shift;
+    $path = File::Basename::basename($path);
 
     # $path might be html file.
-    if (File::Basename::basename($path) =~ /\A(\d{4})-(\d{2})-(\d{2})(-.+)?\.(html|txt)\Z/) {
+    if ($path =~ /\A(\d{4})-(\d{2})-(\d{2})(-[\w\W]+)?\.(html|txt)\Z/m) {
         return {
             year  => $1,
             month => $2,
@@ -144,7 +136,10 @@ sub get_entrydate {
 sub find_headlines {
     my ($body) = @_;
     my @headline;
-    while ($body =~ s/^\*([^\n\*]+)\*//m) {
+    # NOTE: all headlines are replaced with ' '.
+    # because '*headlines**not headlines*' are allowed
+    # if headlines were replaced with ''.
+    while ($body =~ s/^\*([^\n\*]+)\*/ /m) {
         push @headline, $1;
     }
     return @headline;
@@ -154,7 +149,9 @@ sub get_entries {
     my ($dir, $fileglob) = @_;
 
     # set default value.
-    $dir      = $HW::txt_dir unless defined $dir;
+    if (loaded_hw()) {
+        $dir      = $HW::txt_dir unless defined $dir;
+    }
     $fileglob = '*.txt'           unless defined $fileglob;
 
     grep {
@@ -177,6 +174,9 @@ sub get_entries_hash {
 # get misc info about time from 'touch.txt'.
 # NOTE: unused
 sub get_touchdate {
+    # NOTE: I should croak?
+    return 0    unless loaded_hw();
+
     my $touch_time = do {
         my $FH = FileHandle->new($HW::touch_file, 'r') or error(":$!");
         chomp(my $line = <$FH>);
@@ -273,6 +273,10 @@ sub restore_hw_args {
     return @argv;
 }
 
+sub loaded_hw {
+    exists $INC{'HW.pm'};
+}
+
 
 
 ### util subs (need $self) ###
@@ -309,8 +313,10 @@ sub arg_error {
     }
     $self->dispatch('help', [$cmdname]);
 
-    # from HW::error_exit()
-    unlink($HW::cookie_file);
+    if (loaded_hw()) {
+        # from HW::error_exit()
+        unlink($HW::cookie_file);
+    }
 
     exit -1;
 }
