@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.0';
+our $VERSION = '1.3.1';
 
 use base 'HW';
 
@@ -683,16 +683,22 @@ sub apply_headline {
     };
 
     if ($all) {
-        for my $file (glob "$HW::txt_dir/*.txt") {
-            $apply->($file);
+        my $dir = @$args ? $args->[0] : $HW::txt_dir;
+        my @entry = get_entries($dir);
+        unless (@entry) {
+            puts("$dir: no entries");
+            exit;
         }
+        for (@entry) {
+            $apply->($_);
+        }
+    } elsif (@$args) {
+        unless (-f $args->[0]) {
+            error($args->[0].":$!");
+        }
+        $apply->($args->[0]);
     } else {
-        my $file;
-        if (defined($file = shift(@$args)) && -f $file) {
-            $apply->($file);
-        } else {
-            $self->arg_error;
-        }
+        $self->arg_error;
     }
 }
 
