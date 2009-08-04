@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.2.0';
+our $VERSION = '1.2.1';
 
 use base 'HW';
 
@@ -64,6 +64,7 @@ our %HWW_COMMAND = (
 # - hw.plのオプションを取り替える
 # (例えば-tはreleaseやupdateで指定できるのでいらない)
 # - add extlib
+# - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く
 
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
@@ -644,6 +645,8 @@ sub status {
 sub apply_headline {
     my ($self, $args) = @_;
 
+    # TODO
+    # YYYY-MM-DD.txt形式のファイル名に戻す
     my $all;
     get_opt($args, {
         all => \$all,
