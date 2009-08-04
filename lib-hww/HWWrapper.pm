@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.1';
+our $VERSION = '1.3.2';
 
 use base 'HW';
 
@@ -829,7 +829,7 @@ sub gen_html {
             mkdir $out;
         }
 
-        for my $infile (glob "$in/*.txt") {
+        for my $infile (get_entries($in)) {
             my $outfile = File::Spec->catfile($out, basename($infile));
             # *.txt -> *.html
             $outfile =~ s/\.txt$/.html/;
@@ -891,7 +891,7 @@ sub update_index {
         );
 
         my @entry;
-        for my $path (glob "$html_dir/*") {
+        for my $path (get_entries($html_dir, '*')) {
             my $basename = basename($path);
             next    unless $basename =~ /^(\d{4})-(\d{2})-(\d{2})(?:-.+)?\.html$/;
 
