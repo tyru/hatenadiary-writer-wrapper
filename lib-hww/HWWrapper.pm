@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.2.2';
+our $VERSION = '1.2.3';
 
 use base 'HW';
 
@@ -315,8 +315,8 @@ sub release {
     my ($self, $args) = @_;
 
     get_opt($args, {
-        trivial => $HW::cmd_opt{t},
-        t => $HW::cmd_opt{t},
+        trivial => \$HW::cmd_opt{t},
+        t => \$HW::cmd_opt{t},
     });
 
     my $dir = shift @$args;
