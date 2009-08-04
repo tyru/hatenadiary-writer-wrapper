@@ -171,6 +171,16 @@ sub get_entries_hash {
     %hash;
 }
 
+sub get_updated_entries {
+    return () unless loaded_hw();
+
+    grep {
+        (-e $_ && -e $HW::touch_file)
+        && -M $_ < -M $HW::touch_file
+    } get_entries(@_);
+}
+
+
 # get misc info about time from 'touch.txt'.
 # NOTE: unused
 sub get_touchdate {

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.1.19';
+our $VERSION = '1.2.0';
 
 use base 'HW';
 
@@ -50,8 +50,8 @@ our %HWW_COMMAND = (
     # 'add-tag' => 'add_tag',
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
-    #
-    # diff => 'diff',
+
+    diff => 'diff',
 );
 
 # TODO
@@ -625,10 +625,7 @@ sub status {
         }
     } else {
         # updated only.
-        my @updated_entry = grep {
-            (-e $_ && -e $HW::touch_file)
-            && -M $_ < -M $HW::touch_file
-        } get_entries($dir);
+        my @updated_entry = get_updated_entries($dir);
 
         unless (@updated_entry) {
             puts("no files updated.");
@@ -984,6 +981,27 @@ sub chain {
     for (@dispatch) {
         my ($command, @args) = @$_;
         $self->dispatch($command => \@args);
+    }
+}
+
+sub diff {
+    my ($self, $args) = @_;
+
+    # TODO
+    # my $dir = shift @$args;
+
+    my $diff = sub {
+        local $HW::diff_date = local $HW::cmd_opt{D} = shift;
+        $self->diff_main();
+    };
+
+
+    if (@$args) {
+        $diff->($args->[0]);
+    } else {
+        for (map { basename($_) } get_updated_entries()) {
+            $diff->($_);
+        }
     }
 }
 
