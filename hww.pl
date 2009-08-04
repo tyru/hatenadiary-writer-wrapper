@@ -36,9 +36,10 @@ sub version () {
 ### main ###
 usage() unless @ARGV;
 
-my $wrapper = HWWrapper->new;
-my ($cmd, $cmd_args) = $wrapper->parse_opt(@ARGV);
-$wrapper->dispatch($cmd => $cmd_args);
+HWWrapper->new->dispatch_with_args;
+# my $wrapper = HWWrapper->new;
+# my ($cmd, $cmd_args) = $wrapper->parse_opt(@ARGV);
+# $wrapper->dispatch($cmd => $cmd_args);
 
 
 __END__

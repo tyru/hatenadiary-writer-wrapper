@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.4';
+our $VERSION = '1.3.5';
 
 use base 'HW';
 
@@ -20,6 +20,7 @@ use File::Basename qw(dirname basename);
 use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
+use Carp;
 
 
 
@@ -78,11 +79,19 @@ our %HWW_COMMAND = (
 ### new() ###
 
 sub new {
-    my $self = bless {}, shift;
+    my $pkg = shift;
 
     unless (has_completed_setup()) {
         error("missing some necessary files. run 'init' command.");
     }
+
+    my ($cmd, $cmd_args) = HWWrapper->parse_opt(@ARGV);
+    my $self = bless {
+        args => {
+            cmd => $cmd,
+            cmd_args => $cmd_args,
+        },
+    }, $pkg;
 
     # if ($self->SUPER::can('new')) {
     #     $self->SUPER::new(@_);
@@ -219,6 +228,17 @@ sub dispatch {
 
     my $subname = $HWW_COMMAND{$cmd};
     $self->$subname($args);
+}
+
+### dispatch_with_args() ###
+
+sub dispatch_with_args {
+    my $self = shift;
+    unless (blessed($self)) {
+        croak 'pass me blessed $self.';
+    }
+
+    $self->dispatch($self->{args}{cmd} => $self->{args}{cmd_args});
 }
 
 
