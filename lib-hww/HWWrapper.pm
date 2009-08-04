@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.2';
+our $VERSION = '1.3.3';
 
 use base 'HW';
 
@@ -80,6 +80,10 @@ our %HWW_COMMAND = (
 
 sub new {
     my $self = bless {}, shift;
+
+    unless (has_completed_setup()) {
+        error("missing some necessary files. run 'init' command.");
+    }
 
     # if ($self->SUPER::can('new')) {
     #     $self->SUPER::new(@_);

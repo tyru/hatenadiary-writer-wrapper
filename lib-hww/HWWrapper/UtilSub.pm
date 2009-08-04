@@ -331,6 +331,13 @@ sub arg_error {
     exit -1;
 }
 
+# or not, run 'init' command.
+sub has_completed_setup {
+    loaded_hw() &&
+    -d $HW::txt_dir &&
+    -f $HW::config_file
+}
+
 
 
 
