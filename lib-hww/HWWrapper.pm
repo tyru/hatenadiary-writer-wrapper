@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.3';
+our $VERSION = '1.3.4';
 
 use base 'HW';
 
@@ -46,13 +46,12 @@ our %HWW_COMMAND = (
     'gen-html' => 'gen_html',
     'update-index' => 'update_index',
     chain => 'chain',
+    diff => 'diff',
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
-
-    diff => 'diff',
 );
 
 # TODO
