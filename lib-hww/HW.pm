@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.6";
+our $VERSION = "1.5.7";
 
 use HWWrapper::UtilSub;
 
@@ -141,7 +141,7 @@ if ($0 eq __FILE__) {
     # if ($cmd_opt{l}) {
     #     load_main();    # now load()
     # } elsif ($cmd_opt{D}) {
-    #     diff_main();
+    #     diff_main();    # now diff()
     # } else {
     #     main();    # now release()
     # }
@@ -205,7 +205,7 @@ sub load {
     $self->logout() if ($user_agent);
 }
 
-sub diff_main {
+sub diff {
     my $self = shift;
     my ($year, $month, $day) = $self->parse_date($diff_date);
 

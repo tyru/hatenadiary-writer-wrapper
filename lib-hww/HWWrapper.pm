@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.2.1';
+our $VERSION = '1.2.2';
 
 use base 'HW';
 
@@ -995,7 +995,7 @@ sub diff {
 
     my $diff = sub {
         local $HW::diff_date = local $HW::cmd_opt{D} = shift;
-        $self->diff_main();
+        $self->SUPER::diff();
     };
 
 
