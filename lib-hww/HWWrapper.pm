@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.2.3';
+our $VERSION = '1.3.0';
 
 use base 'HW';
 
@@ -41,6 +41,7 @@ our %HWW_COMMAND = (
     verify => 'verify',
     status => 'status',
     'apply-headline' => 'apply_headline',
+    'revert-headline' => 'revert_headline',
     touch => 'touch',
     'gen-html' => 'gen_html',
     'update-index' => 'update_index',
@@ -692,6 +693,58 @@ sub apply_headline {
         } else {
             $self->arg_error;
         }
+    }
+}
+
+# TODO ヘルプ書く
+sub revert_headline {
+    my ($self, $args) = @_;
+
+    my $all;
+    get_opt($args, {
+        all => \$all,
+        a => \$all,
+    });
+
+
+    my $revert = sub {
+        my $filename = shift;
+
+        my $date = get_entrydate($filename);
+        unless (defined $date) {
+            warning("$filename: not entry file");
+            return;
+        }
+        # <year>-<month>-<day>.txt
+        my $new_filename = sprintf '%s-%s-%s.txt', @$date{qw(year month day)};
+
+        debug("check if $filename and $new_filename is same basename?");
+        unless (basename($filename) eq basename($new_filename)) {
+            puts("rename $filename -> $new_filename");
+            rename $filename, File::Spec->catfile(dirname($filename), $new_filename)
+                or error("$filename: Can't rename $filename $new_filename");
+        }
+    };
+
+    if ($all) {
+        my $dir = @$args ? $args->[0] : $HW::txt_dir;
+        my @entry = get_entries($dir);
+        unless (@entry) {
+            puts("$dir: no entries");
+            exit;
+        }
+        for (@entry) {
+            $revert->($_);
+        }
+
+    } elsif (@$args) {
+        unless (-f $args->[0]) {
+            error($args->[0].":$!");
+        }
+        $revert->($args->[0]);
+
+    } else {
+        $self->arg_error;
     }
 }
 
