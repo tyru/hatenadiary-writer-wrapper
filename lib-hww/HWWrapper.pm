@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.9';
+our $VERSION = '1.3.10';
 
 use base qw(HW);
 # import all util commands!!
@@ -82,6 +82,9 @@ our %HWW_COMMAND = (
 
 
 
+# warning/error messages with stacktrace.
+local $SIG{__DIE__} = \&Carp::confess;
+local $SIG{__WARN__} = \&Carp::cluck;
 
 
 ### new() ###
