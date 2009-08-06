@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.7';
+our $VERSION = '1.3.8';
 
 use base qw(HW);
 # import all util commands!!
@@ -25,7 +25,6 @@ use Carp;
 
 use FindBin qw($Bin);
 
-# redefine for test scripts...
 our $BASE_DIR = $Bin;
 our $HWW_LIB  = File::Spec->catfile($BASE_DIR, 'lib-hww');
 
@@ -52,18 +51,29 @@ our %HWW_COMMAND = (
     # 'add-tag' => 'add_tag',
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
+
+    # - 現在の日記ファイルを作ってエディタで開くコマンド
 );
 
 # TODO
-# - write docs (under lib-hww/pod/)
-# - use Hatena AtomPub API. rewrite HW 's subs.
-# - HWのサブルーチンをHWWrapper::UtilSubで置き換えられる所は置き換える
+# - コマンドのヘルプドキュメント書く
+# - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
+# - HWのサブルーチンをHWWrapper::UtilSubやHWWrapper::UtilSub::Functionsで置き換えられる所は置き換える
 # - HWのデバッグメッセージを変更
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
-# - hw.plのオプションを取り替える
-# (例えば-tはreleaseやupdateで指定できるのでいらない)
-# - add extlib
-# - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く
+# - オリジナルのhw.plの-tオプションはreleaseやupdateで指定できるのでいらない
+# - extlibという追加のモジュールをつっこむディレクトリを追加
+# (コアモジュールじゃないモジュールを使うため)
+# - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
+# - add attributes to test if $self is blessed and omit to declare $self?
+# - HW::new()でデフォルトの設定を$selfにつっこむ
+# - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
+#
+# - config-hww.txtにHWWrapperの設定を書く
+# -- フォーマットはYAML
+# (YAML::XSとYAMLは互換性がないらしい。XSを使うのはWindowsにとって厳しいのでYAMLモジュールを使う)
+# -- $EDITORの設定
+# -- hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
 
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
@@ -84,6 +94,7 @@ sub new {
     # NOTE: do not check before parse_opt().
     # because parse_opt() calls HW->parse_opt()
     # which sets up option values (in $self->{config}).
+    # TODO: do this after setting default config values in HW::new()!!
     # unless ($self->has_completed_setup()) {
     #     error("missing some necessary files. run 'init' command.");
     # }
@@ -149,6 +160,9 @@ my %hww_opt = (
     # %hw_opt_long,
 );
 
+
+# NOTE:
+# - オプションの優先順位は デフォルトの値＜設定ファイルの値＜引数指定された値
 
 sub parse_opt {
     my $self = shift;
