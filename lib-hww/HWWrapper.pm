@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.12';
+our $VERSION = '1.3.13';
 
 use base qw(HW);
 # import all util commands!!
@@ -25,6 +25,7 @@ use Carp;
 
 use FindBin qw($Bin);
 
+# TODO delete these. this is module!!
 our $BASE_DIR = $Bin;
 our $HWW_LIB  = File::Spec->catfile($BASE_DIR, 'lib-hww');
 
@@ -53,6 +54,10 @@ our %HWW_COMMAND = (
     # 'rename-tag' => 'rename_tag',
 
     # TODO 現在の日記ファイルを作ってエディタで開くコマンド
+    # TODO 対話シェルを起動するコマンド
+    # shell => 'shell',
+    # TODO 設定(ファイルはconfig-hww.txt)を変えるコマンド
+    # config => 'config',
 );
 
 # TODO
@@ -63,8 +68,7 @@ our %HWW_COMMAND = (
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - オリジナルのhw.plの-tオプションはreleaseやupdateで指定できるのでいらない
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
-# - add attributes to test if $self is blessed and omit to declare $self?
-# - HW::new()でデフォルトの設定を$selfにつっこむ
+# - add attributes to test if $self is blessed and to omit to declare $self?
 #
 # - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
 # - diffやloadがアクセサの値じゃなく引数で受渡しをするようにする
@@ -85,6 +89,13 @@ our %HWW_COMMAND = (
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # (一回ログインした次が401 Authorizedになる)
+# -- それLWP::Authen::Wsse使ってるからじゃ・・・
+
+# NOTE
+# - new()で設定のデフォルト値をセットして
+# - load_config()で設定ファイルの値をセットして
+# - parse_opt()で引数の値をセット
+
 
 
 
@@ -405,6 +416,9 @@ sub load {
         a => \$all,
         draft => \$draft,
         d => \$draft,
+        # TODO comparing each entries, and it's different, fetch it.
+        # 'compare' => \$compare,
+        # 'c' => \$compare,
         'missing-only' => \$missing_only,
         m => \$missing_only,
     }) or error("arguments error");
