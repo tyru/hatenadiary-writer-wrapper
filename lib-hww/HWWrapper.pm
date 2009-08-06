@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.11';
+our $VERSION = '1.3.12';
 
 use base qw(HW);
 # import all util commands!!
@@ -65,7 +65,9 @@ our %HWW_COMMAND = (
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
 # - add attributes to test if $self is blessed and omit to declare $self?
 # - HW::new()でデフォルトの設定を$selfにつっこむ
+#
 # - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
+# - diffやloadがアクセサの値じゃなく引数で受渡しをするようにする
 #
 # - extlibという追加のモジュールをつっこむディレクトリを追加
 # (コアモジュールじゃないモジュールを使うため)
@@ -1108,19 +1110,13 @@ sub diff {
     my ($self, $args) = @_;
 
     # TODO
-    # my $dir = shift @$args;
-
-    my $diff = sub {
-        local $self->diff_date = shift;
-        $self->SUPER::diff();
-    };
-
+    # ディレクトリやファイルを受け取るようにする(オプションで)
 
     if (@$args) {
-        $diff->($args->[0]);
+        $self->SUPER::diff($args->[0]);
     } else {
         for (map { basename($_) } $self->get_updated_entries()) {
-            $diff->($_);
+            $self->SUPER::diff($_);
         }
     }
 }

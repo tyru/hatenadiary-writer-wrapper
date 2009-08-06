@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.9";
+our $VERSION = "1.5.10";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -241,7 +241,6 @@ sub parse_opt {
         # SUPER:: with argument so there'll be no reason to
         # stash value in $self->{config}.
         load_date => '',
-        diff_date => '',
     );
 
 
@@ -274,7 +273,6 @@ sub parse_opt {
 
         # unnecessary because HWWrapper prepares 'load' and 'diff' command.
         # l => 'load_date',
-        # D => 'diff_date',
     );
     while (my ($k, $method) = each %args) {
         my $arg_value = $cmd_opt{$k};
@@ -310,7 +308,8 @@ sub load {
 
 sub diff {
     my $self = shift;
-    my ($year, $month, $day) = $self->parse_date($self->diff_date);
+    my $diff_date = shift;
+    my ($year, $month, $day) = $self->parse_date($diff_date);
 
     # Login if necessary.
     $self->login() unless ($user_agent);
@@ -970,6 +969,7 @@ sub text_filename($$$;$) {
     if (defined $headlines
         && ref $headlines eq 'ARRAY'
         && @$headlines) {
+        # XXX ヘッドラインは下の正規表現で無視されてるんじゃ？
         $datename = "$year-$month-$day-".join('-', @$headlines);
     } else {
         $datename = "$year-$month-$day";
