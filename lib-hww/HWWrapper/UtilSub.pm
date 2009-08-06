@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use utf8;
 
+our $VERSION = "1.0.0";
+
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
 
@@ -16,7 +18,6 @@ use Getopt::Long ();
 
 
 
-# TODO separate into HWWrapper::UtilSub::Functions
 ### util subs (need $self) ###
 
 sub get_entrydate {
