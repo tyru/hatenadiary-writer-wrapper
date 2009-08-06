@@ -4,12 +4,12 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.5';
+our $VERSION = '1.3.6';
 
-use base 'HW';
+use base qw(HW);
 
-# import util subs.
 use HWWrapper::UtilSub;
+push our @ISA, qw(HWWrapper::UtilSub);
 
 
 use Data::Dumper;
@@ -60,7 +60,6 @@ our %HWW_COMMAND = (
 # - use Hatena AtomPub API. rewrite HW 's subs.
 # - HWのサブルーチンをHWWrapper::UtilSubで置き換えられる所は置き換える
 # - HWのデバッグメッセージを変更
-# - HWがグローバル変数に頼るのをやめる($selfにつっこむ)
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - hw.plのオプションを取り替える
 # (例えば-tはreleaseやupdateで指定できるのでいらない)
@@ -81,20 +80,13 @@ our %HWW_COMMAND = (
 sub new {
     my $pkg = shift;
 
-    unless (has_completed_setup()) {
-        error("missing some necessary files. run 'init' command.");
-    }
+    my $self = bless {}, $pkg;
 
-    my ($cmd, $cmd_args) = HWWrapper->parse_opt(@ARGV);
-    my $self = bless {
-        args => {
-            cmd => $cmd,
-            cmd_args => $cmd_args,
-        },
-    }, $pkg;
-
-    # if ($self->SUPER::can('new')) {
-    #     $self->SUPER::new(@_);
+    # NOTE: do not check before parse_opt().
+    # because parse_opt() calls HW->parse_opt()
+    # which sets up option values (in $self->{config}).
+    # unless ($self->has_completed_setup()) {
+    #     error("missing some necessary files. run 'init' command.");
     # }
 
     return $self;
@@ -103,36 +95,37 @@ sub new {
 
 
 ### parse_opt() ###
-# parse @ARGV and if HWW can't handle that option(s),
-# do $self->SUPER::parse_opt().
 
 # hw.pl's options.
 our %hw_opt = (
-    t => \$HW::cmd_opt{t},
-    'u=s' => \$HW::cmd_opt{u},
-    'p=s' => \$HW::cmd_opt{p},
-    'a=s' => \$HW::cmd_opt{a},
-    'T=s' => \$HW::cmd_opt{T},
-    'g=s' => \$HW::cmd_opt{g},
-    'f=s' => \$HW::cmd_opt{f},
-    M => \$HW::cmd_opt{M},
-    'n=s' => \$HW::cmd_opt{n},
+    t => \undef,
+    'u=s' => \undef,
+    'p=s' => \undef,
+    'a=s' => \undef,
+    'T=s' => \undef,
+    'g=s' => \undef,
+    'f=s' => \undef,
+    M => \undef,
+    'n=s' => \undef,
     # hw.pl's old option. hw.pl does not recognize this option.
     # S => \$HW::cmd_opt{S},
 );
 # this is additinal options which I added.
 # not hw.pl's options.
-our %hw_opt_long = (
-    trivial => \$HW::cmd_opt{t},
-    'username=s' => \$HW::cmd_opt{u},
-    'password=s' => \$HW::cmd_opt{p},
-    'agent=s' => \$HW::cmd_opt{a},
-    'timeout=s' => \$HW::cmd_opt{T},
-    'group=s' => \$HW::cmd_opt{g},
-    'file=s' => \$HW::cmd_opt{f},
-    'no-replace' => \$HW::cmd_opt{M},
-    'config-file=s' => \$HW::cmd_opt{n},
-);
+# TODO
+# DO NOT DEPEND ON %HW::cmd_opt !
+# THAT HAS BEEN DELETED ALREADY!!
+# our %hw_opt_long = (
+#     trivial => \$HW::cmd_opt{t},
+#     'username=s' => \$HW::cmd_opt{u},
+#     'password=s' => \$HW::cmd_opt{p},
+#     'agent=s' => \$HW::cmd_opt{a},
+#     'timeout=s' => \$HW::cmd_opt{T},
+#     'group=s' => \$HW::cmd_opt{g},
+#     'file=s' => \$HW::cmd_opt{f},
+#     'no-replace' => \$HW::cmd_opt{M},
+#     'config-file=s' => \$HW::cmd_opt{n},
+# );
 
 my $show_help;
 my $show_version;
@@ -154,7 +147,7 @@ my %hww_opt = (
     'no-cookie' => \$no_cookie,
 
     %hw_opt,
-    %hw_opt_long,
+    # %hw_opt_long,
 );
 
 
@@ -164,9 +157,14 @@ sub parse_opt {
     my ($hww_args, $cmd, $cmd_args) = split_opt(@argv);
     my $tmp = [@$hww_args];
 
+    unless (blessed($self)) {
+        croak 'give me blessed $self.';
+    }
+
+
     # parse hww.pl's options.
-    get_opt($hww_args, \%hww_opt) or do {
-        warning "arguments error";
+    $self->get_opt($hww_args, \%hww_opt) or do {
+        warning("arguments error");
         sleep 1;
         $self->dispatch('help');
         exit -1;
@@ -177,6 +175,7 @@ sub parse_opt {
                     dumper($cmd),
                     dumper($cmd_args));
 
+    # exec hww's options...
     if ($show_help || ! defined $cmd) {
         $self->dispatch('help');
         exit -1;
@@ -185,17 +184,20 @@ sub parse_opt {
         $self->dispatch('version');
         exit -1;
     }
-    $HW::cmd_opt{c} = 1 unless $no_cookie;
-    $HW::cmd_opt{d} = 1 if $debug;
 
 
-    # restore arguments for hw.pl
+    # restore arguments for HW
     @argv = restore_hw_args(%hw_opt);
 
-    # parse hw.pl's options.
+    # parse HW 's options.
     # NOTE: even if @argv == 0, let it parse.
     debug('let hw parse @argv...');
     $self->SUPER::parse_opt(@argv);
+
+    # set these values after $self->SUPER::parse_opt().
+    # because these accessors were defined by it.
+    $self->use_cookie = ! $no_cookie;
+
 
     return ($cmd, $cmd_args);
 }
@@ -205,13 +207,15 @@ sub parse_opt {
 ### dispatch() ###
 
 sub dispatch {
-    my ($self, $cmd, $args) = @_;
+    my $self = shift;
+    my ($cmd, $args) = @_;
     $args = [] unless defined $args;
 
     unless (blessed $self) {
-        $self = bless {}, $self;
+        croak 'give me blessed $self.';
     }
 
+    # detect some errors.
     unless (defined $cmd) {
         error("no command was given.");
     }
@@ -220,11 +224,13 @@ sub dispatch {
     }
 
     # some debug messages.
-    my ($filename, $line) = (caller)[1,2];
-    $filename = basename($filename);
-    my $args_dumped = join ', ', map { dumper($_) } @_;
-    debug("at $filename line $line: dispatch($args_dumped)");
-    debug(sprintf "dispatch '$cmd' with [%s]", join(', ', @$args));
+    {
+        my ($filename, $line) = (caller)[1,2];
+        $filename = basename($filename);
+        my $args_dumped = join ', ', map { dumper($_) } @_;
+        debug("at $filename line $line: \$self->dispatch($args_dumped)");
+        debug(sprintf "dispatch '$cmd' with [%s]", join(', ', @$args));
+    }
 
     my $subname = $HWW_COMMAND{$cmd};
     $self->$subname($args);
@@ -235,10 +241,14 @@ sub dispatch {
 sub dispatch_with_args {
     my $self = shift;
     unless (blessed($self)) {
-        croak 'pass me blessed $self.';
+        croak 'give me blessed $self.';
     }
 
-    $self->dispatch($self->{args}{cmd} => $self->{args}{cmd_args});
+    my @argv = @_ ? @_ : @ARGV;
+    debug("arguments: ".dumper([@argv]));
+
+    my ($cmd, $cmd_args) = $self->parse_opt(@argv);
+    $self->dispatch($cmd => $cmd_args);
 }
 
 
@@ -257,7 +267,7 @@ sub help {
         for my $command (keys %HWW_COMMAND) {
             puts("  $command");
         }
-        puts;
+        puts();
         puts("and if you want to know hww.pl's option, perldoc -F hww.pl");
 
         return;
@@ -293,7 +303,7 @@ sub init {
     my $cookie_file = "cookie.txt";
 
     my $read_config;
-    get_opt($args, {
+    $self->get_opt($args, {
         config => \$read_config,
         c => \$read_config,
     });
@@ -303,7 +313,7 @@ sub init {
         $txt_dir = $dir;
     } elsif ($read_config) {
         $txt_dir = $HW::txt_dir;
-        $config_file = $HW::config_file;
+        $config_file = $self->config_file,
         $cookie_file = $HW::cookie_file;
     }
     my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
@@ -338,10 +348,12 @@ EOT
 sub release {
     my ($self, $args) = @_;
 
-    get_opt($args, {
-        trivial => \$HW::cmd_opt{t},
-        t => \$HW::cmd_opt{t},
+    my $trivial;
+    $self->get_opt($args, {
+        trivial => \$trivial,
+        t => \$trivial,
     });
+    $self->trivial = $trivial;
 
     my $dir = shift @$args;
     if (defined $dir) {
@@ -365,7 +377,7 @@ sub load {
     my $all;
     my $draft;
     my $missing_only;
-    get_opt($args, {
+    $self->get_opt($args, {
         all => \$all,
         a => \$all,
         draft => \$draft,
@@ -390,7 +402,7 @@ sub load {
 
         $HW::user_agent->cookie_jar($HW::cookie_jar);
 
-        my $export_url = "$HW::hatena_url/$HW::username/export";
+        my $export_url = sprintf '%s/%s/export', $self->hatena_url, $self->username;
         debug("GET $export_url");
         my $r = $HW::user_agent->simple_request(
             HTTP::Request::Common::GET($export_url)
@@ -415,19 +427,19 @@ sub load {
 
         my $xml_parser = XML::TreePP->new;
         my $entries = $xml_parser->parse($r->content);
-        my %current_entries = get_entries_hash();
+        my %current_entries = $self->get_entries_hash();
 
         unless (exists $entries->{diary}) {
-            error("invalid xml data returned from $HW::hatena_url")
+            error("invalid xml data returned from ".$self->hatena_url)
         }
         # exists entries on hatena diary?
         if (! ref $entries->{diary} && $entries->{diary} eq '') {
-            puts("no entries on hatena diary. ($HW::hatena_url)");
+            puts(sprintf 'no entries on hatena diary. (%s)', $self->hatena_url);
             return;
         }
         unless (ref $entries->{diary} eq 'HASH'
             && ref $entries->{diary}{day} eq 'ARRAY') {
-            error("invalid xml data returned from $HW::hatena_url")
+            error("invalid xml data returned from ".$self->hatena_url)
         }
         debug(sprintf '%d entries received.', scalar @{ $entries->{diary}{day} });
 
@@ -508,11 +520,13 @@ sub load {
             # to return current username and password.
             package LWP::UserAgent;
             no warnings qw(redefine once);
-            *get_basic_credentials = sub { ($HW::username, $HW::password) };
+
+            my ($username, $password) = ($self->username, $self->password);
+            *get_basic_credentials = sub { ($username, $password) };
         }
 
         # http://d.hatena.ne.jp/{user}/atom/draft
-        my $draft_collection_url = "$HW::hatena_url/$HW::username/atom/draft";
+        my $draft_collection_url = sprintf '%s/%s/atom/draft', $self->hatena_url, $self->username;
         my $xml_parser = XML::TreePP->new;
 
         # save draft entry.
@@ -548,7 +562,7 @@ sub load {
 
     } else {
         if (defined(my $ymd = shift(@$args))) {
-            $HW::load_date = $HW::cmd_opt{l} = $ymd;
+            $self->load_date = $ymd;
             $self->SUPER::load();
         } else {
             $self->arg_error;
@@ -562,7 +576,7 @@ sub verify {
     my ($self, $args) = @_;
 
     my $verify_html;
-    get_opt($args, {
+    $self->get_opt($args, {
         html => \$verify_html,
     });
 
@@ -573,7 +587,7 @@ sub verify {
     }
 
 
-    my @entry = get_entries($dir, $fileglob);
+    my @entry = $self->get_entries($dir, $fileglob);
     unless (@entry) {
         $dir = defined $dir ? $dir : $HW::txt_dir;
         puts("$dir: no entries found.");
@@ -584,9 +598,9 @@ sub verify {
     puts("checking duplicated entries...");
     my %entry;
     for my $file (@entry) {
-        my $date = get_entrydate($file);
+        my $date = $self->get_entrydate($file);
         dump($date);
-        # no checking because get_entries()
+        # no checking because $self->get_entries()
         # might return only existed file.
         my $ymd = sprintf "%s-%s-%s",
                             $date->{year},
@@ -624,7 +638,7 @@ sub status {
 
     my $all;
     my $no_caption;
-    get_opt($args, {
+    $self->get_opt($args, {
         all => \$all,
         a => \$all,
         C => \$no_caption,
@@ -644,13 +658,13 @@ sub status {
 
     if ($all) {
         puts("all entries:") unless $no_caption;
-        for (get_entries($dir)) {
+        for ($self->get_entries($dir)) {
             print "  " unless $no_caption;
             puts($_);
         }
     } else {
         # updated only.
-        my @updated_entry = get_updated_entries($dir);
+        my @updated_entry = $self->get_updated_entries($dir);
 
         unless (@updated_entry) {
             puts("no files updated.");
@@ -672,7 +686,7 @@ sub apply_headline {
     # TODO
     # YYYY-MM-DD.txt形式のファイル名に戻す
     my $all;
-    get_opt($args, {
+    $self->get_opt($args, {
         all => \$all,
         a => \$all,
     });
@@ -687,7 +701,7 @@ sub apply_headline {
         $FH->close;
         debug("found headline(s):".join(', ', @headline));
 
-        my $date = get_entrydate($filename);
+        my $date = $self->get_entrydate($filename);
         return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
@@ -707,7 +721,7 @@ sub apply_headline {
 
     if ($all) {
         my $dir = @$args ? $args->[0] : $HW::txt_dir;
-        my @entry = get_entries($dir);
+        my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
             exit;
@@ -730,7 +744,7 @@ sub revert_headline {
     my ($self, $args) = @_;
 
     my $all;
-    get_opt($args, {
+    $self->get_opt($args, {
         all => \$all,
         a => \$all,
     });
@@ -739,7 +753,7 @@ sub revert_headline {
     my $revert = sub {
         my $filename = shift;
 
-        my $date = get_entrydate($filename);
+        my $date = $self->get_entrydate($filename);
         unless (defined $date) {
             warning("$filename: not entry file");
             return;
@@ -757,7 +771,7 @@ sub revert_headline {
 
     if ($all) {
         my $dir = @$args ? $args->[0] : $HW::txt_dir;
-        my @entry = get_entries($dir);
+        my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
             exit;
@@ -806,7 +820,7 @@ sub gen_html {
     my $make_index;
     my $index_tmpl;
     my $missing_only;
-    get_opt($args, {
+    $self->get_opt($args, {
         'update-index' => \$make_index,
         i => \$make_index,
         'I=s' => \$index_tmpl,
@@ -823,7 +837,7 @@ sub gen_html {
 
     my $gen_html = sub {
         my ($in, $out) = @_;
-        unless (defined get_entrydate($in)) {
+        unless (defined $self->get_entrydate($in)) {
             return;
         }
 
@@ -852,7 +866,7 @@ sub gen_html {
             mkdir $out;
         }
 
-        for my $infile (get_entries($in)) {
+        for my $infile ($self->get_entries($in)) {
             my $outfile = File::Spec->catfile($out, basename($infile));
             # *.txt -> *.html
             $outfile =~ s/\.txt$/.html/;
@@ -887,7 +901,7 @@ sub update_index {
     my ($self, $args) = @_;
 
     my $max_strlen = 200;
-    get_opt($args, {
+    $self->get_opt($args, {
         'max-length=s' => \$max_strlen,
         'm=s' => \$max_strlen,
     });
@@ -914,7 +928,7 @@ sub update_index {
         );
 
         my @entry;
-        for my $path (get_entries($html_dir, '*')) {
+        for my $path ($self->get_entries($html_dir, '*')) {
             my $basename = basename($path);
             next    unless $basename =~ /^(\d{4})-(\d{2})-(\d{2})(?:-.+)?\.html$/;
 
@@ -1076,7 +1090,7 @@ sub diff {
     # my $dir = shift @$args;
 
     my $diff = sub {
-        local $HW::diff_date = local $HW::cmd_opt{D} = shift;
+        local $self->diff_date = shift;
         $self->SUPER::diff();
     };
 
@@ -1084,7 +1098,7 @@ sub diff {
     if (@$args) {
         $diff->($args->[0]);
     } else {
-        for (map { basename($_) } get_updated_entries()) {
+        for (map { basename($_) } $self->get_updated_entries()) {
             $diff->($_);
         }
     }

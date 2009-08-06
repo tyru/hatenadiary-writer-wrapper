@@ -24,9 +24,10 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.7";
+our $VERSION = "1.5.8";
 
 use HWWrapper::UtilSub;
+use base qw(Class::Accessor::Lvalue);
 
 
 use LWP::UserAgent;
@@ -59,22 +60,22 @@ use subs qw(
 );
 
 # Hatena user id (if empty, I will ask you later).
-our $username = '';
+# our $username = '';
 # Hatena password (if empty, I will ask you later).
-our $password = '';
+# our $password = '';
 # Hatena group name (for hatena group user only).
-our $groupname = '';
+# our $groupname = '';
 
 # Default file names.
 our $touch_file = 'touch.txt';
 our $cookie_file = 'cookie.txt';
-our $config_file = 'config.txt';
-our $target_file = '';
+# our $config_file = 'config.txt';
+# our $target_file = '';
 
 # Load diary date.
-our $load_date = '';
+# our $load_date = '';
 # Diff diary date.
-our $diff_date = '';
+# our $diff_date = '';
 
 # Filter command.
 # e.g. 'iconv -f euc-jp -t utf-8 %s'
@@ -92,7 +93,7 @@ our $client_encoding = '';
 our $server_encoding = '';
 
 # Hatena URL.
-our $hatena_url = 'http://d.hatena.ne.jp';
+# our $hatena_url = 'http://d.hatena.ne.jp';
 our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
 
 # Crypt::SSLeay check.
@@ -105,10 +106,10 @@ if ($@) {
 }
 
 # Option for LWP::UserAgent.
-our %ua_option = (
-    agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
-    timeout => 180,
-);
+# our %ua_option = (
+#     agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
+#     timeout => 180,
+# );
 
 # Other variables.
 our $delete_title = 'delete';
@@ -117,23 +118,22 @@ our $user_agent;
 our $rkm; # session id for posting.
 
 # Handle command-line option.
-# TODO move this into hww.pl
-our %cmd_opt = (
-    'd' => 0,   # "debug" flag.
-    't' => 0,   # "trivial" flag.
-    'u' => "",  # "username" option.
-    'p' => "",  # "password" option.
-    'a' => "",  # "agent" option.
-    'T' => "",  # "timeout" option.
-    'c' => 0,   # "cookie" flag.
-    'g' => "",  # "groupname" option.
-    'f' => "",  # "file" option.
-    'M' => 0,   # "no timestamp" flag.
-    'n' => "",  # "config file" option.
-    'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
-    'l' => "",  # "load" diary.
-    'D' => "",  # "diff" option.
-);
+# our %cmd_opt = (
+#     'd' => 0,   # "debug" flag.
+#     't' => 0,   # "trivial" flag.
+#     'u' => "",  # "username" option.
+#     'p' => "",  # "password" option.
+#     'a' => "",  # "agent" option.
+#     'T' => "",  # "timeout" option.
+#     'c' => 0,   # "cookie" flag.
+#     'g' => "",  # "groupname" option.
+#     'f' => "",  # "file" option.
+#     'M' => 0,   # "no timestamp" flag.
+#     'n' => "",  # "config file" option.
+#     'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
+#     'l' => "",  # "load" diary.
+#     'D' => "",  # "diff" option.
+# );
 
 
 if ($0 eq __FILE__) {
@@ -155,10 +155,28 @@ if ($0 eq __FILE__) {
 
 sub parse_opt {
     my $self = shift;
-    local @ARGV = @_;
+    my %cmd_opt = (
+        'd' => 0,   # "debug" flag.
+        't' => 0,   # "trivial" flag.
+        'u' => "",  # "username" option.
+        'p' => "",  # "password" option.
+        'a' => "",  # "agent" option.
+        'T' => "",  # "timeout" option.
+        'c' => 0,   # "cookie" flag.
+        'g' => "",  # "groupname" option.
+        'f' => "",  # "file" option.
+        'M' => 0,   # "no timestamp" flag.
+        'n' => "",  # "config file" option.
+        'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
+        'l' => "",  # "load" diary.
+        'D' => "",  # "diff" option.
+    );
 
-    local $Getopt::Std::STANDARD_HELP_VERSION = 1;
-    getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error("Unknown option.");
+    {
+        local @ARGV = @_;
+        local $Getopt::Std::STANDARD_HELP_VERSION = 1;
+        getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error("Unknown option.");
+    }
 
     if ($cmd_opt{d}) {
         debug("Debug flag on.");
@@ -167,32 +185,115 @@ sub parse_opt {
         VERSION_MESSAGE();
     }
 
-    # Override config file name (before load_config).
-    $config_file = $cmd_opt{n} if $cmd_opt{n};
 
-    # Override global vars with config file.
-    $self->load_config() if -e($config_file);
+    # NOTE:
+    # settings will be overridden like the followings
+    # - set default settings
+    # - set config settings
+    # - set arguments settings
+    #
+    # but -n option(config file) is exceptional case.
+    #
 
-    # Override global vars with command-line options.
-    $username = $cmd_opt{u} if $cmd_opt{u};
-    $password = $cmd_opt{p} if $cmd_opt{p};
-    $groupname = $cmd_opt{g} if $cmd_opt{g};
-    $ua_option{agent} = $cmd_opt{a} if $cmd_opt{a};
-    $ua_option{timeout} = $cmd_opt{T} if $cmd_opt{T};
-    $target_file = $cmd_opt{f} if $cmd_opt{f};
-    $load_date = $cmd_opt{l} if $cmd_opt{l};
-    $diff_date = $cmd_opt{D} if $cmd_opt{D};
+
+    ### set default settings ###
+
+    my $config_file;
+    if ($cmd_opt{n}) {
+        $config_file = $cmd_opt{n};    # exceptional case
+    } else {
+        $config_file = 'config.txt';
+    }
+
+    my $hatena_url = 'http://d.hatena.ne.jp';
+
+    my %ua_option = (
+        agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
+        timeout => 180,
+    );
+
+    my %config = (
+        config_file => $config_file,    # needless to store though.
+        username => '',
+        password => '',
+        groupname => '',
+        target_file => '',
+        hatena_url => $hatena_url,
+
+        %ua_option,
+
+        no_timestamp => 0,
+        enable_ssl => 1,
+
+        # this default value is different with original 'hw.pl'.
+        # to set this 0, you must give '--no-cookie' option to 'hww.pl'.
+        use_cookie => 1,
+
+        # TODO
+        # this option will be deprecated
+        # because 'release' or 'update' command take this option.
+        trivial => 0,
+
+        # TODO && NOTE
+        # HWWrapper::load() and HWWrapper::diff() will call
+        # SUPER:: with argument so there'll be no reason to
+        # stash value in $self->{config}.
+        load_date => '',
+        diff_date => '',
+    );
+
+
+    # make accessors.
+    __PACKAGE__->mk_accessors(keys %config);
+
+    # set default.
+    for my $method (keys %config) {
+        debug("set default of $method: $config{$method}");
+        $self->$method = $config{$method};
+    }
+
+
+    ### set config setttings ###
+
+    # load config at this timing
+    # because also load_config() uses above accessors.
+    $self->load_config($config_file) if -f $config_file;
+
+
+    ### set arguments settings ###
+
+    my %args = (
+        u => 'username',
+        p => 'password',
+        g => 'groupname',
+        a => 'agent',
+        T => 'timeout',
+        f => 'target_file',
+
+        # unnecessary because HWWrapper prepares 'load' and 'diff' command.
+        # l => 'load_date',
+        # D => 'diff_date',
+    );
+    while (my ($k, $method) = each %args) {
+        my $arg_value = $cmd_opt{$k};
+        if ($arg_value) {
+            debug("set args: $k => $arg_value");
+            $self->$method = $arg_value;
+        }
+    }
 
     # Change $hatena_url to Hatena group URL if ($groupname is defined).
-    if ($groupname) {
-        $hatena_url = "http://$groupname.g.hatena.ne.jp";
+    if ($self->groupname) {
+        my $tmp = $self->hatena_url;
+        $self->hatena_url = "http://$cmd_opt{g}.g.hatena.ne.jp";
+        debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
 }
 
 # Load diary main sequence. -l option
 sub load {
     my $self = shift;
-    my ($year, $month, $day) = $self->parse_date($load_date);
+    my ($year, $month, $day) = $self->parse_date($self->load_date);
 
     # Login if necessary.
     $self->login() unless ($user_agent);
@@ -207,7 +308,7 @@ sub load {
 
 sub diff {
     my $self = shift;
-    my ($year, $month, $day) = $self->parse_date($diff_date);
+    my ($year, $month, $day) = $self->parse_date($self->diff_date);
 
     # Login if necessary.
     $self->login() unless ($user_agent);
@@ -244,9 +345,9 @@ sub release {
     my @files;
 
     # Setup file list.
-    if ($cmd_opt{f}) {
+    if ($self->target_file) {
         # Do not check timestamp.
-        push(@files, $cmd_opt{f});
+        push(@files, $self->target_file);
         debug("files: option -f: @files");
     } else {
         while (glob("$txt_dir/*.txt")) {
@@ -271,7 +372,7 @@ sub release {
         $self->login() unless ($user_agent);
 
         # Replace "*t*" unless suppressed.
-        $self->replace_timestamp($file) unless ($cmd_opt{M});
+        $self->replace_timestamp($file) unless ($self->no_timestamp);
 
         # Read title and body.
         my ($title, $body) = $self->read_title_body($file);
@@ -302,7 +403,7 @@ sub release {
     if ($count == 0) {
         puts("No files are posted.");
     } else {
-        unless ($cmd_opt{f}) {
+        unless ($self->target_file) {
             # Touch file.
             my $FILE;
             open($FILE, '>', $touch_file) or die "$!:$touch_file\n";
@@ -315,7 +416,7 @@ sub release {
 # Login.
 sub login() {
     my $self = shift;
-    $user_agent = LWP::UserAgent->new(%ua_option);
+    $user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
     $user_agent->env_proxy;
     if ($http_proxy) {
         $user_agent->proxy('http', $http_proxy);
@@ -325,13 +426,13 @@ sub login() {
     }
 
     # Ask username if not set.
-    unless ($username) {
+    unless ($self->username) {
         print "Username: ";
-        chomp($username = <STDIN>);
+        chomp($self->username = <STDIN>);
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
-    if ($cmd_opt{c} and -e($cookie_file)) {
+    if ($self->use_cookie() and -e($cookie_file)) {
         debug("Loading cookie jar.");
 
         $cookie_jar = HTTP::Cookies->new;
@@ -346,22 +447,22 @@ sub login() {
     }
 
     # Ask password if not set.
-    unless ($password) {
+    unless ($self->password) {
         print "Password: ";
-        chomp($password = <STDIN>);
+        chomp($self->password = <STDIN>);
     }
 
     my %form;
-    $form{name} = $username;
-    $form{password} = $password;
+    $form{name} = $self->username;
+    $form{password} = $self->password;
 
     my $r; # Response.
-    if ($cmd_opt{S}) {
-        my $diary_url = "$hatena_url/$username/";
+    if ($self->enable_ssl) {
+        my $diary_url = sprintf '%s/%s/', $self->hatena_url, $self->username;
 
         $form{backurl} = $diary_url;
         $form{mode} = "enter";
-        if ($cmd_opt{c}) {
+        if ($self->use_cookie) {
             $form{persistent} = "1";
         }
 
@@ -377,9 +478,10 @@ sub login() {
     } else {
         # For older version.
 
-        puts("Login to $hatena_url as $form{name}.");
+        debug('hatena_url: '.$self->hatena_url);
+        puts(sprintf 'Login to %s as %s.', $self->hatena_url, $form{name});
         $r = $user_agent->simple_request(
-            HTTP::Request::Common::POST("$hatena_url/login", \%form)
+            HTTP::Request::Common::POST($self->hatena_url."/login", \%form)
         );
 
         debug($r->status_line);
@@ -393,7 +495,7 @@ sub login() {
     unless (defined $r->header('refresh')) {
         debug("failed to login. retry...");
         # $username = '';    # needless?
-        $password = '';
+        $self->password = '';
         # Retry to login.
         @_ = ($self);
         goto &login;
@@ -427,19 +529,19 @@ sub logout() {
     return unless $user_agent;
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
-    if ($cmd_opt{c} and -e($cookie_file)) {
+    if ($self->use_cookie() and -e($cookie_file)) {
         puts("Skip logout.");
         return;
     }
 
     my %form;
-    $form{name} = $username;
-    $form{password} = $password;
+    $form{name} = $self->username;
+    $form{password} = $self->password;
 
-    puts("Logout from $hatena_url as $form{name}.");
+    puts(sprintf 'Logout from %s as %s.', $self->hatena_url, $form{name});
 
     $user_agent->cookie_jar($cookie_jar);
-    my $r = $user_agent->get("$hatena_url/logout");
+    my $r = $user_agent->get($self->hatena_url."/logout");
     debug($r->status_line);
 
     if (not $r->is_redirect and not $r->is_success) {
@@ -456,7 +558,7 @@ sub update_diary_entry($$$$$$) {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
-    if ($cmd_opt{t}) {
+    if ($self->trivial) {
         # clear existing entry. if the entry does not exist, it has no effect.
         $self->doit_and_retry("update_diary_entry: CLEAR.", sub { return $self->post_it($year, $month, $day, "", "", "") });
     }
@@ -486,7 +588,7 @@ sub doit_and_retry($$) {
 
     while ($retry < 2) {
         $ok = $funcref->();
-        if ($ok or not $cmd_opt{c}) {
+        if ($ok or not $self->use_cookie) {
             last;
         }
         debug($msg);
@@ -511,7 +613,7 @@ sub delete_it($) {
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
-        HTTP::Request::Common::POST("$hatena_url/$username/edit",
+        HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             # Content_Type => 'form-data',
             Content => [
                 mode => "delete",
@@ -549,7 +651,7 @@ sub create_it($$$) {
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
-        HTTP::Request::Common::POST("$hatena_url/$username/edit",
+        HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             Content_Type => 'form-data',
             Content => [
                 mode => "enter",
@@ -557,7 +659,7 @@ sub create_it($$$) {
                 year => $year,
                 month => $month,
                 day => $day,
-                trivial => $cmd_opt{t},
+                trivial => $self->use_cookie,
                 rkm => $rkm,
 
                 # Important:
@@ -598,7 +700,7 @@ sub post_it($$$$$$) {
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
-        HTTP::Request::Common::POST("$hatena_url/$username/edit",
+        HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             Content_Type => 'form-data',
             Content => [
                 mode => "enter",
@@ -607,7 +709,7 @@ sub post_it($$$$$$) {
                 month => $month,
                 day => $day,
                 title => $title,
-                trivial => $cmd_opt{t},
+                trivial => $self->use_cookie,
                 rkm => $rkm,
 
                 # Important:
@@ -703,7 +805,7 @@ sub find_image_file($) {
     for my $ext ('jpg', 'png', 'gif') {
         my $imgfile = "$path$base.$ext";
         if (-e $imgfile) {
-            if ($cmd_opt{f}) {
+            if ($self->target_file) {
                 debug("-f option, always update: $imgfile");
                 return $imgfile;
             } elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
@@ -748,8 +850,13 @@ sub HELP_MESSAGE {
 }
 
 # Load config file.
-sub load_config() {
+sub load_config {
     my $self = shift;
+    my $config_file = shift;
+    unless (defined $config_file) {
+        error("config file was not given.");
+    }
+
     debug("Loading config file ($config_file).");
     my $CONF;
     if (not open($CONF, '<', $config_file)) {
@@ -762,17 +869,17 @@ sub load_config() {
         } elsif (/^$/) {
             # skip blank line.
         } elsif (/^id:([^:]+)$/) {
-            $username = $1;
-            debug("id:$username");
+            $self->username = $1;
+            debug("id:".$self->username);
         } elsif (/^g:([^:]+)$/) {
-            $groupname = $1;
-            debug("g:$groupname");
+            $self->groupname = $1;
+            debug("g:".$self->groupname);
         } elsif (/^password:(.*)$/) {
-            $password = $1;
+            $self->password = $1;
             debug("password:********");
         } elsif (/^cookie:(.*)$/) {
             $cookie_file = glob($1);
-            $cmd_opt{c} = 1; # If cookie file is specified, Assume '-c' is given.
+            $self->use_cookie = 1; # If cookie file is specified, Assume '-c' is given.
             debug("cookie:$cookie_file");
         } elsif (/^proxy:(.*)$/) {
             $http_proxy = $1;
@@ -807,12 +914,12 @@ sub load_diary_entry($$$) {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    debug("$hatena_url/$username/edit?date=$year$month$day");
+    debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
 
     $user_agent->cookie_jar($cookie_jar);
 
     my $r = $user_agent->simple_request(
-        HTTP::Request::Common::GET("$hatena_url/$username/edit?date=$year$month$day"));
+        HTTP::Request::Common::GET(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day));
 
     debug($r->status_line);
 

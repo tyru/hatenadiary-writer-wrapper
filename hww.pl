@@ -22,12 +22,12 @@ use HWWrapper;
 
 ### sub ###
 sub usage () {
-    HWWrapper->dispatch('help');
+    HWWrapper->new->dispatch('help');
     exit -1;
 }
 
 sub version () {
-    HWWrapper->version(@_);
+    HWWrapper->new->dispatch('version');
     exit -1;
 }
 
@@ -35,11 +35,7 @@ sub version () {
 
 ### main ###
 usage() unless @ARGV;
-
-HWWrapper->new->dispatch_with_args;
-# my $wrapper = HWWrapper->new;
-# my ($cmd, $cmd_args) = $wrapper->parse_opt(@ARGV);
-# $wrapper->dispatch($cmd => $cmd_args);
+HWWrapper->new->dispatch_with_args(@ARGV);
 
 
 __END__
