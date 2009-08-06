@@ -6,7 +6,10 @@ use Test::Exception;
 use Test::Output qw(output_from);
 # plan 'skip_all' => "HWWrapper::UtilSub depends on HW 's variables...";
 
-use HWWrapper::UtilSub;
+use HWWrapper;
+use HWWrapper::UtilSub::Functions;
+
+my $wrapper = HWWrapper->new;
 
 
 my @tests = (
@@ -27,36 +30,36 @@ my @tests = (
     sub {
         use File::Basename;
         ok(
-            defined(get_entrydate("1990-08-16-path including \n and white space.txt")),
+            defined($wrapper->get_entrydate("1990-08-16-path including \n and white space.txt")),
             "path including whitespaces are allowed"
         );
     },
     sub {
-        ok find_headlines(<<EOB) == 1;
+        ok $wrapper->find_headlines(<<EOB) == 1;
 *headline*
 body
 EOB
     },
     sub {
-        ok find_headlines(<<EOB) == 0;
+        ok $wrapper->find_headlines(<<EOB) == 0;
   *not headline*
 body
 EOB
     },
     sub {
-        ok find_headlines(<<EOB) == 1;
+        ok $wrapper->find_headlines(<<EOB) == 1;
 *headline**not headline*
 body
 EOB
     },
     sub {
-        ok find_headlines(<<EOB) == 1;
+        ok $wrapper->find_headlines(<<EOB) == 1;
 *headline* *not headline*
 body
 EOB
     },
     sub {
-        ok find_headlines(<<EOB) == 1;
+        ok $wrapper->find_headlines(<<EOB) == 1;
 *headline*
 body
 ** not headline
@@ -68,14 +71,6 @@ EOB
     },
     sub {
         ok \&HWWrapper::UtilSub::dump == \&CORE::GLOBAL::dump, 'dump() was exported';
-    },
-
-    sub {
-        ok ! loaded_hw(), "loaded_hw() is false";
-    },
-    sub {
-        require HW;
-        ok loaded_hw(), "loaded_hw() is true";
     },
 );
 plan tests => scalar @tests;
