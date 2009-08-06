@@ -24,10 +24,12 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.8";
+our $VERSION = "1.5.9";
 
-use HWWrapper::UtilSub;
-use base qw(Class::Accessor::Lvalue);
+# call HWWrapper::UtilSub 's subroutines by $self!!
+use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
+# import all util commands!!
+use HWWrapper::UtilSub::Functions;
 
 
 use LWP::UserAgent;

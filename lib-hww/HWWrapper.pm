@@ -4,12 +4,11 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.6';
+our $VERSION = '1.3.7';
 
 use base qw(HW);
-
-use HWWrapper::UtilSub;
-push our @ISA, qw(HWWrapper::UtilSub);
+# import all util commands!!
+use HWWrapper::UtilSub::Functions;
 
 
 use Data::Dumper;
