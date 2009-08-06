@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.10';
+our $VERSION = '1.3.11';
 
 use base qw(HW);
 # import all util commands!!
@@ -52,7 +52,7 @@ our %HWW_COMMAND = (
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
 
-    # - 現在の日記ファイルを作ってエディタで開くコマンド
+    # TODO 現在の日記ファイルを作ってエディタで開くコマンド
 );
 
 # TODO
@@ -62,12 +62,17 @@ our %HWW_COMMAND = (
 # - HWのデバッグメッセージを変更
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - オリジナルのhw.plの-tオプションはreleaseやupdateで指定できるのでいらない
-# - extlibという追加のモジュールをつっこむディレクトリを追加
-# (コアモジュールじゃないモジュールを使うため)
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
 # - add attributes to test if $self is blessed and omit to declare $self?
 # - HW::new()でデフォルトの設定を$selfにつっこむ
 # - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
+#
+# - extlibという追加のモジュールをつっこむディレクトリを追加
+# (コアモジュールじゃないモジュールを使うため)
+# - Build.PLを置く(extlibを置く手間が省ける？うーん...)
+# -- ネットワーク環境がない場合にまずい
+# -- インストールがめんどい＆英語
+# -- 最新のモジュールがテストでこけたり互換性がなかったら＼(＾o＾)／
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
