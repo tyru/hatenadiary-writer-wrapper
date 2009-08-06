@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.10";
+our $VERSION = "1.5.11";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -351,7 +351,7 @@ sub release {
         push(@files, $self->target_file);
         debug("files: option -f: @files");
     } else {
-        while (glob("$txt_dir/*.txt")) {
+        for ($self->get_entries($txt_dir)) {
             # Check timestamp.
             next if (-e($touch_file) and (-M($_) > -M($touch_file)));
             push(@files, $_);
@@ -975,7 +975,7 @@ sub text_filename($$$;$) {
         $datename = "$year-$month-$day";
     }
 
-    while (glob("$txt_dir/*.txt")) {
+    for ($self->get_entries($txt_dir)) {
         next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
         next unless (-f $_);
         return $_ if $datename eq $1
