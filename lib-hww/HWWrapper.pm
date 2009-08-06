@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.8';
+our $VERSION = '1.3.9';
 
 use base qw(HW);
 # import all util commands!!
@@ -710,7 +710,7 @@ sub apply_headline {
         $self->arg_error unless $filename;
 
         my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
-        my @headline = find_headlines(do { local $/; <$FH> });
+        my @headline = $self->find_headlines(do { local $/; <$FH> });
         $FH->close;
         debug("found headline(s):".join(', ', @headline));
 

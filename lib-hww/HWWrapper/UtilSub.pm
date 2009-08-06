@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.0";
+our $VERSION = "1.0.1";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -63,15 +63,15 @@ sub get_entries {
     grep {
         -e $_ && -f _
     } grep {
-        defined get_entrydate($_)
+        defined $self->get_entrydate($_)
     } glob "$dir/$fileglob"
 }
 
 sub get_entries_hash {
     my $self = shift;
-    my @entries = get_entries(@_);
+    my @entries = $self->get_entries(@_);
     my %hash;
-    for my $date (map { get_entrydate($_) } @entries) {
+    for my $date (map { $self->get_entrydate($_) } @entries) {
         my $ymd = join '-', @$date{qw(year month day)};
         $hash{$ymd} = $date;
     }
@@ -84,7 +84,7 @@ sub get_updated_entries {
     grep {
         (-e $_ && -e $HW::touch_file)
         && -M $_ < -M $HW::touch_file
-    } get_entries(@_);
+    } $self->get_entries(@_);
 }
 
 
