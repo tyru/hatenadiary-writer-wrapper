@@ -3,4 +3,5 @@
 -R
 --exclude=lib
 --exclude=.git
+--exclude=hw.pl
 --languages=Perl

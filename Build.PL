@@ -13,6 +13,7 @@ Module::Build->new(
         'HTTP::Request::Common' => 0,
         'Crypt::SSLeay' => 0,
         'Class::Accessor::Lvalue' => 0,
+        'URI' => 0,
 
         # HWWrapper.pm and HWWrapper/*
         'Date::Manip' => 0,

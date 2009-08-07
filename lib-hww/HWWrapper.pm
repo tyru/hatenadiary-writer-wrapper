@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.13';
+our $VERSION = '1.3.14';
 
 use base qw(HW);
 # import all util commands!!
@@ -90,6 +90,8 @@ our %HWW_COMMAND = (
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
 # (一回ログインした次が401 Authorizedになる)
 # -- それLWP::Authen::Wsse使ってるからじゃ・・・
+# -- 違った。はてなのAtomPub APIがcookieでの認証廃止したからだった。
+# 受け取ったcookieは即expiredになる。
 
 # NOTE
 # - new()で設定のデフォルト値をセットして
@@ -549,18 +551,15 @@ sub load {
 
         $self->login() unless ($HW::user_agent);
 
-        $HW::user_agent->cookie_jar($HW::cookie_jar);
+        # TODO
+        # save wsse header.
+        # because authetication with cookie has been obsoleted
+        # (cookie is expired at that time) since 2008-09-02.
+        #
+        # $HW::user_agent->cookie_jar($HW::cookie_jar);
 
-        # $HW::user_agent->credentials("d.hatena.ne.jp", '', $HW::username, $HW::password);
-        {
-            # Override get_basic_credentials
-            # to return current username and password.
-            package LWP::UserAgent;
-            no warnings qw(redefine once);
-
-            my ($username, $password) = ($self->username, $self->password);
-            *get_basic_credentials = sub { ($username, $password) };
-        }
+        my $url = $self->hatena_url->host.':'.$self->hatena_url->port;
+        $HW::user_agent->credentials($url, '', $self->username, $self->password);
 
         # http://d.hatena.ne.jp/{user}/atom/draft
         my $draft_collection_url = sprintf '%s/%s/atom/draft', $self->hatena_url, $self->username;

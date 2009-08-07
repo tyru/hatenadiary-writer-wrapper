@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.11";
+our $VERSION = "1.5.12";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -41,6 +41,7 @@ use Digest::MD5 qw(md5_base64);
 use File::Temp qw(tempdir tempfile);
 use File::Spec;
 use Pod::Usage;
+use URI;
 
 our $enable_encode = eval('use Encode; 1');
 
@@ -220,7 +221,7 @@ sub parse_opt {
         password => '',
         groupname => '',
         target_file => '',
-        hatena_url => $hatena_url,
+        hatena_url => URI->new($hatena_url),
 
         %ua_option,
 
@@ -285,7 +286,7 @@ sub parse_opt {
     # Change $hatena_url to Hatena group URL if ($groupname is defined).
     if ($self->groupname) {
         my $tmp = $self->hatena_url;
-        $self->hatena_url = "http://$cmd_opt{g}.g.hatena.ne.jp";
+        $self->hatena_url = URI->new("http://$cmd_opt{g}.g.hatena.ne.jp");
         debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
 }
