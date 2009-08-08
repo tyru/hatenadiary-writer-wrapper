@@ -17,17 +17,18 @@ BEGIN {
 use lib $HWW_LIB;
 
 use HWWrapper;
+my $wrapper = HWWrapper->new;
 
 
 
 ### sub ###
 sub usage () {
-    HWWrapper->new->dispatch('help');
+    $wrapper->dispatch('help');
     exit -1;
 }
 
 sub version () {
-    HWWrapper->new->dispatch('version');
+    $wrapper->dispatch('version');
     exit -1;
 }
 
@@ -35,7 +36,7 @@ sub version () {
 
 ### main ###
 usage() unless @ARGV;
-HWWrapper->new->dispatch_with_args(@ARGV);
+$wrapper->dispatch_with_args(@ARGV);
 
 
 __END__
@@ -53,3 +54,4 @@ __END__
 =head1 AUTHOR
 
     tyru <tyru.exe@gmail.com>
+
