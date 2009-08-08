@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.18';
+our $VERSION = '1.3.19';
 
 use base qw(HW);
 # import all util commands!!
@@ -96,8 +96,6 @@ our %HWW_COMMAND = (
 
 
 # TODO stash these variables into $self.
-my $show_help;
-my $show_version;
 our $debug;
 our $debug_stderr;
 our $no_cookie;
@@ -114,9 +112,6 @@ sub new {
     my $self = bless {
         arg_opt => {
             HWWrapper => {
-                help => \$show_help,
-                version => \$show_version,
-
                 d => \$debug,
                 debug => \$debug,
 
@@ -125,9 +120,11 @@ sub new {
 
                 C => \$no_cookie,
                 'no-cookie' => \$no_cookie,
-            }
-        }
+            },
+        },
     }, $pkg;
+
+    __PACKAGE__->mk_accessors(qw(use_cookie));
 
 
     $self->SUPER::new;
@@ -160,13 +157,16 @@ sub new {
 
 sub parse_opt {
     my $self = shift;
-    my @argv = @_;
-    my ($options, $cmd, $cmd_args) = split_opt(@argv);
-    my $tmp = [@$options];
-
     unless (blessed $self) {
         croak 'give me blessed $self.';
     }
+
+    my @argv = @_;
+    my ($options, $cmd, $cmd_args) = split_opt(@argv);
+
+    return ($cmd, $cmd_args) unless @$options;
+
+    my $tmp = [@$options];
 
 
     # parse hww.pl's options.
@@ -179,31 +179,29 @@ sub parse_opt {
         $self->dispatch('help');
         exit -1;
     };
-    debug(sprintf "%s -> %s, %s, %s\n",
+    debug(sprintf "%s -> (%s, %s, %s)\n",
                     dumper(\@argv),
                     dumper($tmp),
                     dumper($cmd),
                     dumper($cmd_args));
 
-
-    # exec hww's options...
-    if ($show_help || ! defined $cmd) {
-        $self->dispatch('help');
-        exit -1;
-    }
-    if ($show_version) {
-        $self->dispatch('version');
-        exit -1;
-    }
-
-    # parse HW 's options.
-    # NOTE: even if @argv == 0, let it parse.
-    debug('let hw parse @argv...');
-    $self->SUPER::parse_opt(@$options);
-
     # set these values after $self->SUPER::parse_opt().
     # because these accessors were defined by it.
     $self->use_cookie = ! $no_cookie;
+
+    if ($debug) {
+        print ${ $DEBUG->string_ref };    # flush all
+        $DEBUG = *STDOUT;
+    }
+    elsif ($debug_stderr) {
+        warning(${ $DEBUG->string_ref });    # flush all
+        $DEBUG = *STDOUT;
+    }
+
+
+    # parse HW 's options.
+    # NOTE: even if @argv == 0, let it parse.
+    $self->SUPER::parse_opt(@$options);
 
 
     return ($cmd, $cmd_args);
@@ -263,9 +261,9 @@ sub dispatch_with_args {
     my ($cmd, $cmd_args) = $self->parse_opt(@argv);
 
     # for memory
-    delete $self->{arg_opt};
+    # delete $self->{arg_opt};
 
-    $self->dispatch($cmd => $cmd_args);
+    $self->dispatch(defined $cmd ? $cmd : 'help', $cmd_args);
 }
 
 

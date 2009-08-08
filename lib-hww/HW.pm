@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.14";
+our $VERSION = "1.5.15";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -158,8 +158,8 @@ our $rkm; # session id for posting.
 
 require Carp;
 # warning/error messages with stacktrace.
-$SIG{__DIE__} = \&Carp::confess;
-$SIG{__WARN__} = \&Carp::cluck;
+# $SIG{__DIE__} = \&Carp::confess;
+# $SIG{__WARN__} = \&Carp::cluck;
 
 # NOTE:
 # settings will be overridden like the followings
@@ -175,15 +175,15 @@ sub new {
     my $self = shift;
 
     $self->{arg_opt}{HW} = {
-        t => \undef,    # "trivial" flag.
-        'u=s' => \undef,    # "username" option.
-        'p=s' => \undef,    # "password" option.
-        'a=s' => \undef,    # "agent" option.
-        'T=s' => \undef,    # "timeout" option.
-        'g=s' => \undef,    # "groupname" option.
-        'f=s' => \undef,    # "file" option.
-        M => \undef,    # "no timestamp" flag.
-        'n=s' => \undef,    # "config file" option.
+        t => \my $t,    # "trivial" flag.
+        'u=s' => \my $u,    # "username" option.
+        'p=s' => \my $p,    # "password" option.
+        'a=s' => \my $a,    # "agent" option.
+        'T=s' => \my $T,    # "timeout" option.
+        'g=s' => \my $g,    # "groupname" option.
+        'f=s' => \my $f,    # "file" option.
+        M => \my $M,    # "no timestamp" flag.
+        'n=s' => \my $n,    # "config file" option.
         # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
     };
 
@@ -207,10 +207,6 @@ sub new {
         no_timestamp => 0,
         enable_ssl => 1,
 
-        # this default value is different with original 'hw.pl'.
-        # to set this 0, you must give '--no-cookie' option to 'hww.pl'.
-        use_cookie => 1,
-
         # TODO
         # this option will be deprecated
         # because 'release' or 'update' command take this option.
@@ -229,7 +225,7 @@ sub new {
 
     # set default.
     for my $method (keys %config) {
-        debug("set default of $method: $config{$method}");
+        debug("set default value: \$self->$method = ".dumper($config{$method}));
         $self->$method = $config{$method};
     }
 
@@ -240,11 +236,12 @@ sub new {
 sub parse_opt {
     my $self = shift;
     my $arg_opt = $self->{arg_opt}{HW};
+    my @argv = @_;
 
     # local @ARGV = @_;
     # local $Getopt::Std::STANDARD_HELP_VERSION = 1;
     # getopts("tu:p:a:T:cg:f:Mn:", $arg_opt) or error("Unknown option.");
-    $self->get_opt([@_], $arg_opt);
+    $self->get_opt(\@argv, $arg_opt);
 
     # if ($arg_opt->{d}) {
     #     debug("Debug flag on.");
@@ -405,7 +402,7 @@ sub release {
         unless ($self->target_file) {
             # Touch file.
             my $FILE;
-            open($FILE, '>', $touch_file) or die "$!:$touch_file\n";
+            open($FILE, '>', $touch_file) or error("$touch_file: $!");
             print $FILE $self->get_timestamp();
             close($FILE);
         }
@@ -864,9 +861,10 @@ sub load_config {
     $self->get_opt_only(
         \@ARGV,
         {'n=s' => \$config_file}
-    ) or error("something wrong: at ".__FILE__." line ".__LINE__);
+    ) or error("arguments error");
 
     unless (-f $config_file) {
+        debug("$config_file was not found. skip to load config...");
         return;
     }
 

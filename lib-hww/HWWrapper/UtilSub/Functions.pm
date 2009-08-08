@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.2";
+our $VERSION = "1.0.3";
 
 use subs qw(dump);
 
@@ -21,13 +21,17 @@ our @EXPORT = our @EXPORT_OK = qw(
     alias
     require_modules
     split_opt
+    $DEBUG
 );
 
 
 # do not export methods unnecessarily!
 use Data::Dumper ();
 use File::Basename ();
+use IO::String;
 
+
+our $DEBUG = IO::String->new;
 
 
 
@@ -37,8 +41,7 @@ sub warning {
     if ($HWWrapper::debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
-        $subname = defined $subname ? " $subname:" : "";
-        warn "warning:$subname at $filename line $line:", @_, "\n";
+        warn "warning: $subname()  at $filename line $line:", @_, "\n";
     }
     else {
         warn "warning: ", @_, "\n";
@@ -51,8 +54,7 @@ sub error {
     if ($HWWrapper::debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
-        $subname = defined $subname ? " $subname:" : "";
-        @errmsg = ("error:$subname at $filename line $line:", @_, "\n");
+        @errmsg = ("error: $subname() at $filename line $line:", @_, "\n");
     }
     else {
         @errmsg = ("error: ", @_, "\n");
@@ -65,14 +67,13 @@ sub error {
 
 sub debug {
     my $subname = (caller 1)[3];
-    $subname = defined $subname ? "$subname(): " : '';
-
-    if ($HWWrapper::debug_stderr) {
-        warn "debug: $subname", @_, "\n";
-    } elsif ($HWWrapper::debug) {
-        print "debug: $subname", @_, "\n";
-    }
+    $DEBUG->print("debug: $subname(): ", @_, "\n");
 }
+# for debug :)
+# sub debug {
+#     my $subname = (caller 1)[3];
+#     print "debug: $subname(): ", @_, "\n";
+# }
 
 sub dump {
     @_ = (dumper(@_));
@@ -100,15 +101,13 @@ sub is_hww_command {
 # NOTE: unused
 sub alias {
     my $pkg = caller;
-    my ($type, $to, $from) = @_;
+    my ($to, $from_ref) = @_;
 
-    no strict 'refs';
-    if (defined *{$from}{$type}) {
-        *{"${pkg}::$to"} = *{$from}{$type};
-        debug("imported $from of $type to ${pkg}::$to");
-    }
-    else {
-        warning("not found reference $from of $type");
+    if (ref $from_ref) {
+        no strict 'refs';
+        *{"${pkg}::$to"} = $from_ref;
+    } else {
+        warning("$from_ref is not reference");
     }
 }
 

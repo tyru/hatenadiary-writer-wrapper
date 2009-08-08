@@ -135,20 +135,16 @@ sub get_touchdate {
         my ($argv, $opt) = @_;
 
         return 1 unless @$argv;
+        debug("get options: ".dumper([keys %$opt]));
 
-        debug("get options: ".dumper([sort keys %$opt]));
         local @ARGV = @$argv;
         my $result = $parser->getoptions(%$opt);
 
-
-        if ($HWWrapper::debug) {
-            debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
-
-            debug("true value options:");
-            for (grep { ${ $opt->{$_} } } keys %$opt) {
-                debug(sprintf "  [%s]:[%s]",
-                                $_, ${ $opt->{$_} });
-            }
+        debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
+        debug("true value options:");
+        for (grep { ${ $opt->{$_} } } keys %$opt) {
+            debug(sprintf "  [%s]:[%s]",
+                            $_, ${ $opt->{$_} });
         }
 
         # update arguments. delete all processed options.
@@ -161,37 +157,49 @@ sub get_touchdate {
     #     { a => \my $a, ... },    # get only these options
     # );
     # if ($a) { print "option '-a' was given!!\n" }
-    # print "but '-b' or '-c' remain in @ARGV!!\n";
     #
     # Usage: $self->get_opt_only([...], {...})
     sub get_opt_only {
         my $self = shift;
         my ($argv, $proc_opt) = @_;
-        my $all_opt = {map { %$_ } ($self->{arg_opt}{HWWrapper}, $self->{arg_opt}{HW})};
 
         return 1 unless @$argv;
+        debug("get options only: ".dumper([keys %$proc_opt]));
 
-        debug("get options only: ".dumper([sort keys %$proc_opt]));
+        # cache
+        $self->{arg_opt}{all_opt_cache} ||= [
+            map {
+                keys %$_
+            } ($self->{arg_opt}{HWWrapper}, $self->{arg_opt}{HW})
+        ];
+        my $all_opt = $self->{arg_opt}{all_opt_cache};
 
-        my $dummy_result = {map { $_ => \my $o } keys %$all_opt};
+        # get options
+        my $dummy_result = {map { $_ => \my $o } @$all_opt};
         my $result = $self->get_opt($argv, $dummy_result);
 
         # restore all results except $proc_opt
         # NOTE: parsing only $proc_opt in $argv is bad.
         # because it's difficult to parse $argv 'exactly'.
         # so let get_opt() parse it.
-        unshift @$argv, map {
-            debug(sprintf 'restore %s => %s', $_, ${ $dummy_result->{$_} });
-            if (s/^((.+)=s)$/$2/) {
-                ("-$2" => ${ $dummy_result->{$1} });
-            } else {
-                ("-$_");
+        for my $opt (keys %$dummy_result) {
+            # option was not given
+            next unless defined ${ $dummy_result->{$opt} };
+
+            if (exists $proc_opt->{$opt}) {
+                # apply values
+                ${ $proc_opt->{$opt} } = ${ $dummy_result->{$opt} };
             }
-        } grep {
-            defined ${ $dummy_result->{$_} }
-        } grep {
-            ! exists $proc_opt->{$_}
-        } keys %$dummy_result;
+            else {
+                # don't apply value and restore it to $argv
+                debug("restore to args: $opt => ${ $dummy_result->{$opt} }");
+                if ($opt =~ s/^((.+)=s)$/$2/) {
+                    unshift @$argv, "-$2" => ${ $dummy_result->{$1} };
+                } else {
+                    unshift @$argv, "-$opt";
+                }
+            }
+        }
 
         return $result;
     }
