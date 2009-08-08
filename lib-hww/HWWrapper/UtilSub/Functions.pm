@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.1";
+our $VERSION = "1.0.2";
 
 use subs qw(dump);
 
@@ -21,7 +21,6 @@ our @EXPORT = our @EXPORT_OK = qw(
     alias
     require_modules
     split_opt
-    restore_hw_args
 );
 
 
@@ -76,7 +75,8 @@ sub debug {
 }
 
 sub dump {
-    debug(dumper(@_));
+    @_ = (dumper(@_));
+    goto &debug;
 }
 *CORE::GLOBAL::dump = \&dump;
 
@@ -147,30 +147,6 @@ sub split_opt {
     }
 
     return (\@hww_opt, $subcmd, [@_]);
-}
-
-# for hw.pl (now lib-hww/HW.pm)
-sub restore_hw_args {
-    my %opt = @_;
-    my @argv;
-
-    while (my ($k, $v) = each %opt) {
-        # deref.
-        $v = $$v;
-        # option was not given.
-        next    unless $v;
-
-        if ($k =~ s/(.*)=s$/$1/) {
-            debug("hw's option -$k => $v");
-            push @argv, "-$k", $v;
-        }
-        else {
-            debug("hw's option -$k");
-            push @argv, "-$k";
-        }
-    }
-
-    return @argv;
 }
 
 

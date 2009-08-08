@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.3";
+our $VERSION = "1.0.4";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -59,7 +59,7 @@ sub get_entries {
 
     # set default value.
     $dir      = $HW::txt_dir unless defined $dir;
-    $fileglob = '*.txt'           unless defined $fileglob;
+    $fileglob = '*.txt'      unless defined $fileglob;
 
     grep {
         -e $_ && -f _
@@ -134,10 +134,16 @@ sub get_touchdate {
         my $self = shift;
         my ($argv, $opt) = @_;
 
+        return 1 unless @$argv;
+
+        debug("get options: ".dumper([sort keys %$opt]));
         local @ARGV = @$argv;
         my $result = $parser->getoptions(%$opt);
 
+
         if ($HWWrapper::debug) {
+            debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
+
             debug("true value options:");
             for (grep { ${ $opt->{$_} } } keys %$opt) {
                 debug(sprintf "  [%s]:[%s]",
@@ -153,17 +159,21 @@ sub get_touchdate {
     # $self->get_opt_only(
     #     \@ARGV,    # in this arguments
     #     { a => \my $a, ... },    # get only these options
-    #     [qw(a b c)]    # all options
     # );
     # if ($a) { print "option '-a' was given!!\n" }
     # print "but '-b' or '-c' remain in @ARGV!!\n";
     #
-    # Usage: $self->get_opt_only([...], {...}, [...])
+    # Usage: $self->get_opt_only([...], {...})
     sub get_opt_only {
         my $self = shift;
-        my ($argv, $proc_opt, $all_opt) = @_;
+        my ($argv, $proc_opt) = @_;
+        my $all_opt = {map { %$_ } ($self->{arg_opt}{HWWrapper}, $self->{arg_opt}{HW})};
 
-        my $dummy_result = {map { $_ => \undef } @$all_opt};
+        return 1 unless @$argv;
+
+        debug("get options only: ".dumper([sort keys %$proc_opt]));
+
+        my $dummy_result = {map { $_ => \my $o } keys %$all_opt};
         my $result = $self->get_opt($argv, $dummy_result);
 
         # restore all results except $proc_opt
@@ -171,11 +181,14 @@ sub get_touchdate {
         # because it's difficult to parse $argv 'exactly'.
         # so let get_opt() parse it.
         unshift @$argv, map {
+            debug(sprintf 'restore %s => %s', $_, ${ $dummy_result->{$_} });
             if (s/^((.+)=s)$/$2/) {
-                ($2 => $opt->{$1});
+                ("-$2" => ${ $dummy_result->{$1} });
             } else {
-                ($2 => $opt->{$2});
+                ("-$_");
             }
+        } grep {
+            defined ${ $dummy_result->{$_} }
         } grep {
             ! exists $proc_opt->{$_}
         } keys %$dummy_result;

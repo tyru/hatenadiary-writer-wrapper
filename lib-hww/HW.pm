@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.13";
+our $VERSION = "1.5.14";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -121,7 +121,7 @@ our $user_agent;
 our $rkm; # session id for posting.
 
 # Handle command-line option.
-# our %cmd_opt = (
+# our %arg_opt = (
 #     'd' => 0,   # "debug" flag.
 #     't' => 0,   # "trivial" flag.
 #     'u' => "",  # "username" option.
@@ -139,74 +139,54 @@ our $rkm; # session id for posting.
 # );
 
 
-if ($0 eq __FILE__) {
-    # Start.
-    # if ($cmd_opt{l}) {
-    #     load_main();    # now load()
-    # } elsif ($cmd_opt{D}) {
-    #     diff_main();    # now diff()
-    # } else {
-    #     main();    # now release()
-    # }
-
-    # no-error exit.
-    exit(0);
-}
-
-
+# if ($0 eq __FILE__) {
+#     # Start.
+#     # if ($arg_opt{l}) {
+#     #     load_main();    # now load()
+#     # } elsif ($arg_opt{D}) {
+#     #     diff_main();    # now diff()
+#     # } else {
+#     #     main();    # now release()
+#     # }
+# 
+#     # no-error exit.
+#     exit(0);
+# }
 
 
-sub parse_opt {
+
+
+require Carp;
+# warning/error messages with stacktrace.
+$SIG{__DIE__} = \&Carp::confess;
+$SIG{__WARN__} = \&Carp::cluck;
+
+# NOTE:
+# settings will be overridden like the followings
+# - set default settings
+# - set config settings
+# - set arguments settings
+#
+# but -n option(config file) is exceptional case.
+#
+
+### set default settings ###
+sub new {
     my $self = shift;
-    my %cmd_opt = (
-        'd' => 0,   # "debug" flag.
-        't' => 0,   # "trivial" flag.
-        'u' => "",  # "username" option.
-        'p' => "",  # "password" option.
-        'a' => "",  # "agent" option.
-        'T' => "",  # "timeout" option.
-        'c' => 0,   # "cookie" flag.
-        'g' => "",  # "groupname" option.
-        'f' => "",  # "file" option.
-        'M' => 0,   # "no timestamp" flag.
-        'n' => "",  # "config file" option.
-        'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
-        'l' => "",  # "load" diary.
-        'D' => "",  # "diff" option.
-    );
 
-    {
-        local @ARGV = @_;
-        local $Getopt::Std::STANDARD_HELP_VERSION = 1;
-        getopts("tdu:p:a:T:cg:f:Mn:l:D:", \%cmd_opt) or error("Unknown option.");
-    }
+    $self->{arg_opt}{HW} = {
+        t => \undef,    # "trivial" flag.
+        'u=s' => \undef,    # "username" option.
+        'p=s' => \undef,    # "password" option.
+        'a=s' => \undef,    # "agent" option.
+        'T=s' => \undef,    # "timeout" option.
+        'g=s' => \undef,    # "groupname" option.
+        'f=s' => \undef,    # "file" option.
+        M => \undef,    # "no timestamp" flag.
+        'n=s' => \undef,    # "config file" option.
+        # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
+    };
 
-    if ($cmd_opt{d}) {
-        debug("Debug flag on.");
-        debug("Cookie flag on.") if $cmd_opt{c};
-        debug("Trivial flag on.") if $cmd_opt{t};
-        VERSION_MESSAGE();
-    }
-
-
-    # NOTE:
-    # settings will be overridden like the followings
-    # - set default settings
-    # - set config settings
-    # - set arguments settings
-    #
-    # but -n option(config file) is exceptional case.
-    #
-
-
-    ### set default settings ###
-
-    my $config_file;
-    if ($cmd_opt{n}) {
-        $config_file = $cmd_opt{n};    # exceptional case
-    } else {
-        $config_file = 'config.txt';
-    }
 
     my $hatena_url = 'http://d.hatena.ne.jp';
 
@@ -216,7 +196,6 @@ sub parse_opt {
     );
 
     my %config = (
-        config_file => $config_file,    # needless to store though.
         username => '',
         password => '',
         groupname => '',
@@ -254,39 +233,54 @@ sub parse_opt {
         $self->$method = $config{$method};
     }
 
+    return $self;
+}
 
-    ### set config setttings ###
+### set arguments settings ###
+sub parse_opt {
+    my $self = shift;
+    my $arg_opt = $self->{arg_opt}{HW};
 
-    # load config at this timing
-    # because also load_config() uses above accessors.
-    $self->load_config($config_file) if -f $config_file;
+    # local @ARGV = @_;
+    # local $Getopt::Std::STANDARD_HELP_VERSION = 1;
+    # getopts("tu:p:a:T:cg:f:Mn:", $arg_opt) or error("Unknown option.");
+    $self->get_opt([@_], $arg_opt);
 
+    # if ($arg_opt->{d}) {
+    #     debug("Debug flag on.");
+    #     debug("Cookie flag on.") if $arg_opt->{c};
+    #     debug("Trivial flag on.") if $arg_opt->{t};
+    #     VERSION_MESSAGE();
+    # }
 
-    ### set arguments settings ###
 
     my %args = (
-        u => 'username',
-        p => 'password',
-        g => 'groupname',
-        a => 'agent',
-        T => 'timeout',
-        f => 'target_file',
+        t => 'trivial',
+        'u=s' => 'username',
+        'p=s' => 'password',
+        'g=s' => 'groupname',
+        'a=s' => 'agent',
+        'T=s' => 'timeout',
+        'f=s' => 'target_file',
+        M => 'no_timestamp',
 
         # unnecessary because HWWrapper prepares 'load' and 'diff' command.
         # l => 'load_date',
+        # D => 'diff_date',
     );
+
     while (my ($k, $method) = each %args) {
-        my $arg_value = $cmd_opt{$k};
+        my $arg_value = ${ $arg_opt->{$k} };
         if ($arg_value) {
             debug("set args: $k => $arg_value");
             $self->$method = $arg_value;
         }
     }
 
-    # Change $hatena_url to Hatena group URL if ($groupname is defined).
-    if ($self->groupname) {
+    # Change $self->hatena_url to Hatena group URL if $arg_opt->{'g=s'} is defined.
+    if (${ $arg_opt->{'g=s'} }) {
         my $tmp = $self->hatena_url;
-        $self->hatena_url = URI->new("http://$cmd_opt{g}.g.hatena.ne.jp");
+        $self->hatena_url = URI->new(sprintf 'http://%s.g.hatena.ne.jp', ${ $arg_opt->{'g=s'} });
         debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
 }
@@ -863,16 +857,27 @@ sub HELP_MESSAGE {
 # Load config file.
 sub load_config {
     my $self = shift;
-    my $config_file = shift;
-    unless (defined $config_file) {
-        error("config file was not given.");
+
+    # default
+    my $config_file = 'config.txt';
+    # process only '-n' option in @ARGV.
+    $self->get_opt_only(
+        \@ARGV,
+        {'n=s' => \$config_file}
+    ) or error("something wrong: at ".__FILE__." line ".__LINE__);
+
+    unless (-f $config_file) {
+        return;
     }
 
+
     debug("Loading config file ($config_file).");
+
     my $CONF;
     if (not open($CONF, '<', $config_file)) {
         error("Can't open $config_file.");
     }
+
     while (<$CONF>) {
         chomp;
         if (/^\#/) {

@@ -3,8 +3,10 @@ package HWWrapper;
 use strict;
 use warnings;
 use utf8;
+STDOUT->autoflush(1);
+STDERR->autoflush(1);
 
-our $VERSION = '1.3.16';
+our $VERSION = '1.3.17';
 
 use base qw(HW);
 # import all util commands!!
@@ -95,17 +97,39 @@ our %HWW_COMMAND = (
 
 
 
-# warning/error messages with stacktrace.
-local $SIG{__DIE__} = \&Carp::confess;
-local $SIG{__WARN__} = \&Carp::cluck;
 
+
+# TODO stash these variables into $self.
+my $show_help;
+my $show_version;
+our $debug;
+our $debug_stderr;
+our $no_cookie;
+# hww.pl's options.
 
 ### new() ###
 
 sub new {
     my $pkg = shift;
+    if (blessed $pkg) {
+        croak "you have already been initialized!";
+    }
 
     my $self = bless {}, $pkg;
+
+    $self->{arg_opt}{HWWrapper} = {
+        help => \$show_help,
+        version => \$show_version,
+
+        d => \$debug,
+        debug => \$debug,
+
+        D => \$debug_stderr,
+        'debug-stderr' => \$debug_stderr,
+
+        C => \$no_cookie,
+        'no-cookie' => \$no_cookie,
+    };
 
     # NOTE: do not check before parse_opt().
     # because parse_opt() calls HW->parse_opt()
@@ -115,66 +139,29 @@ sub new {
     #     error("missing some necessary files. run 'init' command.");
     # }
 
-    return $self;
+    $self->SUPER::new;
 }
 
 
 
 ### parse_opt() ###
 
-# hw.pl's options.
-our %hw_opt = (
-    t => \undef,
-    'u=s' => \undef,
-    'p=s' => \undef,
-    'a=s' => \undef,
-    'T=s' => \undef,
-    'g=s' => \undef,
-    'f=s' => \undef,
-    M => \undef,
-    'n=s' => \undef,
-    # hw.pl's old option. hw.pl does not recognize this option.
-    # S => \$HW::cmd_opt{S},
-);
 # this is additinal options which I added.
 # not hw.pl's options.
 # TODO
-# DO NOT DEPEND ON %HW::cmd_opt !
+# DO NOT DEPEND ON %HW::arg_opt !
 # THAT HAS BEEN DELETED ALREADY!!
 # our %hw_opt_long = (
-#     trivial => \$HW::cmd_opt{t},
-#     'username=s' => \$HW::cmd_opt{u},
-#     'password=s' => \$HW::cmd_opt{p},
-#     'agent=s' => \$HW::cmd_opt{a},
-#     'timeout=s' => \$HW::cmd_opt{T},
-#     'group=s' => \$HW::cmd_opt{g},
-#     'file=s' => \$HW::cmd_opt{f},
-#     'no-replace' => \$HW::cmd_opt{M},
-#     'config-file=s' => \$HW::cmd_opt{n},
+#     trivial => \$HW::arg_opt{t},
+#     'username=s' => \$HW::arg_opt{u},
+#     'password=s' => \$HW::arg_opt{p},
+#     'agent=s' => \$HW::arg_opt{a},
+#     'timeout=s' => \$HW::arg_opt{T},
+#     'group=s' => \$HW::arg_opt{g},
+#     'file=s' => \$HW::arg_opt{f},
+#     'no-replace' => \$HW::arg_opt{M},
+#     'config-file=s' => \$HW::arg_opt{n},
 # );
-
-my $show_help;
-my $show_version;
-our $debug;
-our $debug_stderr;
-our $no_cookie;
-# hww.pl's options.
-my %hww_opt = (
-    help => \$show_help,
-    version => \$show_version,
-
-    d => \$debug,
-    debug => \$debug,
-
-    D => \$debug_stderr,
-    'debug-stderr' => \$debug_stderr,
-
-    C => \$no_cookie,
-    'no-cookie' => \$no_cookie,
-
-    %hw_opt,
-    # %hw_opt_long,
-);
 
 
 # NOTE:
@@ -183,26 +170,30 @@ my %hww_opt = (
 sub parse_opt {
     my $self = shift;
     my @argv = @_;
-    my ($hww_args, $cmd, $cmd_args) = split_opt(@argv);
-    my $tmp = [@$hww_args];
+    my ($options, $cmd, $cmd_args) = split_opt(@argv);
+    my $tmp = [@$options];
 
-    unless (blessed($self)) {
+    unless (blessed $self) {
         croak 'give me blessed $self.';
     }
 
 
     # parse hww.pl's options.
-    $self->get_opt($hww_args, \%hww_opt) or do {
+    $self->get_opt_only(
+        $options,
+        $self->{arg_opt}{HWWrapper}
+    ) or do {
         warning("arguments error");
         sleep 1;
         $self->dispatch('help');
         exit -1;
     };
-    debug(sprintf "%s -> %s, %s, %s",
+    debug(sprintf "%s -> %s, %s, %s\n",
                     dumper(\@argv),
                     dumper($tmp),
                     dumper($cmd),
                     dumper($cmd_args));
+
 
     # exec hww's options...
     if ($show_help || ! defined $cmd) {
@@ -214,14 +205,10 @@ sub parse_opt {
         exit -1;
     }
 
-
-    # restore arguments for HW
-    @argv = restore_hw_args(%hw_opt);
-
     # parse HW 's options.
     # NOTE: even if @argv == 0, let it parse.
     debug('let hw parse @argv...');
-    $self->SUPER::parse_opt(@argv);
+    $self->SUPER::parse_opt(@$options);
 
     # set these values after $self->SUPER::parse_opt().
     # because these accessors were defined by it.
@@ -261,6 +248,7 @@ sub dispatch {
         debug(sprintf "dispatch '$cmd' with [%s]", join(', ', @$args));
     }
 
+
     my $subname = $HWW_COMMAND{$cmd};
     $self->$subname($args);
 }
@@ -269,14 +257,23 @@ sub dispatch {
 
 sub dispatch_with_args {
     my $self = shift;
+    my @argv = @_;
+
     unless (blessed($self)) {
         croak 'give me blessed $self.';
     }
 
-    my @argv = @_ ? @_ : @ARGV;
-    debug("arguments: ".dumper([@argv]));
 
+    # currently this calls HW::load_config() directly.
+    # TODO implement HWWrapper::load_config() to load 'config-hww.txt'.
+    $self->load_config;
+
+    # parse options in @_
     my ($cmd, $cmd_args) = $self->parse_opt(@argv);
+
+    # for memory
+    delete $self->{arg_opt};
+
     $self->dispatch($cmd => $cmd_args);
 }
 
@@ -289,11 +286,12 @@ sub help {
     my ($self, $args) = @_;
     my $cmd = shift @$args;
 
+
     unless (defined $cmd) {
         pod2usage(-verbose => 1, -input => $0, -exitval => "NOEXIT");
         
         puts("available commands:");
-        for my $command (keys %HWW_COMMAND) {
+        for my $command (sort keys %HWW_COMMAND) {
             puts("  $command");
         }
         puts();
@@ -301,6 +299,7 @@ sub help {
 
         return;
     }
+
 
     unless (is_hww_command($cmd)) {
         error("'$cmd' is not a hww-command. See perl $0 help");
@@ -729,6 +728,7 @@ sub apply_headline {
 
 
     my $apply = sub {
+        error;
         my $filename = shift;
         $self->arg_error unless $filename;
 
@@ -932,7 +932,8 @@ sub gen_html {
             $self->dispatch('update-index' => [dirname($out)]);
         }
 
-    } else {
+    }
+    else {
         # arguments error. show help.
         $self->arg_error;
     }
