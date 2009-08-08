@@ -1,6 +1,6 @@
 package Bundle::HWWrapper;
 
-our $VERSION = '0.0.0';
+our $VERSION = '0.0.1';
 
 
 1;
@@ -33,6 +33,7 @@ HTML::TreeBuilder
 Text::Hatena
 XML::TreePP
 LWP::Authen::Wsse
+IO::String
 
 
 =head1 AUTHOR
