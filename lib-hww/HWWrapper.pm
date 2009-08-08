@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.14';
+our $VERSION = '1.3.15';
 
 use base qw(HW);
 # import all util commands!!
@@ -27,7 +27,7 @@ use FindBin qw($Bin);
 
 # TODO delete these. this is module!!
 our $BASE_DIR = $Bin;
-our $HWW_LIB  = File::Spec->catfile($BASE_DIR, 'lib-hww');
+our $HWW_LIB = "$Bin/lib-hww";
 
 
 # command vs subname

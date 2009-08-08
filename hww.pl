@@ -12,7 +12,7 @@ our $BASE_DIR;
 our $HWW_LIB;
 BEGIN {
     $BASE_DIR = $Bin;
-    $HWW_LIB  = File::Spec->catfile($Bin, 'lib-hww');
+    $HWW_LIB = "$Bin/lib-hww";
 }
 use lib $HWW_LIB;
 
