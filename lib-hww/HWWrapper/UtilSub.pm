@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.2";
+our $VERSION = "1.0.3";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -129,6 +129,7 @@ sub get_touchdate {
         )]
     );
 
+    # Usage: $self->get_opt([...], {...});
     sub get_opt {
         my $self = shift;
         my ($argv, $opt) = @_;
@@ -146,6 +147,39 @@ sub get_touchdate {
 
         # update arguments. delete all processed options.
         @$argv = @ARGV;
+        return $result;
+    }
+
+    # $self->get_opt_only(
+    #     \@ARGV,    # in this arguments
+    #     { a => \my $a, ... },    # get only these options
+    #     [qw(a b c)]    # all options
+    # );
+    # if ($a) { print "option '-a' was given!!\n" }
+    # print "but '-b' or '-c' remain in @ARGV!!\n";
+    #
+    # Usage: $self->get_opt_only([...], {...}, [...])
+    sub get_opt_only {
+        my $self = shift;
+        my ($argv, $proc_opt, $all_opt) = @_;
+
+        my $dummy_result = {map { $_ => \undef } @$all_opt};
+        my $result = $self->get_opt($argv, $dummy_result);
+
+        # restore all results except $proc_opt
+        # NOTE: parsing only $proc_opt in $argv is bad.
+        # because it's difficult to parse $argv 'exactly'.
+        # so let get_opt() parse it.
+        unshift @$argv, map {
+            if (s/^((.+)=s)$/$2/) {
+                ($2 => $opt->{$1});
+            } else {
+                ($2 => $opt->{$2});
+            }
+        } grep {
+            ! exists $proc_opt->{$_}
+        } keys %$dummy_result;
+
         return $result;
     }
 }
