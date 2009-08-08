@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.4";
+our $VERSION = "1.0.5";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -195,14 +195,6 @@ sub get_touchdate {
 
         return $result;
     }
-}
-
-# or not, run 'init' command.
-sub has_completed_setup {
-    my $self = shift;
-
-    -d $HW::txt_dir &&
-    -f $self->config_file;
 }
 
 sub arg_error {

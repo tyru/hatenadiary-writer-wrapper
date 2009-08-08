@@ -3,10 +3,8 @@ package HWWrapper;
 use strict;
 use warnings;
 use utf8;
-STDOUT->autoflush(1);
-STDERR->autoflush(1);
 
-our $VERSION = '1.3.17';
+our $VERSION = '1.3.18';
 
 use base qw(HW);
 # import all util commands!!
@@ -27,8 +25,6 @@ use Carp;
 
 use FindBin qw($Bin);
 
-# TODO delete these. this is module!!
-our $BASE_DIR = $Bin;
 our $HWW_LIB = "$Bin/lib-hww";
 
 
@@ -115,29 +111,24 @@ sub new {
         croak "you have already been initialized!";
     }
 
-    my $self = bless {}, $pkg;
+    my $self = bless {
+        arg_opt => {
+            HWWrapper => {
+                help => \$show_help,
+                version => \$show_version,
 
-    $self->{arg_opt}{HWWrapper} = {
-        help => \$show_help,
-        version => \$show_version,
+                d => \$debug,
+                debug => \$debug,
 
-        d => \$debug,
-        debug => \$debug,
+                D => \$debug_stderr,
+                'debug-stderr' => \$debug_stderr,
 
-        D => \$debug_stderr,
-        'debug-stderr' => \$debug_stderr,
+                C => \$no_cookie,
+                'no-cookie' => \$no_cookie,
+            }
+        }
+    }, $pkg;
 
-        C => \$no_cookie,
-        'no-cookie' => \$no_cookie,
-    };
-
-    # NOTE: do not check before parse_opt().
-    # because parse_opt() calls HW->parse_opt()
-    # which sets up option values (in $self->{config}).
-    # TODO: do this after setting default config values in HW::new()!!
-    # unless ($self->has_completed_setup()) {
-    #     error("missing some necessary files. run 'init' command.");
-    # }
 
     $self->SUPER::new;
 }
