@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.0";
+our $VERSION = "1.0.1";
 
 use subs qw(dump);
 
@@ -40,7 +40,8 @@ sub warning {
         $filename = File::Basename::basename($filename);
         $subname = defined $subname ? " $subname:" : "";
         warn "warning:$subname at $filename line $line:", @_, "\n";
-    } else {
+    }
+    else {
         warn "warning: ", @_, "\n";
     }
 }
@@ -53,7 +54,8 @@ sub error {
         $filename = File::Basename::basename($filename);
         $subname = defined $subname ? " $subname:" : "";
         @errmsg = ("error:$subname at $filename line $line:", @_, "\n");
-    } else {
+    }
+    else {
         @errmsg = ("error: ", @_, "\n");
     }
 
@@ -104,7 +106,8 @@ sub alias {
     if (defined *{$from}{$type}) {
         *{"${pkg}::$to"} = *{$from}{$type};
         debug("imported $from of $type to ${pkg}::$to");
-    } else {
+    }
+    else {
         warning("not found reference $from of $type");
     }
 }
@@ -136,7 +139,8 @@ sub split_opt {
     while (defined(my $a = shift)) {
         if ($a =~ /^-/) {
             push @hww_opt, $a;
-        } else {
+        }
+        else {
             $subcmd = $a;    # found command
             last;
         }
@@ -159,7 +163,8 @@ sub restore_hw_args {
         if ($k =~ s/(.*)=s$/$1/) {
             debug("hw's option -$k => $v");
             push @argv, "-$k", $v;
-        } else {
+        }
+        else {
             debug("hw's option -$k");
             push @argv, "-$k";
         }

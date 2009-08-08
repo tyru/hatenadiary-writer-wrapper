@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.15';
+our $VERSION = '1.3.16';
 
 use base qw(HW);
 # import all util commands!!
@@ -72,13 +72,6 @@ our %HWW_COMMAND = (
 #
 # - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
 # - diffやloadがアクセサの値じゃなく引数で受渡しをするようにする
-#
-# - extlibという追加のモジュールをつっこむディレクトリを追加
-# (コアモジュールじゃないモジュールを使うため)
-# - Build.PLを置く(extlibを置く手間が省ける？うーん...)
-# -- ネットワーク環境がない場合にまずい
-# -- インストールがめんどい＆英語
-# -- 最新のモジュールがテストでこけたり互換性がなかったら＼(＾o＾)／
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -347,7 +340,8 @@ sub init {
     my $dir = shift @$args;
     if (defined $dir) {
         $txt_dir = $dir;
-    } elsif ($read_config) {
+    }
+    elsif ($read_config) {
         $txt_dir = $HW::txt_dir;
         $config_file = $self->config_file,
         $cookie_file = $HW::cookie_file;
@@ -504,7 +498,8 @@ sub load {
 
         $self->logout() if ($HW::user_agent);
 
-    } elsif ($draft) {
+    }
+    elsif ($draft) {
         # FIXME
         # unstable.
         # sometimes I can't login.
@@ -596,11 +591,13 @@ sub load {
 
         $self->logout() if ($HW::user_agent);
 
-    } else {
+    }
+    else {
         if (defined(my $ymd = shift(@$args))) {
             $self->load_date = $ymd;
             $self->SUPER::load();
-        } else {
+        }
+        else {
             $self->arg_error;
         }
     }
@@ -646,7 +643,8 @@ sub verify {
             debug("$file is duplicated.");
             puts("foo:$ymd, $file");
             push @{ $entry{$ymd}{file} }, $file;
-        } else {
+        }
+        else {
             $entry{$ymd} = {
                 file => [$file]
             };
@@ -663,7 +661,8 @@ sub verify {
             puts("  $ymd:");
             puts("    $_") for @{ $entry{$ymd}{file} };
         }
-    } else {
+    }
+    else {
         puts("ok: not found any bad conditions.");
     }
 }
@@ -698,7 +697,8 @@ sub status {
             print "  " unless $no_caption;
             puts($_);
         }
-    } else {
+    }
+    else {
         # updated only.
         my @updated_entry = $self->get_updated_entries($dir);
 
@@ -765,12 +765,14 @@ sub apply_headline {
         for (@entry) {
             $apply->($_);
         }
-    } elsif (@$args) {
+    }
+    elsif (@$args) {
         unless (-f $args->[0]) {
             error($args->[0].":$!");
         }
         $apply->($args->[0]);
-    } else {
+    }
+    else {
         $self->arg_error;
     }
 }
@@ -816,13 +818,15 @@ sub revert_headline {
             $revert->($_);
         }
 
-    } elsif (@$args) {
+    }
+    elsif (@$args) {
         unless (-f $args->[0]) {
             error($args->[0].":$!");
         }
         $revert->($args->[0]);
 
-    } else {
+    }
+    else {
         $self->arg_error;
     }
 }
@@ -842,7 +846,8 @@ sub touch {
         Date::Manip->import(qw(ParseDate UnixDate));
         # NOTE: this parser is not compatible with 'rake touch <string>'.
         $FH->print(UnixDate(ParseDate(shift @$args), $touch_fmt));
-    } else {
+    }
+    else {
         $FH->print(POSIX::strftime($touch_fmt, localtime));
     }
 
@@ -919,7 +924,8 @@ sub gen_html {
             $self->dispatch('update-index' => [$out]);
         }
 
-    } elsif (-f $in && (-f $out || ! -e $out)) {
+    }
+    elsif (-f $in && (-f $out || ! -e $out)) {
         $gen_html->($in, $out);
 
         if ($make_index) {
@@ -983,7 +989,8 @@ sub update_index {
                 if (defined $h3) {
                     $title = $h3->as_text;
                     $title =~ s/^\*?\d+\*//;
-                } else {
+                }
+                else {
                     $title = "no title";
                 };
 
@@ -1002,7 +1009,8 @@ sub update_index {
                             next    if lc($elem->tag) eq 'h3';    # Skip headline
                             @_ = ([$elem->content_list, @$elements], $text);
                             goto &$as_text;
-                        } else {
+                        }
+                        else {
                             my $s = "$elem";    # Stringify (call overload "")
                             next    if $s =~ /\A\s*\Z/m;
                             $s =~ s/\s*/ /m;    # Shrink all whitespaces
@@ -1071,15 +1079,18 @@ sub update_index {
             my $dir = shift @$args;
             error("$dir:$!") unless -d $dir;
             $update_index_main->($dir, $path);
-        } else {
+        }
+        else {
             $update_index_main->(dirname($path), $path);
         }
 
-    } elsif (-d $path) {
+    }
+    elsif (-d $path) {
         my $index_tmpl = File::Spec->catfile($path, 'index.tmpl');
         $update_index_main->($path, $index_tmpl);
 
-    } else {
+    }
+    else {
         warning("$path is neither file nor directory.");
         STDERR->flush;
         $self->arg_error;
@@ -1127,7 +1138,8 @@ sub diff {
 
     if (@$args) {
         $self->SUPER::diff($args->[0]);
-    } else {
+    }
+    else {
         for (map { basename($_) } $self->get_updated_entries()) {
             $self->SUPER::diff($_);
         }

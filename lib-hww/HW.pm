@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.12";
+our $VERSION = "1.5.13";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -351,7 +351,8 @@ sub release {
         # Do not check timestamp.
         push(@files, $self->target_file);
         debug("files: option -f: @files");
-    } else {
+    }
+    else {
         for ($self->get_entries($txt_dir)) {
             # Check timestamp.
             next if (-e($touch_file) and (-M($_) > -M($touch_file)));
@@ -387,7 +388,8 @@ sub release {
             puts("Delete $year-$month-$day.");
             $self->delete_diary_entry($date);
             puts("Delete OK.");
-        } else {
+        }
+        else {
             # Update entry.
             puts("Post $year-$month-$day.  " . ($imgfile ? " (image: $imgfile)" : ""));
             $self->update_diary_entry($year, $month, $day, $title, $body, $imgfile);
@@ -404,7 +406,8 @@ sub release {
 
     if ($count == 0) {
         puts("No files are posted.");
-    } else {
+    }
+    else {
         unless ($self->target_file) {
             # Touch file.
             my $FILE;
@@ -477,7 +480,8 @@ sub login() {
         debug($r->status_line);
 
         debug("\$r = " . $r->content());
-    } else {
+    }
+    else {
         # For older version.
 
         debug('hatena_url: '.$self->hatena_url);
@@ -638,7 +642,8 @@ sub delete_it($) {
     if ($r->header("Location") =~ m(/$date$)) {                    # /)){
         debug("returns 0 (ERROR).");
         return 0;
-    } else {
+    }
+    else {
         debug("returns 1 (OK).");
         return 1;
     }
@@ -686,7 +691,8 @@ sub create_it($$$) {
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
         debug("returns 1 (OK).");
         return 1;
-    } else {
+    }
+    else {
         debug("returns 0 (ERROR).");
 
         return 0;
@@ -737,7 +743,8 @@ sub post_it($$$$$$) {
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
         debug("returns 1 (OK).");
         return 1;
-    } else {
+    }
+    else {
         debug("returns 0 (ERROR).");
         return 0;
     }
@@ -810,10 +817,12 @@ sub find_image_file($) {
             if ($self->target_file) {
                 debug("-f option, always update: $imgfile");
                 return $imgfile;
-            } elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
+            }
+            elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
                 debug("skip $imgfile (not updated).");
                 next;
-            } else {
+            }
+            else {
                 debug($imgfile);
                 return $imgfile;
             }
@@ -868,40 +877,52 @@ sub load_config {
         chomp;
         if (/^\#/) {
             # skip comment.
-        } elsif (/^$/) {
+        }
+        elsif (/^$/) {
             # skip blank line.
-        } elsif (/^id:([^:]+)$/) {
+        }
+        elsif (/^id:([^:]+)$/) {
             $self->username = $1;
             debug("id:".$self->username);
-        } elsif (/^g:([^:]+)$/) {
+        }
+        elsif (/^g:([^:]+)$/) {
             $self->groupname = $1;
             debug("g:".$self->groupname);
-        } elsif (/^password:(.*)$/) {
+        }
+        elsif (/^password:(.*)$/) {
             $self->password = $1;
             debug("password:********");
-        } elsif (/^cookie:(.*)$/) {
+        }
+        elsif (/^cookie:(.*)$/) {
             $cookie_file = glob($1);
             $self->use_cookie = 1; # If cookie file is specified, Assume '-c' is given.
             debug("cookie:$cookie_file");
-        } elsif (/^proxy:(.*)$/) {
+        }
+        elsif (/^proxy:(.*)$/) {
             $http_proxy = $1;
             debug("proxy:$http_proxy");
-        } elsif (/^client_encoding:(.*)$/) {
+        }
+        elsif (/^client_encoding:(.*)$/) {
             $client_encoding = $1;
             debug("client_encoding:$client_encoding");
-        } elsif (/^server_encoding:(.*)$/) {
+        }
+        elsif (/^server_encoding:(.*)$/) {
             $server_encoding = $1;
             debug("server_encoding:$server_encoding");
-        } elsif (/^filter:(.*)$/) {
+        }
+        elsif (/^filter:(.*)$/) {
             $filter_command = $1;
             debug("filter:$filter_command");
-        } elsif (/^txt_dir:(.*)$/) {
+        }
+        elsif (/^txt_dir:(.*)$/) {
             $txt_dir = glob($1);
             debug("txt_dir:$txt_dir");
-        } elsif (/^touch:(.*)$/) {
+        }
+        elsif (/^touch:(.*)$/) {
             $touch_file = glob($1);
             debug("touch:$touch_file");
-        } else {
+        }
+        else {
             error("Unknown command '$_' in $config_file.");
         }
     }
@@ -972,7 +993,8 @@ sub text_filename($$$;$) {
         && @$headlines) {
         # XXX ヘッドラインは下の正規表現で無視されてるんじゃ？
         $datename = "$year-$month-$day-".join('-', @$headlines);
-    } else {
+    }
+    else {
         $datename = "$year-$month-$day";
     }
 
@@ -996,7 +1018,8 @@ sub save_diary_entry {
         my %opt = %{ shift() };
         ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
         $filename = $self->text_filename($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
-    } else {
+    }
+    else {
         # Original way of passing arguments.
         ($year,$month,$day,$title,$body) = @_;
         $filename = $self->text_filename($year, $month, $day);

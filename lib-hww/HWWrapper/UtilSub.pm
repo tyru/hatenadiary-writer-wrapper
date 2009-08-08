@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.1";
+our $VERSION = "1.0.2";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -33,7 +33,8 @@ sub get_entrydate {
             day   => $3,
             rest  => $4,
         };
-    } else {
+    }
+    else {
         return undef;
     }
 }
@@ -184,7 +185,8 @@ sub arg_error {
     if ($HWWrapper::debug) {
         print "press enter to continue...";
         <STDIN>;
-    } else {
+    }
+    else {
         sleep 1;
     }
     $self->dispatch('help', [$cmdname]);
