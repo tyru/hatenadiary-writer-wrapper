@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.4";
+our $VERSION = "1.0.5";
 
 use subs qw(dump);
 
@@ -60,7 +60,7 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
-    unlink($HW::cookie_file);    # from HW::error_exit()
+    # unlink($HW::cookie_file);    # from HW::error_exit()
 
     die @errmsg;
 }

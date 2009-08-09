@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.21";
+our $VERSION = "1.5.22";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -63,8 +63,6 @@ use subs qw(
 );
 
 
-# Directory for "YYYY-MM-DD.txt".
-our $txt_dir = ".";
 
 # Client and server encodings.
 our $client_encoding = '';
@@ -155,6 +153,12 @@ sub new {
         filter_command => '',
 
         http_proxy => '',
+
+        # this is default to '.'
+        # but txt_dir of config file which is generated
+        # by 'init' command is default to 'text'.
+        # so txt_dir is 'text' unless user edit it.
+        txt_dir => '.',
     );
 
 
@@ -271,12 +275,12 @@ sub release {
         debug("files: option -f: @files");
     }
     else {
-        for ($self->get_entries($txt_dir)) {
+        for ($self->get_entries($self->txt_dir)) {
             # Check timestamp.
             next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
             push(@files, $_);
         }
-        debug("files: current dir ($txt_dir): @files");
+        debug(sprintf 'files: current dir (%s): %s', $self->txt_dir, join ' ', @files);
     }
 
     # Process it.
@@ -845,8 +849,8 @@ sub load_config {
             debug("filter:".$self->filter_command);
         }
         elsif (/^txt_dir:(.*)$/) {
-            $txt_dir = glob($1);
-            debug("txt_dir:$txt_dir");
+            $self->txt_dir = glob($1);
+            debug("txt_dir:".$self->txt_dir);
         }
         elsif (/^touch:(.*)$/) {
             $self->touch_file = glob($1);
@@ -928,13 +932,13 @@ sub text_filename($$$;$) {
         $datename = "$year-$month-$day";
     }
 
-    for ($self->get_entries($txt_dir)) {
+    for ($self->get_entries($self->txt_dir)) {
         next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
         next unless (-f $_);
         return $_ if $datename eq $1
     }
 
-    my $filename = File::Spec->catfile($txt_dir, "$datename.txt");
+    my $filename = File::Spec->catfile($self->txt_dir, "$datename.txt");
     return $filename;
 }
 

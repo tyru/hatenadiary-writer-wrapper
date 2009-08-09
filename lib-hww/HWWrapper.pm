@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.24';
+our $VERSION = '1.3.25';
 
 use base qw(HW);
 # import all util commands!!
@@ -349,7 +349,7 @@ sub init {
         $txt_dir = $dir;
     }
     elsif ($read_config) {
-        $txt_dir = $HW::txt_dir;
+        $txt_dir = $self->txt_dir;
         $config_file = $self->config_file,
         $cookie_file = $self->cookie_file;
     }
@@ -394,7 +394,7 @@ sub release {
 
     my $dir = shift @$args;
     if (defined $dir) {
-        $HW::txt_dir = $dir;
+        $self->txt_dir = $dir;
     }
 
     $self->SUPER::release();
@@ -431,10 +431,10 @@ sub load {
         require_modules(qw(XML::TreePP));
 
         if (@$args) {
-            $HW::txt_dir = shift(@$args);
+            $self->txt_dir = shift(@$args);
         }
-        unless (-d $HW::txt_dir) {
-            mkdir $HW::txt_dir or error("$HW::txt_dir:$!");
+        unless (-d $self->txt_dir) {
+            mkdir $self->txt_dir or error($self->txt_dir.": $!");
         }
 
         # Login if necessary.
@@ -627,7 +627,7 @@ sub verify {
 
     my @entry = $self->get_entries($dir, $fileglob);
     unless (@entry) {
-        $dir = defined $dir ? $dir : $HW::txt_dir;
+        $dir = defined $dir ? $dir : $self->txt_dir;
         puts("$dir: no entries found.");
         exit 0;
     }
@@ -688,7 +688,7 @@ sub status {
     # if undef, $HW::txt_dir is used.
     my $dir = shift @$args;
     if (defined $dir) {
-        $HW::txt_dir = $dir;
+        $self->txt_dir = $dir;
         $self->touch_file = File::Spec->catfile($dir, 'touch.txt');
         unless (-f $self->touch_file) {
             error($self->touch_file.": $!");
@@ -760,7 +760,7 @@ sub apply_headline {
     };
 
     if ($all) {
-        my $dir = @$args ? $args->[0] : $HW::txt_dir;
+        my $dir = @$args ? $args->[0] : $self->txt_dir;
         my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
@@ -812,7 +812,7 @@ sub revert_headline {
     };
 
     if ($all) {
-        my $dir = @$args ? $args->[0] : $HW::txt_dir;
+        my $dir = @$args ? $args->[0] : $self->txt_dir;
         my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
@@ -839,7 +839,7 @@ sub revert_headline {
 sub touch {
     my ($self, $args) = @_;
 
-    my $filename = File::Spec->catfile($HW::txt_dir, 'touch.txt');
+    my $filename = File::Spec->catfile($self->txt_dir, 'touch.txt');
     my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
     # NOTE: I assume that this format is compatible
     # between Date::Manip::UnixDate and POSIX::strftime.

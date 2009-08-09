@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.5";
+our $VERSION = "1.0.6";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -58,7 +58,7 @@ sub get_entries {
     my ($dir, $fileglob) = @_;
 
     # set default value.
-    $dir      = $HW::txt_dir unless defined $dir;
+    $dir      = $self->txt_dir unless defined $dir;
     $fileglob = '*.txt'      unless defined $fileglob;
 
     grep {
@@ -83,8 +83,8 @@ sub get_updated_entries {
     my $self = shift;
 
     grep {
-        (-e $_ && -e $HW::touch_file)
-        && -M $_ < -M $HW::touch_file
+        (-e $_ && -e $self->touch_file)
+        && -M $_ < -M $self->touch_file
     } $self->get_entries(@_);
 }
 
@@ -95,7 +95,7 @@ sub get_touchdate {
     my $self = shift;
 
     my $touch_time = do {
-        my $FH = FileHandle->new($HW::touch_file, 'r') or error(":$!");
+        my $FH = FileHandle->new($self->touch_file, 'r') or error(":$!");
         chomp(my $line = <$FH>);
         $FH->close;
 
@@ -239,7 +239,7 @@ sub arg_error {
     $self->dispatch('help', [$cmdname]);
 
     # from HW::error_exit()
-    unlink($HW::cookie_file);
+    unlink($self->cookie_file);
 
     exit -1;
 }
