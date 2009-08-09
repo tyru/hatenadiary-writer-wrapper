@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.20";
+our $VERSION = "1.5.21";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -62,13 +62,6 @@ use subs qw(
     load_config
 );
 
-# Filter command.
-# e.g. 'iconv -f euc-jp -t utf-8 %s'
-# where %s is filename, output is stdout.
-our $filter_command = '';
-
-# Proxy setting.
-our $http_proxy = '';
 
 # Directory for "YYYY-MM-DD.txt".
 our $txt_dir = ".";
@@ -155,6 +148,13 @@ sub new {
         touch_file => 'touch.txt',
         cookie_file => 'cookie.txt',
         config_file => 'config.txt',
+
+        # Filter command.
+        # e.g. 'iconv -f euc-jp -t utf-8 %s'
+        # where %s is filename, output is stdout.
+        filter_command => '',
+
+        http_proxy => '',
     );
 
 
@@ -341,11 +341,11 @@ sub login() {
     my $self = shift;
     $user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
     $user_agent->env_proxy;
-    if ($http_proxy) {
-        $user_agent->proxy('http', $http_proxy);
-        debug("proxy for http: $http_proxy");
-        $user_agent->proxy('https', $http_proxy);
-        debug("proxy for https: $http_proxy");
+    if ($self->http_proxy) {
+        $user_agent->proxy('http', $self->http_proxy);
+        debug("proxy for http: ".$self->http_proxy);
+        $user_agent->proxy('https', $self->http_proxy);
+        debug("proxy for https: ".$self->http_proxy);
     }
 
     # Ask username if not set.
@@ -701,8 +701,8 @@ sub read_title_body($) {
 
     # Execute filter command, if any.
     my $input = $file;
-    if ($filter_command) {
-        $input = sprintf("$filter_command |", $file);
+    if ($self->filter_command) {
+        $input = sprintf($self->filter_command." |", $file);
     }
     debug("input: $input");
     my $FILE;
@@ -829,8 +829,8 @@ sub load_config {
             debug("cookie:".$self->cookie_file);
         }
         elsif (/^proxy:(.*)$/) {
-            $http_proxy = $1;
-            debug("proxy:$http_proxy");
+            $self->http_proxy = $1;
+            debug("proxy:".$self->http_proxy);
         }
         elsif (/^client_encoding:(.*)$/) {
             $client_encoding = $1;
@@ -841,8 +841,8 @@ sub load_config {
             debug("server_encoding:$server_encoding");
         }
         elsif (/^filter:(.*)$/) {
-            $filter_command = $1;
-            debug("filter:$filter_command");
+            $self->filter_command = $1;
+            debug("filter:".$self->filter_command);
         }
         elsif (/^txt_dir:(.*)$/) {
             $txt_dir = glob($1);
