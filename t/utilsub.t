@@ -76,90 +76,90 @@ EOB
     ### shell_eval_string ###
     # TODO separate this into another file
     sub {
-        my @args = $wrapper->shell_eval_string('cmd');    # cmd
+        my @args = shell_eval_string('cmd');    # cmd
         is @args, 1;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string('cmd');    # cmd
+        my ($args) = shell_eval_string('cmd');    # cmd
         is $args->[0], 'cmd';
     },
 
     # quotes
     sub {
-        my ($args) = $wrapper->shell_eval_string('"cmd"');    # "cmd"
+        my ($args) = shell_eval_string('"cmd"');    # "cmd"
         is $args->[0], 'cmd';
     },
     sub {
-        my @args = $wrapper->shell_eval_string('"cmd notargs"');    # "cmd notargs"
+        my @args = shell_eval_string('"cmd notargs"');    # "cmd notargs"
         is @args, 1;
     },
     sub {
-        my @args = $wrapper->shell_eval_string(q('cmd'));    # cmd
+        my @args = shell_eval_string(q('cmd'));    # cmd
         is @args, 1;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q('cmd'));    # cmd
+        my ($args) = shell_eval_string(q('cmd'));    # cmd
         is $args->[0], 'cmd';
     },
 
     sub {
-        my ($args) = $wrapper->shell_eval_string('cmd args');    # cmd args
+        my ($args) = shell_eval_string('cmd args');    # cmd args
         is @$args, 2;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string('cmd args');    # cmd args
+        my ($args) = shell_eval_string('cmd args');    # cmd args
         is $args->[0], 'cmd';
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string('cmd args');    # cmd args
+        my ($args) = shell_eval_string('cmd args');    # cmd args
         is $args->[1], 'args';
     },
 
     # double quote in double quotes
     sub {
-        my @args = $wrapper->shell_eval_string(q("foo\\"bar"));    # "foo\"bar"
+        my @args = shell_eval_string(q("foo\\"bar"));    # "foo\"bar"
         is @args, 1;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q("foo\\"bar"));    # "foo\"bar"
+        my ($args) = shell_eval_string(q("foo\\"bar"));    # "foo\"bar"
         is $args->[0], 'foo"bar';
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q("foo\\"bar\\"baz"));    # "foo\"bar\"baz"
+        my ($args) = shell_eval_string(q("foo\\"bar\\"baz"));    # "foo\"bar\"baz"
         is $args->[0], 'foo"bar"baz';
     },
 
     # newline
     sub {
-        my ($args) = $wrapper->shell_eval_string(q("foo\\nbar"));    # "foo\nbar"
+        my ($args) = shell_eval_string(q("foo\\nbar"));    # "foo\nbar"
         is $args->[0], "foo\nbar";
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q("foo\\nbar"));    # "foo\nbar"
+        my ($args) = shell_eval_string(q("foo\\nbar"));    # "foo\nbar"
         is $args->[0], "foo\nbar";
     },
 
     # backslash
     sub {
-        my ($args) = $wrapper->shell_eval_string(q("\\\\"));    # "\\"
+        my ($args) = shell_eval_string(q("\\\\"));    # "\\"
         is $args->[0], "\\";
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q('\\\\'));    # '\\'
+        my ($args) = shell_eval_string(q('\\\\'));    # '\\'
         is $args->[0], "\\" x 2;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q(\\\\));    # \\
+        my ($args) = shell_eval_string(q(\\\\));    # \\
         is $args->[0], "\\";
     },
 
     # empty string
     sub {
-        my @args = $wrapper->shell_eval_string(q(""));    # ""
+        my @args = shell_eval_string(q(""));    # ""
         is @args, 1;
     },
     sub {
-        my ($args) = $wrapper->shell_eval_string(q(""));    # ""
+        my ($args) = shell_eval_string(q(""));    # ""
         is $args->[0], '';
     },
 );
