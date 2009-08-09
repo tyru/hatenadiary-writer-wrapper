@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.0';
+our $VERSION = '1.5.1';
 
 use base qw(HW);
 # import all util commands!!
@@ -348,7 +348,6 @@ EOD
 }
 
 sub copyright {
-    # hw.pl
     print <<EOD;
 
 hw.pl - Hatena Diary Writer (with Loader).
@@ -1193,10 +1192,35 @@ sub chain {
 sub diff {
     my ($self, $args) = @_;
 
-    # TODO
-    # ディレクトリやファイルを受け取るようにする(オプションで)
+    my $dir;
+    my $file;
+    $self->get_opt($args, {
+        'd=s' => \$dir,
+        'dir=s' => \$dir,
+        'f=s' => \$file,
+        'file=s' => \$file,
+    }) or error("diff: arguments error");
 
-    if (@$args) {
+    if (defined $dir) {
+        $self->txt_dir = $dir;
+    }
+
+
+    if (defined $file) {
+        # check if $file is entry file
+        unless (-f $file) {
+            error("$file: $!");
+        }
+        my $date = $self->get_entrydate($file);
+        unless (defined $date) {
+            error("$file: not entry file");
+        }
+
+        $self->SUPER::diff(
+            sprintf '%s-%s-%s', $date->{year}, $date->{month}, $date->{day}
+        );
+    }
+    elsif (@$args) {
         $self->SUPER::diff($args->[0]);
     }
     else {
