@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.29";
+our $VERSION = "1.5.30";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(HWWrapper::UtilSub);
@@ -648,7 +648,7 @@ sub post_it {
     debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
-    if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
+    if ($r->header("Location") =~ m{/$year$month$day$}) {
         debug("returns 1 (OK).");
         return 1;
     }

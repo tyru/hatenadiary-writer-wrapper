@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.4.2';
+our $VERSION = '1.5.0';
 
 use base qw(HW);
 # import all util commands!!
@@ -31,6 +31,7 @@ our $HWW_LIB = "$Bin/lib-hww";
 our %HWW_COMMAND = (
     help => 'help',
     version => 'version',
+    copyright => 'copyright',
     init => 'init',
     release => 'release',
     update => 'update',
@@ -64,7 +65,6 @@ our $no_cookie = 0;
 # TODO
 # - コマンドのヘルプドキュメント書く
 # - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
-# - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
 # - $selfがblessedされてるかチェックするアトリビュート
 #
@@ -291,7 +291,6 @@ sub dispatch_with_args {
 
 
     # currently this calls HW::load_config() directly.
-    # TODO implement HWWrapper::load_config() to load 'config-hww.txt'.
     $self->load_config;
 
     # parse options in @_
@@ -346,6 +345,39 @@ sub version {
 Hatena Diary Writer Wrapper version v$VERSION
 EOD
     HW::VERSION_MESSAGE();
+}
+
+sub copyright {
+    # hw.pl
+    print <<EOD;
+
+hw.pl - Hatena Diary Writer (with Loader).
+
+Copyright (C) 2004,2005,2007 by Hiroshi Yuki.
+<hyuki\@hyuki.com>
+http://www.hyuki.com/techinfo/hatena_diary_writer.html
+
+Special thanks to:
+- Ryosuke Nanba http://d.hatena.ne.jp/rna/
+- Hahahaha http://www20.big.or.jp/~rin_ne/
+- Ishinao http://ishinao.net/
+
+This program is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+
+'Hatena Diary Loader' originally written by Hahahaha(id:rin_ne)
+   http://d.hatena.ne.jp/rin_ne/20040825#p7
+
+Modified by Kengo Koseki (id:koseki2)
+   http://d.hatena.ne.jp/koseki2/
+
+
+hww.pl - Hatena Diary Writer Wrapper
+
+Copyright (C) 2009 by tyru.
+<tyru.exe\@gmail.com>
+
+EOD
 }
 
 # TODO write help pod
