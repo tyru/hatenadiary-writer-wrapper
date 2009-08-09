@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.22';
+our $VERSION = '1.3.23';
 
 use base qw(HW);
 # import all util commands!!
@@ -24,7 +24,6 @@ use Carp;
 
 
 use FindBin qw($Bin);
-
 our $HWW_LIB = "$Bin/lib-hww";
 
 
@@ -61,14 +60,8 @@ our %HWW_COMMAND = (
 # TODO
 # - コマンドのヘルプドキュメント書く
 # - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
-# - HWのサブルーチンをHWWrapper::UtilSubやHWWrapper::UtilSub::Functionsで置き換えられる所は置き換える
-# - HWのデバッグメッセージを変更
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
-# - オリジナルのhw.plの-tオプションはreleaseやupdateで指定できるのでいらない
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
-# - add attributes to test if $self is blessed and to omit to declare $self?
-#
-# - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -94,7 +87,6 @@ our %HWW_COMMAND = (
 
 
 
-# TODO stash these variables into $self.
 our $debug;
 our $debug_stderr;
 our $no_cookie;
@@ -381,7 +373,7 @@ EOT
     }
 
     unless (-e $cookie_file) {
-        # touch
+        # make empty file
         my $TOUCH = FileHandle->new($cookie_file, 'w') or error("$cookie_file:$!");
         $TOUCH->close;
     }
@@ -732,8 +724,6 @@ sub status {
 sub apply_headline {
     my ($self, $args) = @_;
 
-    # TODO
-    # YYYY-MM-DD.txt形式のファイル名に戻す
     my $all;
     $self->get_opt($args, {
         all => \$all,
@@ -1145,6 +1135,7 @@ sub chain {
     }
 }
 
+# TODO ヘルプ書く
 sub diff {
     my ($self, $args) = @_;
 

@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.18";
+our $VERSION = "1.5.19";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -62,23 +62,9 @@ use subs qw(
     load_config
 );
 
-# Hatena user id (if empty, I will ask you later).
-# our $username = '';
-# Hatena password (if empty, I will ask you later).
-# our $password = '';
-# Hatena group name (for hatena group user only).
-# our $groupname = '';
-
 # Default file names.
 our $touch_file = 'touch.txt';
 our $cookie_file = 'cookie.txt';
-# our $config_file = 'config.txt';
-# our $target_file = '';
-
-# Load diary date.
-# our $load_date = '';
-# Diff diary date.
-# our $diff_date = '';
 
 # Filter command.
 # e.g. 'iconv -f euc-jp -t utf-8 %s'
@@ -96,7 +82,6 @@ our $client_encoding = '';
 our $server_encoding = '';
 
 # Hatena URL.
-# our $hatena_url = 'http://d.hatena.ne.jp';
 our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
 
 # Crypt::SSLeay check.
@@ -108,58 +93,13 @@ if ($@) {
     $hatena_sslregister_url = 'http://www.hatena.ne.jp/login';
 }
 
-# Option for LWP::UserAgent.
-# our %ua_option = (
-#     agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
-#     timeout => 180,
-# );
-
 # Other variables.
 our $delete_title = 'delete';
 our $cookie_jar;
 our $user_agent;
 our $rkm; # session id for posting.
 
-# Handle command-line option.
-# our %arg_opt = (
-#     'd' => 0,   # "debug" flag.
-#     't' => 0,   # "trivial" flag.
-#     'u' => "",  # "username" option.
-#     'p' => "",  # "password" option.
-#     'a' => "",  # "agent" option.
-#     'T' => "",  # "timeout" option.
-#     'c' => 0,   # "cookie" flag.
-#     'g' => "",  # "groupname" option.
-#     'f' => "",  # "file" option.
-#     'M' => 0,   # "no timestamp" flag.
-#     'n' => "",  # "config file" option.
-#     'S' => 1,   # "SSL" option. This is always 1. Set 0 to login older hatena server.
-#     'l' => "",  # "load" diary.
-#     'D' => "",  # "diff" option.
-# );
 
-
-# if ($0 eq __FILE__) {
-#     # Start.
-#     # if ($arg_opt{l}) {
-#     #     load_main();    # now load()
-#     # } elsif ($arg_opt{D}) {
-#     #     diff_main();    # now diff()
-#     # } else {
-#     #     main();    # now release()
-#     # }
-# 
-#     # no-error exit.
-#     exit(0);
-# }
-
-
-
-
-require Carp;
-# warning/error messages with stacktrace.
-# $SIG{__DIE__} = \&Carp::confess;
-# $SIG{__WARN__} = \&Carp::cluck;
 
 # NOTE:
 # settings will be overridden like the followings
@@ -247,13 +187,6 @@ sub parse_opt {
     # getopts("tu:p:a:T:cg:f:Mn:", $arg_opt) or error("Unknown option.");
     $self->get_opt($self->{args}{options}, $arg_opt);
 
-    # if ($arg_opt->{d}) {
-    #     debug("Debug flag on.");
-    #     debug("Cookie flag on.") if $arg_opt->{c};
-    #     debug("Trivial flag on.") if $arg_opt->{t};
-    #     VERSION_MESSAGE();
-    # }
-
 
     my %args = (
         t => 'trivial',
@@ -264,10 +197,6 @@ sub parse_opt {
         'T=s' => 'timeout',
         'f=s' => 'target_file',
         M => 'no_timestamp',
-
-        # unnecessary because HWWrapper prepares 'load' and 'diff' command.
-        # l => 'load_date',
-        # D => 'diff_date',
     );
 
     while (my ($k, $method) = each %args) {
@@ -286,7 +215,7 @@ sub parse_opt {
     }
 }
 
-# Load diary main sequence. -l option
+# load(fetch) diary from hatena diary.
 sub load {
     my $self = shift;
     my ($year, $month, $day) = $self->parse_date(shift);
@@ -335,7 +264,7 @@ sub parse_date($) {
     return ($1, $2, $3);
 }
 
-# Main sequence.
+# upload to hatena diary.
 sub release {
     my $self = shift;
     my $count = 0;
