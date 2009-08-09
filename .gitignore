@@ -6,3 +6,5 @@ text
 Build
 Build.bat
 _build
+Makefile
+tags
