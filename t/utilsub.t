@@ -9,7 +9,7 @@ use Test::Output qw(output_from);
 use HWWrapper;
 use HWWrapper::UtilSub::Functions;
 
-my $wrapper = HWWrapper->new;
+my $wrapper = HWWrapper->new(args => \@ARGV);
 
 
 my @tests = (

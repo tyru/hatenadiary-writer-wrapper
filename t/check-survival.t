@@ -6,7 +6,7 @@ use Test::Exception;
 
 
 use HWWrapper;
-my $wrapper = HWWrapper->new;
+my $wrapper = HWWrapper->new(args => \@ARGV);
 
 
 

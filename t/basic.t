@@ -7,7 +7,7 @@ plan 'no_plan';
 use Scalar::Util qw(blessed);
 
 use HWWrapper;
-my $wrapper = HWWrapper->new;
+my $wrapper = HWWrapper->new(args => \@ARGV);
 
 
 ok blessed($wrapper), '$wrapper is blessed reference';
