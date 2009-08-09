@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.23';
+our $VERSION = '1.3.24';
 
 use base qw(HW);
 # import all util commands!!
@@ -351,7 +351,7 @@ sub init {
     elsif ($read_config) {
         $txt_dir = $HW::txt_dir;
         $config_file = $self->config_file,
-        $cookie_file = $HW::cookie_file;
+        $cookie_file = $self->cookie_file;
     }
     my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
 
@@ -689,9 +689,9 @@ sub status {
     my $dir = shift @$args;
     if (defined $dir) {
         $HW::txt_dir = $dir;
-        $HW::touch_file = File::Spec->catfile($dir, 'touch.txt');
-        unless (-f $HW::touch_file) {
-            error("$HW::touch_file:$!");
+        $self->touch_file = File::Spec->catfile($dir, 'touch.txt');
+        unless (-f $self->touch_file) {
+            error($self->touch_file.": $!");
         }
     }
 

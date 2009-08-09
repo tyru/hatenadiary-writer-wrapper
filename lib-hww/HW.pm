@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.19";
+our $VERSION = "1.5.20";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -61,10 +61,6 @@ use subs qw(
     replace_timestamp
     load_config
 );
-
-# Default file names.
-our $touch_file = 'touch.txt';
-our $cookie_file = 'cookie.txt';
 
 # Filter command.
 # e.g. 'iconv -f euc-jp -t utf-8 %s'
@@ -156,11 +152,9 @@ sub new {
         # because 'release' or 'update' command take this option.
         trivial => 0,
 
-        # TODO && NOTE
-        # HWWrapper::load() and HWWrapper::diff() will call
-        # SUPER:: with argument so there'll be no reason to
-        # stash value in $self->{config}.
-        load_date => '',
+        touch_file => 'touch.txt',
+        cookie_file => 'cookie.txt',
+        config_file => 'config.txt',
     );
 
 
@@ -279,7 +273,7 @@ sub release {
     else {
         for ($self->get_entries($txt_dir)) {
             # Check timestamp.
-            next if (-e($touch_file) and (-M($_) > -M($touch_file)));
+            next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
             push(@files, $_);
         }
         debug("files: current dir ($txt_dir): @files");
@@ -335,7 +329,7 @@ sub release {
         unless ($self->target_file) {
             # Touch file.
             my $FILE;
-            open($FILE, '>', $touch_file) or error("$touch_file: $!");
+            open($FILE, '>', $self->touch_file) or error($self->touch_file.": $!");
             print $FILE $self->get_timestamp();
             close($FILE);
         }
@@ -361,11 +355,11 @@ sub login() {
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
-    if ($self->use_cookie() and -e($cookie_file)) {
+    if ($self->use_cookie() and -e($self->cookie_file)) {
         debug("Loading cookie jar.");
 
         $cookie_jar = HTTP::Cookies->new;
-        $cookie_jar->load($cookie_file);
+        $cookie_jar->load($self->cookie_file);
         $cookie_jar->scan(\&get_rkm);
 
         debug("\$cookie_jar = " . $cookie_jar->as_string);
@@ -437,7 +431,7 @@ sub login() {
 
     $cookie_jar = HTTP::Cookies->new;
     $cookie_jar->extract_cookies($r);
-    $cookie_jar->save($cookie_file);
+    $cookie_jar->save($self->cookie_file);
     $cookie_jar->scan(\&get_rkm);
 
     debug("\$cookie_jar = " . $cookie_jar->as_string);
@@ -459,7 +453,7 @@ sub logout() {
     return unless $user_agent;
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
-    if ($self->use_cookie() and -e($cookie_file)) {
+    if ($self->use_cookie() and -e($self->cookie_file)) {
         puts("Skip logout.");
         return;
     }
@@ -478,7 +472,7 @@ sub logout() {
         error("Logout: Unexpected response: ", $r->status_line);
     }
 
-    unlink($cookie_file);
+    unlink($self->cookie_file);
 
     puts("Logout OK.");
 }
@@ -522,7 +516,7 @@ sub doit_and_retry($$) {
             last;
         }
         debug($msg);
-        unlink($cookie_file);
+        unlink($self->cookie_file);
         puts("Old cookie. Retry login.");
         $self->login();
         $retry++;
@@ -742,7 +736,7 @@ sub find_image_file($) {
                 debug("-f option, always update: $imgfile");
                 return $imgfile;
             }
-            elsif (-e($touch_file) and (-M($imgfile) > -M($touch_file))) {
+            elsif (-e($self->touch_file) and (-M($imgfile) > -M($self->touch_file))) {
                 debug("skip $imgfile (not updated).");
                 next;
             }
@@ -789,7 +783,7 @@ sub load_config {
     my $self = shift;
 
     # default
-    my $config_file = 'config.txt';
+    my $config_file = $self->config_file;
     # process only '-n' option in @ARGV.
     $self->get_opt_only(
         $self->{args}{options},
@@ -830,9 +824,9 @@ sub load_config {
             debug("password:********");
         }
         elsif (/^cookie:(.*)$/) {
-            $cookie_file = glob($1);
+            $self->cookie_file = glob($1);
             $self->use_cookie = 1; # If cookie file is specified, Assume '-c' is given.
-            debug("cookie:$cookie_file");
+            debug("cookie:".$self->cookie_file);
         }
         elsif (/^proxy:(.*)$/) {
             $http_proxy = $1;
@@ -855,8 +849,8 @@ sub load_config {
             debug("txt_dir:$txt_dir");
         }
         elsif (/^touch:(.*)$/) {
-            $touch_file = glob($1);
-            debug("touch:$touch_file");
+            $self->touch_file = glob($1);
+            debug("touch:".$self->touch_file);
         }
         else {
             error("Unknown command '$_' in $config_file.");
