@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.30';
+our $VERSION = '1.4.0';
 
 use base qw(HW);
 # import all util commands!!
@@ -18,6 +18,8 @@ use File::Basename qw(dirname basename);
 use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
+use Regexp::Assemble;
+use Term::ReadLine;
 
 
 
@@ -42,6 +44,7 @@ our %HWW_COMMAND = (
     'update-index' => 'update_index',
     chain => 'chain',
     diff => 'diff',
+    shell => 'shell',
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
@@ -49,8 +52,6 @@ our %HWW_COMMAND = (
     # 'rename-tag' => 'rename_tag',
 
     # TODO 現在の日記ファイルを作ってエディタで開くコマンド
-    # TODO 対話シェルを起動するコマンド
-    # shell => 'shell',
     # TODO 設定(ファイルはconfig-hww.txt)を変えるコマンド
     # config => 'config',
 );
@@ -1164,6 +1165,55 @@ sub diff {
     else {
         for (map { basename($_) } $self->get_updated_entries()) {
             $self->SUPER::diff($_);
+        }
+    }
+}
+
+
+{
+    my $initialized = 0;
+    my %shell_cmd;
+    my $shell_cmd_re;
+
+    sub shell {
+        my ($self, $args) = @_;
+
+        unless ($initialized) {
+            %shell_cmd = (
+                'q(?:uit)?' => sub { exit },
+            );
+            # match word.
+            %shell_cmd = map { '\\b'.$_.'\\b' => $shell_cmd{$_} } keys %shell_cmd;
+
+            $shell_cmd_re = Regexp::Assemble->new->track->add(keys %shell_cmd);
+
+            $initialized = 1;
+        }
+
+        my $term = Term::ReadLine->new;
+        # TODO write completion subroutine
+
+
+        # EOF (or q or quit) to leave shell.
+        SHELL:
+        while (defined(my $line = $term->readline("> "))) {
+            next SHELL if $line =~ /^\s*$/;
+
+            DISPATCH:
+            for my $shell_args ($self->shell_eval_string($line)) {
+                my ($cmd, @cmd_args) = @$shell_args;
+
+                if (is_hww_command($cmd)) {
+                    $self->dispatch($cmd => \@cmd_args);
+                }
+                elsif ($shell_cmd_re->match($cmd)) {
+                    $shell_cmd{$shell_cmd_re->matched}->(\@cmd_args);
+                }
+                else {
+                    STDERR->print("$cmd: command not found\n");
+                    last DISPATCH;
+                }
+            }
         }
     }
 }

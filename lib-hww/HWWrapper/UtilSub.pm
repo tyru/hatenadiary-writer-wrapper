@@ -4,12 +4,13 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.8";
+our $VERSION = "1.0.9";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
 
 
+use Carp;
 use FileHandle ();
 use POSIX ();
 use Getopt::Long ();
@@ -261,6 +262,83 @@ sub mk_accessors {
         no strict 'refs';
         *$subname = $coderef;
     }
+}
+
+# TODO
+# - if text's end is backslash, read nextline.
+#
+# - pipe
+# - runnning background
+#
+# NOTE:
+# pass "complete command line string".
+# DON'T pass incomplete string. e.g.: "right double quote missing
+sub shell_eval_string {
+    my $self = shift;
+    my $line = shift;
+    my @args;
+
+    if ($line =~ /\n/m) {
+        croak "give me the line which does NOT contain newline!";
+    }
+
+    my $push_args = sub {
+        croak "push_args: receive empty args" unless @_;
+
+        if (@args) {
+            push @{ $args[-1] }, @_;
+        }
+        else {
+            push @args, [@_];
+        }
+    };
+    my $shift_str = sub {
+        my $c = substr $_[0], 0, 1;    # first char
+        $_[0] = substr $_[0], 1;       # rest
+        return $c;
+    };
+
+
+    open my $FOO, '>>', 'foo.txt' or die $!;
+    $_ = $line;
+
+    while (length $line) {
+        next if $line =~ s/^ \s+//x;
+
+        if ($line =~ s/^"//) {    # double quotes
+            my $body = '';
+
+            while (length $line) {
+                my $c = $shift_str->($line);
+
+                if ($c eq q(")) {    # end of string
+                    last;
+                }
+                elsif ($c eq "\\") {    # escape
+                    $c = "\\" . $shift_str->($line);
+                    $body .= eval sprintf q("%s"), $c;
+                }
+                else {
+                    $body .= $c;
+                }
+            }
+
+            $push_args->($body);
+        }
+        elsif ($line =~ s/^ (') ([^\1]*?) \1//x) {    # single quotes
+            $push_args->($2);    # push body
+        }
+        elsif ($line =~ s/^ (\S+)//mx) {    # WORD
+            # wrap it with double quotes.
+            $line = (sprintf q("%s"), $1).$line;
+        }
+        else {    # wtf?
+            error("parse error");
+        }
+    }
+    close $FOO;
+
+    return @args;
 }
 
 
