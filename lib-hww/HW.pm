@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.28";
+our $VERSION = "1.5.29";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(HWWrapper::UtilSub);
@@ -156,14 +156,6 @@ sub new {
     # stash config into myself
     $self->{config} = \%config;
 
-
-    # make accessors.
-    #
-    #   $self->$method
-    # is identical to
-    #   $self->{config}{$method}
-    # with 'lvalue' attr.
-    __PACKAGE__->mk_accessors(keys %config);
 
     return $self;
 }

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.29';
+our $VERSION = '1.3.30';
 
 use base qw(HW);
 # import all util commands!!
@@ -131,8 +131,18 @@ sub new {
         'no-cookie' => \$no_cookie,
     };
 
-
+    # initialize config of HW.
     $self->SUPER::new;
+
+    # make accessors.
+    #
+    # $self->$method
+    # is lvalue method and identical to
+    # $self->{config}{$method}
+    $self->mk_accessors(keys %{ $self->{config} });
+
+
+    return $self;
 }
 
 

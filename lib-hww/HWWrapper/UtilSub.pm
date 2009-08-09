@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.7";
+our $VERSION = "1.0.8";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -246,10 +246,15 @@ sub arg_error {
 }
 
 sub mk_accessors {
-    my $pkg = shift;
+    my $self = shift;
+    my $pkg = caller;
     debug("make accessor to $pkg: ".dumper([@_]));
 
     for my $method (uniq @_) {
+        unless (exists $self->{config}{$method}) {
+            error("internal: \$self->{config}{$method} does NOT exist!!");
+        }
+
         my $subname = $pkg."::".$method;
         my $coderef = sub : lvalue { shift->{config}{$method} };
 
