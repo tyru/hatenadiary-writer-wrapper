@@ -1,6 +1,6 @@
 package Bundle::HWWrapper;
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 
 1;
@@ -24,6 +24,7 @@ HTTP::Request::Common
 Crypt::SSLeay
 Class::Accessor::Lvalue
 URI
+IO::Prompt
 
 # for HWWrapper
 Date::Manip
