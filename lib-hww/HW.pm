@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.23";
+our $VERSION = "1.5.24";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -76,11 +76,8 @@ if ($@) {
     $hatena_sslregister_url = 'http://www.hatena.ne.jp/login';
 }
 
-# Other variables.
-our $delete_title = 'delete';
-our $cookie_jar;
-our $user_agent;
-our $rkm; # session id for posting.
+
+my $rkm; # session id for posting.
 
 
 
@@ -158,6 +155,12 @@ sub new {
 
         client_encoding => '',
         server_encoding => '',
+
+        # string to delete entry from hatena diary.
+        # see the URLs at the top of the front comment lines.
+        delete_title => 'delete',
+        cookie_jar => undef,
+        user_agent => undef,
     );
 
 
@@ -218,14 +221,14 @@ sub load {
     my ($year, $month, $day) = $self->parse_date(shift);
 
     # Login if necessary.
-    $self->login() unless ($user_agent);
+    $self->login();
 
     puts("Load $year-$month-$day.");
     my ($title, $body) = $self->load_diary_entry($year,$month,$day);
     $self->save_diary_entry($year,$month,$day,$title,$body);
     puts("Load OK.");
 
-    $self->logout() if ($user_agent);
+    $self->logout();
 }
 
 sub diff {
@@ -234,11 +237,11 @@ sub diff {
     my ($year, $month, $day) = $self->parse_date($diff_date);
 
     # Login if necessary.
-    $self->login() unless ($user_agent);
+    $self->login();
 
     puts("Diff $year-$month-$day.");
     my ($title, $body) = $self->load_diary_entry($year,$month,$day);
-    $self->logout() if ($user_agent);
+    $self->logout();
 
     my $src = $title."\n".$body;
 
@@ -293,7 +296,7 @@ sub release {
         my $date = $year . $month . $day;
 
         # Login if necessary.
-        $self->login() unless ($user_agent);
+        $self->login();
 
         # Replace "*t*" unless suppressed.
         $self->replace_timestamp($file) unless ($self->no_timestamp);
@@ -304,7 +307,7 @@ sub release {
         # Find image files.
         my $imgfile = $self->find_image_file($file);
 
-        if ($title eq $delete_title) {
+        if ($title eq $self->delete_title) {
             # Delete entry.
             puts("Delete $year-$month-$day.");
             $self->delete_diary_entry($date);
@@ -323,7 +326,7 @@ sub release {
     }
 
     # Logout if necessary.
-    $self->logout() if ($user_agent);
+    $self->logout();
 
     if ($count == 0) {
         puts("No files are posted.");
@@ -342,12 +345,14 @@ sub release {
 # Login.
 sub login() {
     my $self = shift;
-    $user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
-    $user_agent->env_proxy;
+    return if $self->user_agent;
+
+    $self->user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
+    $self->user_agent->env_proxy;
     if ($self->http_proxy) {
-        $user_agent->proxy('http', $self->http_proxy);
+        $self->user_agent->proxy('http', $self->http_proxy);
         debug("proxy for http: ".$self->http_proxy);
-        $user_agent->proxy('https', $self->http_proxy);
+        $self->user_agent->proxy('https', $self->http_proxy);
         debug("proxy for https: ".$self->http_proxy);
     }
 
@@ -361,11 +366,11 @@ sub login() {
     if ($self->use_cookie() and -e($self->cookie_file)) {
         debug("Loading cookie jar.");
 
-        $cookie_jar = HTTP::Cookies->new;
-        $cookie_jar->load($self->cookie_file);
-        $cookie_jar->scan(\&get_rkm);
+        $self->cookie_jar = HTTP::Cookies->new;
+        $self->cookie_jar->load($self->cookie_file);
+        $self->cookie_jar->scan(\&get_rkm);
 
-        debug("\$cookie_jar = " . $cookie_jar->as_string);
+        debug("\$cookie_jar = " . $self->cookie_jar->as_string);
 
         puts("Skip login.");
 
@@ -394,7 +399,7 @@ sub login() {
 
         puts("Login to $hatena_sslregister_url as $form{name}.");
 
-        $r = $user_agent->simple_request(
+        $r = $self->user_agent->simple_request(
             HTTP::Request::Common::POST("$hatena_sslregister_url", \%form)
         );
 
@@ -407,7 +412,7 @@ sub login() {
 
         debug('hatena_url: '.$self->hatena_url);
         puts(sprintf 'Login to %s as %s.', $self->hatena_url, $form{name});
-        $r = $user_agent->simple_request(
+        $r = $self->user_agent->simple_request(
             HTTP::Request::Common::POST($self->hatena_url."/login", \%form)
         );
 
@@ -432,12 +437,12 @@ sub login() {
 
     debug("Making cookie jar.");
 
-    $cookie_jar = HTTP::Cookies->new;
-    $cookie_jar->extract_cookies($r);
-    $cookie_jar->save($self->cookie_file);
-    $cookie_jar->scan(\&get_rkm);
+    $self->cookie_jar = HTTP::Cookies->new;
+    $self->cookie_jar->extract_cookies($r);
+    $self->cookie_jar->save($self->cookie_file);
+    $self->cookie_jar->scan(\&get_rkm);
 
-    debug("\$cookie_jar = " . $cookie_jar->as_string);
+    debug("\$cookie_jar = " . $self->cookie_jar->as_string);
 }
 
 # get session id.
@@ -453,7 +458,7 @@ sub get_rkm($$$$$$$$$$$) {
 # Logout.
 sub logout() {
     my $self = shift;
-    return unless $user_agent;
+    return unless $self->user_agent;
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
     if ($self->use_cookie() and -e($self->cookie_file)) {
@@ -467,8 +472,8 @@ sub logout() {
 
     puts(sprintf 'Logout from %s as %s.', $self->hatena_url, $form{name});
 
-    $user_agent->cookie_jar($cookie_jar);
-    my $r = $user_agent->get($self->hatena_url."/logout");
+    $self->user_agent->cookie_jar($self->cookie_jar);
+    my $r = $self->user_agent->get($self->hatena_url."/logout");
     debug($r->status_line);
 
     if (not $r->is_redirect and not $r->is_success) {
@@ -537,9 +542,9 @@ sub delete_it($) {
 
     debug($date);
 
-    $user_agent->cookie_jar($cookie_jar);
+    $self->user_agent->cookie_jar($self->cookie_jar);
 
-    my $r = $user_agent->simple_request(
+    my $r = $self->user_agent->simple_request(
         HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             # Content_Type => 'form-data',
             Content => [
@@ -576,9 +581,9 @@ sub create_it($$$) {
 
     debug("$year-$month-$day.");
 
-    $user_agent->cookie_jar($cookie_jar);
+    $self->user_agent->cookie_jar($self->cookie_jar);
 
-    my $r = $user_agent->simple_request(
+    my $r = $self->user_agent->simple_request(
         HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             Content_Type => 'form-data',
             Content => [
@@ -626,9 +631,9 @@ sub post_it($$$$$$) {
 
     debug("$year-$month-$day.");
 
-    $user_agent->cookie_jar($cookie_jar);
+    $self->user_agent->cookie_jar($self->cookie_jar);
 
-    my $r = $user_agent->simple_request(
+    my $r = $self->user_agent->simple_request(
         HTTP::Request::Common::POST(sprintf('%s/%s/edit', $self->hatena_url, $self->username),
             Content_Type => 'form-data',
             Content => [
@@ -873,9 +878,9 @@ sub load_diary_entry($$$) {
 
     debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
 
-    $user_agent->cookie_jar($cookie_jar);
+    $self->user_agent->cookie_jar($self->cookie_jar);
 
-    my $r = $user_agent->simple_request(
+    my $r = $self->user_agent->simple_request(
         HTTP::Request::Common::GET(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day));
 
     debug($r->status_line);

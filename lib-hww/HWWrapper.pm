@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.25';
+our $VERSION = '1.3.26';
 
 use base qw(HW);
 # import all util commands!!
@@ -438,13 +438,13 @@ sub load {
         }
 
         # Login if necessary.
-        $self->login() unless ($HW::user_agent);
+        $self->login();
 
-        $HW::user_agent->cookie_jar($HW::cookie_jar);
+        $self->user_agent->cookie_jar($self->cookie_jar);
 
         my $export_url = sprintf '%s/%s/export', $self->hatena_url, $self->username;
         debug("GET $export_url");
-        my $r = $HW::user_agent->simple_request(
+        my $r = $self->user_agent->simple_request(
             HTTP::Request::Common::GET($export_url)
         );
 
@@ -503,7 +503,7 @@ sub load {
             }
         }
 
-        $self->logout() if ($HW::user_agent);
+        $self->logout();
 
     }
     elsif ($draft) {
@@ -551,17 +551,17 @@ sub load {
         }
 
 
-        $self->login() unless ($HW::user_agent);
+        $self->login();
 
         # TODO
         # save wsse header.
         # because authetication with cookie has been obsoleted
         # (cookie is expired at that time) since 2008-09-02.
         #
-        # $HW::user_agent->cookie_jar($HW::cookie_jar);
+        # $self->user_agent->cookie_jar($self->cookie_jar);
 
         my $url = $self->hatena_url->host.':'.$self->hatena_url->port;
-        $HW::user_agent->credentials($url, '', $self->username, $self->password);
+        $self->user_agent->credentials($url, '', $self->username, $self->password);
 
         # http://d.hatena.ne.jp/{user}/atom/draft
         my $draft_collection_url = sprintf '%s/%s/atom/draft', $self->hatena_url, $self->username;
@@ -571,9 +571,9 @@ sub load {
         puts("getting drafts...");
         for (my $page_num = 1; ; $page_num++) {
             my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
-            # $HW::user_agent->simple_request() can't handle authentication response.
+            # $self->user_agent->simple_request() can't handle authentication response.
             debug("GET $url");
-            my $r = $HW::user_agent->request(
+            my $r = $self->user_agent->request(
                 HTTP::Request::Common::GET($url)
             );
 
@@ -596,7 +596,7 @@ sub load {
             }
         }
 
-        $self->logout() if ($HW::user_agent);
+        $self->logout();
 
     }
     else {
@@ -685,7 +685,7 @@ sub status {
         'no-caption' => \$no_caption,
     });
 
-    # if undef, $HW::txt_dir is used.
+    # if undef, $self->txt_dir is used.
     my $dir = shift @$args;
     if (defined $dir) {
         $self->txt_dir = $dir;
