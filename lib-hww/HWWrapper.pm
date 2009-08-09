@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.19';
+our $VERSION = '1.3.20';
 
 use base qw(HW);
 # import all util commands!!
@@ -99,7 +99,6 @@ our %HWW_COMMAND = (
 our $debug;
 our $debug_stderr;
 our $no_cookie;
-# hww.pl's options.
 
 ### new() ###
 
@@ -109,25 +108,58 @@ sub new {
         croak "you have already been initialized!";
     }
 
-    my $self = bless {
-        arg_opt => {
-            HWWrapper => {
-                d => \$debug,
-                debug => \$debug,
+    my $self = bless { @_ }, $pkg;
 
-                D => \$debug_stderr,
-                'debug-stderr' => \$debug_stderr,
+    if (exists $self->{args}) {
+        my ($opts, $cmd, $cmd_args) = split_opt(@{ $self->{args} });
+        $self->{args} = {
+            options => $options,
+            command => $cmd,
+            command_args => $cmd_args,
+        };
+    }
+    else {
+        croak "currently 'args' option is required!!";
+    }
 
-                C => \$no_cookie,
-                'no-cookie' => \$no_cookie,
-            },
-        },
-    }, $pkg;
+    $self->{arg_opt}{HWWrapper} = {
+        d => \$debug,
+        debug => \$debug,
+
+        D => \$debug_stderr,
+        'debug-stderr' => \$debug_stderr,
+
+        C => \$no_cookie,
+        'no-cookie' => \$no_cookie,
+    };
+
 
     __PACKAGE__->mk_accessors(qw(use_cookie));
 
-
     $self->SUPER::new;
+}
+
+
+
+### load_config() ###
+
+sub load_config {
+    my $self = shift;
+
+    my $config_file = 'config-hww.txt';
+    $self->get_opt_only(
+        $self->{args}{options},
+        {N => \$config_file},
+    ) or error("arguments error");
+
+    unless (-f $config_file) {
+        debug("$config_file is not found. skip to load config...");
+    }
+
+    # TODO
+
+
+    $self->SUPER::load_config;
 }
 
 
@@ -151,22 +183,20 @@ sub new {
 #     'config-file=s' => \$HW::arg_opt{n},
 # );
 
-
-# NOTE:
-# - オプションの優先順位は デフォルトの値＜設定ファイルの値＜引数指定された値
-
 sub parse_opt {
     my $self = shift;
     unless (blessed $self) {
         croak 'give me blessed $self.';
     }
+    unless (exists $self->{args}) {
+        croak "you did not passed 'args' option to HWWrapper->new().";
+    }
 
-    my @argv = @_;
-    my ($options, $cmd, $cmd_args) = split_opt(@argv);
+    my $options = $self->{args}{options};
+    my $cmd = $self->{args}{command};
+    my $cmd_args = $self->{args}{command_args};
 
     return ($cmd, $cmd_args) unless @$options;
-
-    my $tmp = [@$options];
 
 
     # parse hww.pl's options.
@@ -179,11 +209,6 @@ sub parse_opt {
         $self->dispatch('help');
         exit -1;
     };
-    debug(sprintf "%s -> (%s, %s, %s)\n",
-                    dumper(\@argv),
-                    dumper($tmp),
-                    dumper($cmd),
-                    dumper($cmd_args));
 
     # set these values after $self->SUPER::parse_opt().
     # because these accessors were defined by it.
@@ -200,8 +225,10 @@ sub parse_opt {
 
 
     # parse HW 's options.
-    # NOTE: even if @argv == 0, let it parse.
-    $self->SUPER::parse_opt(@$options);
+    # NOTE: even if @$options == 0, let it parse.
+    # if (@$options) {
+    $self->SUPER::parse_opt();
+    # }
 
 
     return ($cmd, $cmd_args);
@@ -250,6 +277,9 @@ sub dispatch_with_args {
 
     unless (blessed($self)) {
         croak 'give me blessed $self.';
+    }
+    unless (exists $self->{args}) {
+        croak 'you have not passed args option.';
     }
 
 

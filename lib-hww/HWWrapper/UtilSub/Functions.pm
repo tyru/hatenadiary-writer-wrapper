@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.3";
+our $VERSION = "1.0.4";
 
 use subs qw(dump);
 
@@ -134,6 +134,7 @@ sub require_modules {
 sub split_opt {
     my @hww_opt;
     my $subcmd;
+    my @tmp_argv = @_;
 
     while (defined(my $a = shift)) {
         if ($a =~ /^-/) {
@@ -145,7 +146,14 @@ sub split_opt {
         }
     }
 
-    return (\@hww_opt, $subcmd, [@_]);
+    my @ret = (\@hww_opt, $subcmd, [@_]);
+    debug(sprintf "%s -> (%s, %s, %s)\n",
+                    dumper(\@tmp_argv),
+                    dumper($ret[0]),
+                    dumper($ret[1),
+                    dumper($ret[2]));
+
+    return @ret;
 }
 
 

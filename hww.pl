@@ -17,7 +17,7 @@ BEGIN {
 use lib $HWW_LIB;
 
 use HWWrapper;
-my $wrapper = HWWrapper->new;
+my $wrapper = HWWrapper->new(args => \@ARGV);
 
 
 
@@ -36,7 +36,7 @@ sub version () {
 
 ### main ###
 usage() unless @ARGV;
-$wrapper->dispatch_with_args(@ARGV);
+$wrapper->dispatch_with_args;
 
 
 __END__

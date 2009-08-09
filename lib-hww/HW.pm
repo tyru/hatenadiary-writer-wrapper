@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.15";
+our $VERSION = "1.5.16";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -241,7 +241,7 @@ sub parse_opt {
     # local @ARGV = @_;
     # local $Getopt::Std::STANDARD_HELP_VERSION = 1;
     # getopts("tu:p:a:T:cg:f:Mn:", $arg_opt) or error("Unknown option.");
-    $self->get_opt(\@argv, $arg_opt);
+    $self->get_opt($self->{args}{options}, $arg_opt);
 
     # if ($arg_opt->{d}) {
     #     debug("Debug flag on.");
@@ -859,7 +859,7 @@ sub load_config {
     my $config_file = 'config.txt';
     # process only '-n' option in @ARGV.
     $self->get_opt_only(
-        \@ARGV,
+        $self->{options},
         {'n=s' => \$config_file}
     ) or error("arguments error");
 
