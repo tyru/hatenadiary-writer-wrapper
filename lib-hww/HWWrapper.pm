@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.20';
+our $VERSION = '1.3.21';
 
 use base qw(HW);
 # import all util commands!!
@@ -69,7 +69,6 @@ our %HWW_COMMAND = (
 # - add attributes to test if $self is blessed and to omit to declare $self?
 #
 # - $self->target_file (= -fオプションで渡す値)はコマンドの引数で指定させるつもりなのでいらないはず
-# - diffやloadがアクセサの値じゃなく引数で受渡しをするようにする
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -612,10 +611,8 @@ sub load {
     }
     else {
         if (defined(my $ymd = shift(@$args))) {
-            $self->load_date = $ymd;
-            $self->SUPER::load();
-        }
-        else {
+            $self->SUPER::load($ymd);
+        } else {
             $self->arg_error;
         }
     }

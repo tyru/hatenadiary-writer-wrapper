@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.16";
+our $VERSION = "1.5.17";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -285,7 +285,7 @@ sub parse_opt {
 # Load diary main sequence. -l option
 sub load {
     my $self = shift;
-    my ($year, $month, $day) = $self->parse_date($self->load_date);
+    my ($year, $month, $day) = $self->parse_date(shift);
 
     # Login if necessary.
     $self->login() unless ($user_agent);
