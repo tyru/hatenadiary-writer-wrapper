@@ -1,6 +1,6 @@
 package Bundle::HWWrapper;
 
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 
 
 1;
@@ -22,7 +22,6 @@ perl -MCPAN -e 'install Bundle::HWWrapper'
 LWP::UserAgent
 HTTP::Request::Common
 Crypt::SSLeay
-Class::Accessor::Lvalue
 URI
 IO::Prompt
 
@@ -35,6 +34,9 @@ Text::Hatena
 XML::TreePP
 LWP::Authen::Wsse
 IO::String
+
+# HWWrapper::UtilSub
+List::MoreUtils
 
 
 =head1 AUTHOR
