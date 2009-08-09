@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.24";
+our $VERSION = "1.5.25";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -45,28 +45,12 @@ use URI;
 
 our $enable_encode = eval('use Encode; 1');
 
-use subs qw(
-    login
-    get_rkm
-    logout
-    update_diary_entry
-    delete_diary_entry
-    doit_and_retry
-    create_it
-    delete_it
-    post_it
-    get_timestamp
-    read_title_body
-    find_image_file
-    replace_timestamp
-    load_config
-);
-
 
 
 # Hatena URL.
 our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
 
+# TODO check this in new().
 # Crypt::SSLeay check.
 eval {
     require Crypt::SSLeay;
@@ -81,6 +65,13 @@ my $rkm; # session id for posting.
 
 
 
+# TODO
+# - use IO::Prompt qw(prompt)
+# - アクセッサを自動的に$self->{config}以下に連動させる
+# - login()のwsse対応
+# - configにwsseヘッダを保存するファイル名を追加
+
+
 # NOTE:
 # settings will be overridden like the followings
 # - set default settings
@@ -89,6 +80,7 @@ my $rkm; # session id for posting.
 #
 # but -n option(config file) is exceptional case.
 #
+
 
 ### set default settings ###
 sub new {
@@ -131,9 +123,6 @@ sub new {
         # to make this false, pass '-C' or '--no-cookie' option.
         use_cookie => 1,
 
-        # TODO
-        # this option will be deprecated
-        # because 'release' or 'update' command take this option.
         trivial => 0,
 
         touch_file => 'touch.txt',
@@ -215,7 +204,7 @@ sub parse_opt {
     }
 }
 
-# load(fetch) diary from hatena diary.
+# load entries from hatena diary
 sub load {
     my $self = shift;
     my ($year, $month, $day) = $self->parse_date(shift);
@@ -255,7 +244,7 @@ sub diff {
     system $cmd;
 }
 
-sub parse_date($) {
+sub parse_date {
     my $self = shift;
     my ($date) = @_;
     if ($date !~ /\A(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?(?:\.txt)?\Z/) {
@@ -343,7 +332,7 @@ sub release {
 }
 
 # Login.
-sub login() {
+sub login {
     my $self = shift;
     return if $self->user_agent;
 
@@ -446,7 +435,7 @@ sub login() {
 }
 
 # get session id.
-sub get_rkm($$$$$$$$$$$) {
+sub get_rkm {
     # NOTE: no $self
     my ($version, $key, $val) = @_;
     if ($key eq 'rk') {
@@ -456,7 +445,7 @@ sub get_rkm($$$$$$$$$$$) {
 }
 
 # Logout.
-sub logout() {
+sub logout {
     my $self = shift;
     return unless $self->user_agent;
 
@@ -486,7 +475,7 @@ sub logout() {
 }
 
 # Update entry.
-sub update_diary_entry($$$$$$) {
+sub update_diary_entry {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
@@ -503,7 +492,7 @@ sub update_diary_entry($$$$$$) {
 }
 
 # Delete entry.
-sub delete_diary_entry($) {
+sub delete_diary_entry {
     my $self = shift;
     my ($date) = @_;
 
@@ -512,7 +501,7 @@ sub delete_diary_entry($) {
 }
 
 # Do the $funcref, and retry if fail.
-sub doit_and_retry($$) {
+sub doit_and_retry {
     my $self = shift;
     my ($msg, $funcref) = @_;
     my $retry = 0;
@@ -536,7 +525,7 @@ sub doit_and_retry($$) {
 }
 
 # Delete.
-sub delete_it($) {
+sub delete_it {
     my $self = shift;
     my ($date) = @_;
 
@@ -575,7 +564,7 @@ sub delete_it($) {
     }
 }
 
-sub create_it($$$) {
+sub create_it {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
@@ -625,7 +614,7 @@ sub create_it($$$) {
     }
 }
 
-sub post_it($$$$$$) {
+sub post_it {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
@@ -677,7 +666,7 @@ sub post_it($$$$$$) {
 }
 
 # Get "YYYYMMDDhhmmss" for now.
-sub get_timestamp() {
+sub get_timestamp {
     my $self = shift;
     my (@week) = qw(Sun Mon Tue Wed Thu Fri Sat);
     my ($sec, $min, $hour, $day, $mon, $year, $weekday) = localtime(time);
@@ -703,7 +692,7 @@ EOD
 }
 
 # Read title and body.
-sub read_title_body($) {
+sub read_title_body {
     my $self = shift;
     my ($file) = @_;
 
@@ -734,7 +723,7 @@ sub read_title_body($) {
 }
 
 # Find image file.
-sub find_image_file($) {
+sub find_image_file {
     my $self = shift;
     my ($fulltxt) = @_;
     my ($base, $path, $type) = fileparse($fulltxt, qr/\.txt/);
@@ -759,7 +748,7 @@ sub find_image_file($) {
 }
 
 # Replace "*t*" with timestamp.
-sub replace_timestamp($) {
+sub replace_timestamp {
     my $self = shift;
     my ($filename) = @_;
 
@@ -872,7 +861,7 @@ sub load_config {
 # from hateda loader
 
 # Load entry.
-sub load_diary_entry($$$) {
+sub load_diary_entry {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
@@ -923,7 +912,7 @@ sub load_diary_entry($$$) {
     return ($title, $body);
 }
 
-sub text_filename($$$;$) {
+sub text_filename {
     my $self = shift;
     my ($year,$month,$day, $headlines) = @_;
     my $datename;
@@ -978,7 +967,7 @@ sub save_diary_entry {
     return 1;
 }
 
-sub backup($) {
+sub backup {
     my $self = shift;
     my ($filename) = @_;
     # Check if file is exist. (Skip)
@@ -993,7 +982,7 @@ sub backup($) {
     }
 }
 
-sub unescape($) {
+sub unescape {
     my $self = shift;
     my ($str) = @_;
     my @escape_string = (
