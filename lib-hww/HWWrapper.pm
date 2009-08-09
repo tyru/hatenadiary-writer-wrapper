@@ -4,22 +4,20 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.26';
+our $VERSION = '1.3.27';
 
 use base qw(HW);
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
 
 
-use Data::Dumper;
-
+use Carp;
 use File::Spec;
 use Pod::Usage;
 use File::Basename qw(dirname basename);
 use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
-use Carp;
 
 
 
@@ -57,11 +55,17 @@ our %HWW_COMMAND = (
     # config => 'config',
 );
 
+our $debug;
+our $debug_stderr;
+our $no_cookie;
+
+
 # TODO
 # - コマンドのヘルプドキュメント書く
 # - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
 # - バージョンとヘルプにHW.pmのid:hyukiさん達のcopyright入れる
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
+# - $selfがblessedされてるかチェックするアトリビュート
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -85,11 +89,6 @@ our %HWW_COMMAND = (
 
 
 
-
-
-our $debug;
-our $debug_stderr;
-our $no_cookie;
 
 ### new() ###
 
@@ -199,25 +198,23 @@ sub parse_opt {
         exit -1;
     };
 
-    # set these values after $self->SUPER::parse_opt().
-    # because these accessors were defined by it.
     $self->use_cookie = ! $no_cookie;
 
+    # option arguments result handling
     if ($debug) {
         print ${ $DEBUG->string_ref };    # flush all
         $DEBUG = *STDOUT;
     }
     elsif ($debug_stderr) {
         warning(${ $DEBUG->string_ref });    # flush all
-        $DEBUG = *STDOUT;
+        $DEBUG = *STDERR;
     }
 
 
     # parse HW 's options.
-    # NOTE: even if @$options == 0, let it parse.
-    # if (@$options) {
-    $self->SUPER::parse_opt();
-    # }
+    if (@$options) {
+        $self->SUPER::parse_opt();
+    }
 
 
     return ($cmd, $cmd_args);
@@ -245,13 +242,12 @@ sub dispatch {
     }
 
     # some debug messages.
-    {
-        my ($filename, $line) = (caller)[1,2];
-        $filename = basename($filename);
-        my $args_dumped = join ', ', map { dumper($_) } @_;
-        debug("at $filename line $line: \$self->dispatch($args_dumped)");
-        debug(sprintf "dispatch '$cmd' with [%s]", join(', ', @$args));
-    }
+    my ($filename, $line) = (caller)[1,2];
+    $filename = basename($filename);
+    debug(sprintf 'at %s line %s: \$self->dispatch(%s)',
+            $filename, $line, join(', ', map { dumper($_) } @_));
+    debug(sprintf "dispatch '%s' with [%s]",
+            $cmd, join(', ', @$args));
 
 
     my $subname = $HWW_COMMAND{$cmd};
