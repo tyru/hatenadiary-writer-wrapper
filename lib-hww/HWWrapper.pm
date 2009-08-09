@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.4.0';
+our $VERSION = '1.4.1';
 
 use base qw(HW);
 # import all util commands!!
@@ -1200,7 +1200,7 @@ sub diff {
             next SHELL if $line =~ /^\s*$/;
 
             DISPATCH:
-            for my $shell_args ($self->shell_eval_string($line)) {
+            for my $shell_args (shell_eval_string($line)) {
                 my ($cmd, @cmd_args) = @$shell_args;
 
                 if (is_hww_command($cmd)) {
