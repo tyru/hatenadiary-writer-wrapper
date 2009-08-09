@@ -150,7 +150,7 @@ sub split_opt {
     debug(sprintf "%s -> (%s, %s, %s)\n",
                     dumper(\@tmp_argv),
                     dumper($ret[0]),
-                    dumper($ret[1),
+                    dumper($ret[1]),
                     dumper($ret[2]));
 
     return @ret;

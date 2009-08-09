@@ -859,7 +859,7 @@ sub load_config {
     my $config_file = 'config.txt';
     # process only '-n' option in @ARGV.
     $self->get_opt_only(
-        $self->{options},
+        $self->{args}{options},
         {'n=s' => \$config_file}
     ) or error("arguments error");
 

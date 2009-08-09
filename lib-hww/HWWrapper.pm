@@ -113,7 +113,7 @@ sub new {
     if (exists $self->{args}) {
         my ($opts, $cmd, $cmd_args) = split_opt(@{ $self->{args} });
         $self->{args} = {
-            options => $options,
+            options => $opts,
             command => $cmd,
             command_args => $cmd_args,
         };
