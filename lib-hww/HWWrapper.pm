@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.28';
+our $VERSION = '1.3.29';
 
 use base qw(HW);
 # import all util commands!!
@@ -55,9 +55,9 @@ our %HWW_COMMAND = (
     # config => 'config',
 );
 
-our $debug;
-our $debug_stderr;
-our $no_cookie;
+our $debug = 0;
+our $debug_stderr = 0;
+our $no_cookie = 0;
 
 
 # TODO
@@ -98,10 +98,7 @@ sub new {
         croak "you have already been initialized!";
     }
 
-    my $self = bless {
-        config => {},
-        @_
-    }, $pkg;
+    my $self = bless { @_ }, $pkg;
 
     if (exists $self->{args}) {
         my ($opts, $cmd, $cmd_args) = split_opt(@{ $self->{args} });
@@ -115,6 +112,14 @@ sub new {
         croak "currently 'args' option is required!!";
     }
 
+
+    $self->{config} = {
+        # this option is default to 1.
+        # to make this false, pass '-C' or '--no-cookie' option.
+        use_cookie => 1,
+
+        is_debug => 0,
+    };
     $self->{arg_opt}{HWWrapper} = {
         d => \$debug,
         debug => \$debug,
@@ -202,6 +207,7 @@ sub parse_opt {
     };
 
     $self->use_cookie = ! $no_cookie;
+    $self->is_debug   = ($debug || $debug_stderr);
 
     # option arguments result handling
     if ($debug) {
@@ -211,6 +217,9 @@ sub parse_opt {
     elsif ($debug_stderr) {
         warning(${ $DEBUG->string_ref });    # flush all
         $DEBUG = *STDERR;
+    }
+    else {
+        $DEBUG = FileHandle->new(File::Spec->devnull, 'w') or error("Can't open null device.");
     }
 
 
@@ -248,7 +257,7 @@ sub dispatch {
     my ($filename, $line) = (caller)[1,2];
     $filename = basename($filename);
     debug(sprintf '$self->dispatch(%s) at %s line %s',
-            $filename, $line, join(', ', map { dumper($_) } @_));
+            join(', ', map { dumper($_) } @_), $filename, $line);
 
 
     my $subname = $HWW_COMMAND{$cmd};

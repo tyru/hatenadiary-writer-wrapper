@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.27";
+our $VERSION = "1.5.28";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(HWWrapper::UtilSub);
@@ -119,10 +119,6 @@ sub new {
         no_timestamp => 0,
         enable_ssl => 1,
 
-        # this option is default to 1.
-        # to make this false, pass '-C' or '--no-cookie' option.
-        use_cookie => 1,
-
         trivial => 0,
 
         touch_file => 'touch.txt',
@@ -152,10 +148,13 @@ sub new {
         user_agent => undef,
     );
 
-    $self->{config} = {
-        %{ $self->{config} },
-        %config    # override
-    };
+    # add $self->{config} to %config
+    %config = (
+        %config,
+        %{ $self->{config} },    # override
+    );
+    # stash config into myself
+    $self->{config} = \%config;
 
 
     # make accessors.
