@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.9";
+our $VERSION = "1.0.10";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -299,9 +299,6 @@ sub shell_eval_string {
     };
 
 
-    open my $FOO, '>>', 'foo.txt' or die $!;
-    $_ = $line;
-
     while (length $line) {
         next if $line =~ s/^ \s+//x;
 
@@ -336,7 +333,6 @@ sub shell_eval_string {
             error("parse error");
         }
     }
-    close $FOO;
 
     return @args;
 }
