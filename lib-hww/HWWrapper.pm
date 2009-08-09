@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.27';
+our $VERSION = '1.3.28';
 
 use base qw(HW);
 # import all util commands!!
@@ -98,7 +98,10 @@ sub new {
         croak "you have already been initialized!";
     }
 
-    my $self = bless { @_ }, $pkg;
+    my $self = bless {
+        config => {},
+        @_
+    }, $pkg;
 
     if (exists $self->{args}) {
         my ($opts, $cmd, $cmd_args) = split_opt(@{ $self->{args} });
@@ -244,10 +247,8 @@ sub dispatch {
     # some debug messages.
     my ($filename, $line) = (caller)[1,2];
     $filename = basename($filename);
-    debug(sprintf 'at %s line %s: \$self->dispatch(%s)',
+    debug(sprintf '$self->dispatch(%s) at %s line %s',
             $filename, $line, join(', ', map { dumper($_) } @_));
-    debug(sprintf "dispatch '%s' with [%s]",
-            $cmd, join(', ', @$args));
 
 
     my $subname = $HWW_COMMAND{$cmd};

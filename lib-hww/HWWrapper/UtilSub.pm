@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.6";
+our $VERSION = "1.0.7";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -13,6 +13,7 @@ use HWWrapper::UtilSub::Functions;
 use FileHandle ();
 use POSIX ();
 use Getopt::Long ();
+use List::MoreUtils qw(uniq);
 
 
 
@@ -242,6 +243,19 @@ sub arg_error {
     unlink($self->cookie_file);
 
     exit -1;
+}
+
+sub mk_accessors {
+    my $pkg = shift;
+    debug("make accessor to $pkg: ".dumper([@_]));
+
+    for my $method (uniq @_) {
+        my $subname = $pkg."::".$method;
+        my $coderef = sub : lvalue { shift->{config}{$method} };
+
+        no strict 'refs';
+        *$subname = $coderef;
+    }
 }
 
 

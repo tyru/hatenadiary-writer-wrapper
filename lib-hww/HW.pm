@@ -24,10 +24,10 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.26";
+our $VERSION = "1.5.27";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
-use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
+use base qw(HWWrapper::UtilSub);
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
 
@@ -67,7 +67,6 @@ my $rkm; # session id for posting.
 
 
 # TODO
-# - use IO::Prompt qw(prompt)
 # - アクセッサを自動的に$self->{config}以下に連動させる
 # - login()のwsse対応
 # - configにwsseヘッダを保存するファイル名を追加
@@ -153,15 +152,19 @@ sub new {
         user_agent => undef,
     );
 
+    $self->{config} = {
+        %{ $self->{config} },
+        %config    # override
+    };
+
 
     # make accessors.
+    #
+    #   $self->$method
+    # is identical to
+    #   $self->{config}{$method}
+    # with 'lvalue' attr.
     __PACKAGE__->mk_accessors(keys %config);
-
-    # set default.
-    for my $method (keys %config) {
-        debug("set default value: \$self->$method = ".dumper($config{$method}));
-        $self->$method = $config{$method};
-    }
 
     return $self;
 }
@@ -172,9 +175,9 @@ sub parse_opt {
     my $arg_opt = $self->{arg_opt}{HW};
     my @argv = @_;
 
-    # local @ARGV = @_;
-    # local $Getopt::Std::STANDARD_HELP_VERSION = 1;
-    # getopts("tu:p:a:T:cg:f:Mn:", $arg_opt) or error("Unknown option.");
+    return unless @argv;
+
+    # get options
     $self->get_opt($self->{args}{options}, $arg_opt);
 
 
