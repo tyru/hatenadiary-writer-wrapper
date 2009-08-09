@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.22";
+our $VERSION = "1.5.23";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -63,10 +63,6 @@ use subs qw(
 );
 
 
-
-# Client and server encodings.
-our $client_encoding = '';
-our $server_encoding = '';
 
 # Hatena URL.
 our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
@@ -159,6 +155,9 @@ sub new {
         # by 'init' command is default to 'text'.
         # so txt_dir is 'text' unless user edit it.
         txt_dir => '.',
+
+        client_encoding => '',
+        server_encoding => '',
     );
 
 
@@ -719,10 +718,11 @@ sub read_title_body($) {
     close($FILE);
 
     # Convert encodings.
-    if ($enable_encode and ($client_encoding ne $server_encoding)) {
-        debug("Convert from $client_encoding to $server_encoding.");
-        Encode::from_to($title, $client_encoding, $server_encoding);
-        Encode::from_to($body, $client_encoding, $server_encoding);
+    if ($enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+        debug(sprintf 'Convert from %s to %s.',
+                $self->client_encoding, $self->server_encoding);
+        Encode::from_to($title, $self->client_encoding, $self->server_encoding);
+        Encode::from_to($body, $self->client_encoding, $self->server_encoding);
     }
 
     return($title, $body);
@@ -837,12 +837,12 @@ sub load_config {
             debug("proxy:".$self->http_proxy);
         }
         elsif (/^client_encoding:(.*)$/) {
-            $client_encoding = $1;
-            debug("client_encoding:$client_encoding");
+            $self->client_encoding = $1;
+            debug("client_encoding:".$self->client_encoding);
         }
         elsif (/^server_encoding:(.*)$/) {
-            $server_encoding = $1;
-            debug("server_encoding:$server_encoding");
+            $self->server_encoding = $1;
+            debug("server_encoding:".$self->server_encoding);
         }
         elsif (/^filter:(.*)$/) {
             $self->filter_command = $1;
@@ -908,10 +908,10 @@ sub load_diary_entry($$$) {
     $body = $self->unescape($body);
 
     # Convert encodings.
-    if ($enable_encode and ($client_encoding ne $server_encoding)) {
-        debug("Convert from $client_encoding to $server_encoding.");
-        Encode::from_to($title, $server_encoding, $client_encoding);
-        Encode::from_to($body, $server_encoding, $client_encoding);
+    if ($enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+        debug(sprintf 'Convert from %s to %s.', $self->client_encoding, $self->server_encoding);
+        Encode::from_to($title, $self->server_encoding, $self->client_encoding);
+        Encode::from_to($body, $self->server_encoding, $self->client_encoding);
     }
 
     debug("OK");
