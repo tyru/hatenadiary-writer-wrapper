@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.17";
+our $VERSION = "1.5.18";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -206,6 +206,10 @@ sub new {
 
         no_timestamp => 0,
         enable_ssl => 1,
+
+        # this option is default to 1.
+        # to make this false, pass '-C' or '--no-cookie' option.
+        use_cookie => 1,
 
         # TODO
         # this option will be deprecated
@@ -657,7 +661,7 @@ sub create_it($$$) {
                 year => $year,
                 month => $month,
                 day => $day,
-                trivial => $self->use_cookie,
+                trivial => $self->trivial,
                 rkm => $rkm,
 
                 # Important:
@@ -708,7 +712,7 @@ sub post_it($$$$$$) {
                 month => $month,
                 day => $day,
                 title => $title,
-                trivial => $self->use_cookie,
+                trivial => $self->trivial,
                 rkm => $rkm,
 
                 # Important:

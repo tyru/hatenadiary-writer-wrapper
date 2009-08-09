@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.3.21';
+our $VERSION = '1.3.22';
 
 use base qw(HW);
 # import all util commands!!
@@ -132,8 +132,6 @@ sub new {
         'no-cookie' => \$no_cookie,
     };
 
-
-    __PACKAGE__->mk_accessors(qw(use_cookie));
 
     $self->SUPER::new;
 }
