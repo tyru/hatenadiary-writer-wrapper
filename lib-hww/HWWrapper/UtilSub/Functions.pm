@@ -4,31 +4,25 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.5";
+our $VERSION = "1.0.6";
 
 use subs qw(dump);
 
 use base qw(Exporter);
 
-our @EXPORT = our @EXPORT_OK = qw(
-    warning
-    error
-    debug
-    dump
-    dumper
-    puts
-    is_hww_command
-    alias
-    require_modules
-    split_opt
-    $DEBUG
-);
+our @EXPORT = our @EXPORT_OK = do {
+    no strict 'refs';
+
+    my @codes = grep { *$_{CODE} } keys %HWWrapper::UtilSub::Functions::;
+    # export all subroutines and $DEBUG.
+    (@codes, qw($DEBUG));
+};
 
 
 # do not export methods unnecessarily!
 use Data::Dumper ();
 use File::Basename ();
-use IO::String;
+use IO::String ();
 
 
 our $DEBUG = IO::String->new;
@@ -69,11 +63,6 @@ sub debug {
     my $subname = (caller 1)[3];
     $DEBUG->print("debug: $subname(): ", @_, "\n");
 }
-# for debug :)
-# sub debug {
-#     my $subname = (caller 1)[3];
-#     print "debug: $subname(): ", @_, "\n";
-# }
 
 sub dump {
     @_ = (dumper(@_));
