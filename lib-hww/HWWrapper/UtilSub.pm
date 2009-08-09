@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.11";
+our $VERSION = "1.0.12";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -197,7 +197,8 @@ sub get_touchdate {
                 debug("restore to args: $opt => ${ $dummy_result->{$opt} }");
                 if ($opt =~ s/^((.+)=s)$/$2/) {
                     unshift @$argv, "-$2" => ${ $dummy_result->{$1} };
-                } else {
+                }
+                else {
                     unshift @$argv, "-$opt";
                 }
             }

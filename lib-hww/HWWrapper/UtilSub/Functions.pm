@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.8";
+our $VERSION = "1.0.9";
 
 use subs qw(dump);
 
@@ -96,7 +96,8 @@ sub alias {
     if (ref $from_ref) {
         no strict 'refs';
         *{"${pkg}::$to"} = $from_ref;
-    } else {
+    }
+    else {
         warning("$from_ref is not reference");
     }
 }

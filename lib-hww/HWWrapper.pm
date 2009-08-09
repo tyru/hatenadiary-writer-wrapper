@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.4.1';
+our $VERSION = '1.4.2';
 
 use base qw(HW);
 # import all util commands!!
@@ -154,16 +154,17 @@ sub load_config {
     my $self = shift;
 
     my $config_file = 'config-hww.txt';
-    $self->get_opt_only(
-        $self->{args}{options},
-        {N => \$config_file},
-    ) or error("arguments error");
+    $self->get_opt_only($self->{args}{options}, {
+        'N=s' => \$config_file,
+        'config-hww=s' => \$config_file,
+    }) or error("arguments error");
 
-    unless (-f $config_file) {
+    if (-f $config_file) {
+        # TODO
+    }
+    else {
         debug("$config_file is not found. skip to load config...");
     }
-
-    # TODO
 
 
     $self->SUPER::load_config;
@@ -505,7 +506,8 @@ sub load {
             my ($year, $month, $day);
             if ($entry->{'-date'} =~ /^(\d{4})-(\d{2})-(\d{2})$/) {
                 ($year, $month, $day) = ($1, $2, $3);
-            } else {
+            }
+            else {
                 error($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
             }
 
@@ -619,7 +621,8 @@ sub load {
     else {
         if (defined(my $ymd = shift(@$args))) {
             $self->SUPER::load($ymd);
-        } else {
+        }
+        else {
             $self->arg_error;
         }
     }
@@ -941,7 +944,8 @@ sub gen_html {
 
         if (defined $index_tmpl) {
             $self->dispatch('update-index' => [$index_tmpl, $out])
-        } elsif ($make_index) {
+        }
+        elsif ($make_index) {
             $self->dispatch('update-index' => [$out]);
         }
 
@@ -1137,7 +1141,8 @@ sub chain {
         while (defined($_ = shift @$args)) {
             if ($_ eq '--') {
                 last;
-            } else {
+            }
+            else {
                 push @command_args, $_;
             }
         }
@@ -1175,6 +1180,7 @@ sub diff {
     my %shell_cmd;
     my $shell_cmd_re;
 
+    # TODO rewrite help
     sub shell {
         my ($self, $args) = @_;
 
