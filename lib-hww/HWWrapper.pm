@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.1';
+our $VERSION = '1.5.2';
 
 use base qw(HW);
 # import all util commands!!
@@ -391,7 +391,7 @@ sub init {
     $self->get_opt($args, {
         config => \$read_config,
         c => \$read_config,
-    });
+    }) or error("init: arguments error");
 
     my $dir = shift @$args;
     if (defined $dir) {
@@ -438,7 +438,7 @@ sub release {
     $self->get_opt($args, {
         trivial => \$trivial,
         t => \$trivial,
-    });
+    }) or error("release: arguments error");
     $self->trivial = $trivial;
 
     my $dir = shift @$args;
@@ -473,7 +473,7 @@ sub load {
         # 'c' => \$compare,
         'missing-only' => \$missing_only,
         m => \$missing_only,
-    }) or error("arguments error");
+    }) or error("load: arguments error");
 
 
     if ($all) {
@@ -667,7 +667,7 @@ sub verify {
     my $verify_html;
     $self->get_opt($args, {
         html => \$verify_html,
-    });
+    }) or error("verify: arguments error");
 
     my $dir = shift(@$args);
     my $fileglob;
@@ -734,7 +734,7 @@ sub status {
         a => \$all,
         C => \$no_caption,
         'no-caption' => \$no_caption,
-    });
+    }) or error("status: arguments error");
 
     # if undef, $self->txt_dir is used.
     my $dir = shift @$args;
@@ -779,7 +779,7 @@ sub apply_headline {
     $self->get_opt($args, {
         all => \$all,
         a => \$all,
-    });
+    }) or error("apply-headline: arguments error");
 
 
     my $apply = sub {
@@ -840,7 +840,7 @@ sub revert_headline {
     $self->get_opt($args, {
         all => \$all,
         a => \$all,
-    });
+    }) or error("revert-headline: arguments error");
 
 
     my $revert = sub {
@@ -922,7 +922,7 @@ sub gen_html {
         'I=s' => \$index_tmpl,
         'missing-only' => \$missing_only,
         m => \$missing_only,
-    });
+    }) or error("gen-html: arguments error");
 
     require_modules(qw(Text::Hatena));
 
@@ -1003,7 +1003,7 @@ sub update_index {
     $self->get_opt($args, {
         'max-length=s' => \$max_strlen,
         'm=s' => \$max_strlen,
-    });
+    }) or error("update-index: arguments error");
 
 
     require_modules(qw(
