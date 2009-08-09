@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.7";
+our $VERSION = "1.0.8";
 
 use subs qw(dump);
 
@@ -173,41 +173,22 @@ sub shell_eval_string {
             push @args, [@_];
         }
     };
-    my $shift_str = sub {
-        my $c = substr $_[0], 0, 1;    # first char
-        $_[0] = substr $_[0], 1;       # rest
-        return $c;
-    };
 
 
     while (length $line) {
         next if $line =~ s/^ \s+//x;
 
-        if ($line =~ s/^"//) {    # double quotes
-            my $body = '';
+        if ($line =~ /^"/) {    # double quotes
+            my $evaluated = eval_dquote_str($line, begin => q("), end => q("));
 
-            while (length $line) {
-                my $c = $shift_str->($line);
-
-                if ($c eq q(")) {    # end of string
-                    last;
-                }
-                elsif ($c eq "\\") {    # escape
-                    $c = "\\" . $shift_str->($line);
-                    $body .= eval sprintf q("%s"), $c;
-                }
-                else {
-                    $body .= $c;
-                }
-            }
-
-            $push_args->($body);
+            $line = $evaluated->{rest_str};
+            $push_args->($evaluated->{body});
         }
         elsif ($line =~ s/^ (') ([^\1]*?) \1//x) {    # single quotes
             $push_args->($2);    # push body
         }
-        elsif ($line =~ s/^ (\S+)//mx) {    # WORD
-            # wrap it with double quotes.
+        elsif ($line =~ s/^ (\S+)//mx) {    # literal WORD
+            # evaluate it.
             $line = (sprintf q("%s"), $1).$line;
         }
         else {    # wtf?
@@ -216,6 +197,47 @@ sub shell_eval_string {
     }
 
     return @args;
+}
+
+sub eval_dquote_str {
+    my $line = shift;
+    my %opt = @_;
+    unless (exists $opt{begin} && exists $opt{end}) {
+        Carp::croak "give me options 'begin' and 'end' at least!";
+    }
+
+    my ($lquote, $rquote) = @opt{qw(begin end)};
+    unless ($line =~ s/^$lquote//) {
+        Carp::croak "regex '^$lquote' does not matched to ".dumper($line);
+    }
+
+    my $shift_str = sub {
+        my $c = substr $_[0], 0, 1;    # first char
+        $_[0] = substr $_[0], 1;       # rest
+        return $c;
+    };
+    my $body = '';
+
+
+    while (length $line) {
+        my $c = $shift_str->($line);
+
+        if ($c eq $rquote) {    # end of string
+            last;
+        }
+        elsif ($c eq "\\") {    # escape
+            $c = "\\" . $shift_str->($line);
+            $body .= eval sprintf q("%s"), $c;
+        }
+        else {
+            $body .= $c;
+        }
+    }
+
+    return {
+        body => $body,
+        rest_str => $line,
+    };
 }
 
 
