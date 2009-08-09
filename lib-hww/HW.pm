@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.25";
+our $VERSION = "1.5.26";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(Class::Accessor::Lvalue HWWrapper::UtilSub);
@@ -42,6 +42,7 @@ use File::Temp qw(tempdir tempfile);
 use File::Spec;
 use Pod::Usage;
 use URI;
+use IO::Prompt qw(prompt);
 
 our $enable_encode = eval('use Encode; 1');
 
@@ -347,8 +348,7 @@ sub login {
 
     # Ask username if not set.
     unless ($self->username) {
-        print "Username: ";
-        chomp($self->username = <STDIN>);
+        $self->username = prompt("Username: ", -echo => '');
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
@@ -368,8 +368,7 @@ sub login {
 
     # Ask password if not set.
     unless ($self->password) {
-        print "Password: ";
-        chomp($self->password = <STDIN>);
+        $self->password = prompt("Password: ", -echo => '');
     }
 
     my %form;
