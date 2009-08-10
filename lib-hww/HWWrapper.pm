@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.6';
+our $VERSION = '1.5.7';
 
 use base qw(HW);
 # import all util commands!!
@@ -18,7 +18,6 @@ use File::Basename qw(dirname basename);
 use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
-use Regexp::Assemble;
 use Term::ReadLine;
 
 
@@ -1243,25 +1242,14 @@ sub diff {
 
 
 {
-    my $initialized = 0;
-    my %shell_cmd;
-    my $shell_cmd_re;
+    my %shell_cmd = (
+        quit => sub { exit },
+        q => sub { exit },
+    );
 
-    # TODO rewrite help
+    # TODO write help
     sub shell {
         my ($self, $args) = @_;
-
-        unless ($initialized) {
-            %shell_cmd = (
-                'q(?:uit)?' => sub { exit },
-            );
-            # match word.
-            %shell_cmd = map { '\\b'.$_.'\\b' => $shell_cmd{$_} } keys %shell_cmd;
-
-            $shell_cmd_re = Regexp::Assemble->new->track->add(keys %shell_cmd);
-
-            $initialized = 1;
-        }
 
         my $term = Term::ReadLine->new;
         # TODO write completion subroutine
@@ -1283,8 +1271,8 @@ sub diff {
                 elsif (is_hww_command($cmd)) {
                     $self->dispatch($cmd => \@cmd_args);
                 }
-                elsif ($shell_cmd_re->match($cmd)) {
-                    $shell_cmd{$shell_cmd_re->matched}->(\@cmd_args);
+                elsif (exists $shell_cmd{$cmd}) {
+                    $shell_cmd{$cmd}->(\@cmd_args);
                 }
                 else {
                     warning("$cmd: command not found");
