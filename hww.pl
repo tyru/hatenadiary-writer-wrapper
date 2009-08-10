@@ -48,7 +48,77 @@ __END__
 
 =head1 SYNOPSIS
 
-    $ perl hww.pl [--help] [--version] [-d | --debug] [-D | --debug-stderr] [-C | --no-cookie] COMMAND [ARGS]
+    $ perl hww.pl [HWW_OPTIONS] [HW_OPTIONS] COMMAND [ARGS]
+
+
+=head1 HWW OPTIONS
+
+=over
+
+=item -d, --debug
+
+print debug messages.
+
+=item -D, --debug-stderr
+
+print debug messages to stderr.
+
+=item -C, --no-cookie
+
+don't use cookie.
+
+=back
+
+
+=head1 HW OPTIONS
+
+=over
+
+=item -t
+
+Trivial. Use this switch for trivial edit (i.e. typo).
+
+=item -u username
+
+Username. Specify username.
+
+=item -p password
+
+Password. Specify password.
+
+=item -a agent
+
+User agent. Default value is HatenaDiaryWriter/$VERSION.
+
+=item -T seconds
+
+Timeout. Default value is 180.
+
+=item -c
+
+Cookie. Skip login/logout if $cookie_file exists.
+
+=item -g groupname
+
+Groupname. Specify groupname.
+
+=item -f filename
+
+File. Send only this file without checking timestamp.
+
+=item -M
+
+Do NOT replace *t* with current time.
+
+=item -n config_file
+
+Config file. Default value is $config_file.
+
+=item -l YYYY-MM-DD
+
+Load diary.
+
+=back
 
 
 =head1 AUTHOR
