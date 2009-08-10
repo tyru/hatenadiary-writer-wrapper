@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.2';
+our $VERSION = '1.5.3';
 
 use base qw(HW);
 # import all util commands!!
@@ -1265,7 +1265,11 @@ sub diff {
             for my $shell_args (shell_eval_string($line)) {
                 my ($cmd, @cmd_args) = @$shell_args;
 
-                if (is_hww_command($cmd)) {
+                if ($cmd eq 'shell') {
+                    STDERR->print("you have been already in the shell.\n");
+                    last DISPATCH;
+                }
+                elsif (is_hww_command($cmd)) {
                     $self->dispatch($cmd => \@cmd_args);
                 }
                 elsif ($shell_cmd_re->match($cmd)) {
