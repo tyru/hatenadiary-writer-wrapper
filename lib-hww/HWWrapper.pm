@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.5';
+our $VERSION = '1.5.6';
 
 use base qw(HW);
 # import all util commands!!
@@ -78,7 +78,6 @@ our $no_cookie = 0;
 # - shell_eval_string()の「;」対応
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
 # - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
-# - リポジトリを持ってこれないのでローカルでcloneしてhwwをmasterにする
 # - shellの組込みコマンドもhelpに表示する
 #
 # - config-hww.txtにHWWrapperの設定を書く
@@ -796,7 +795,6 @@ sub apply_headline {
 
 
     my $apply = sub {
-        error;
         my $filename = shift;
         $self->arg_error unless $filename;
 
