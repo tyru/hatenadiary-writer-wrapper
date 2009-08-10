@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.4';
+our $VERSION = '1.5.5';
 
 use base qw(HW);
 # import all util commands!!
@@ -67,6 +67,19 @@ our $no_cookie = 0;
 # - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
 # - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
 # - $selfがblessedされてるかチェックするアトリビュート
+# - インタラクティブでない環境でshellを実行させないようにする
+# - diffのフォーマットを指定できるようにする
+# - fix bug(?) of the top of blank line when load.
+# - parse_opt() supports '|' in arguments keys.
+# - パスワードを表示するかしないかは設定ファイルで指定できるようにする
+# - shell_eval_string()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
+# - mk_accessorsが失敗する場合を考える
+# - サブルーチンにドキュメントをつけるアトリビュート
+# - shell_eval_string()の「;」対応
+# - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
+# - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
+# - リポジトリを持ってこれないのでローカルでcloneしてhwwをmasterにする
+# - shellの組込みコマンドもhelpに表示する
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
