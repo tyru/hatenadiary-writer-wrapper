@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.3';
+our $VERSION = '1.5.4';
 
 use base qw(HW);
 # import all util commands!!
@@ -1266,7 +1266,7 @@ sub diff {
                 my ($cmd, @cmd_args) = @$shell_args;
 
                 if ($cmd eq 'shell') {
-                    STDERR->print("you have been already in the shell.\n");
+                    warning("you have been already in the shell.");
                     last DISPATCH;
                 }
                 elsif (is_hww_command($cmd)) {
@@ -1276,7 +1276,7 @@ sub diff {
                     $shell_cmd{$shell_cmd_re->matched}->(\@cmd_args);
                 }
                 else {
-                    STDERR->print("$cmd: command not found\n");
+                    warning("$cmd: command not found");
                     last DISPATCH;
                 }
             }
