@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.10";
+our $VERSION = "1.0.11";
 
 use subs qw(dump);
 
@@ -161,7 +161,7 @@ sub shell_eval_str {
     my @args;
 
     if ($line =~ /\n/m) {
-        Carp::croak "give me the line which does NOT contain newline!";
+        Carp::croak "give me the string line which does NOT contain newline!";
     }
 
     my $push_args = sub {
@@ -200,6 +200,43 @@ sub shell_eval_str {
     return @args;
 }
 
+sub is_complete_str {
+    my $line = shift;
+
+    if ($line =~ /\n/m) {
+        Carp::croak "give me the string which does NOT contain newline!";
+    }
+
+    while (length $line) {
+        next if $line =~ s/^ \s+//x;
+
+        if ($line =~ /^"/) {    # double quotes
+            eval {
+                eval_dquote_str($line, begin => q("), end => q("));
+            };
+            if ($@) {
+                return 0;
+            }
+        }
+        elsif ($line =~ /^'/) {    # single quotes
+            eval {
+                eval_dquote_str($line, begin => q('), end => q('));
+            };
+            if ($@) {
+                return 0;
+            }
+        }
+        elsif ($line =~ s/^ (\S+)//mx) {    # literal WORD
+            # nop
+        }
+        else {    # wtf?
+            error("parse error");
+        }
+    }
+
+    return 1;
+}
+
 sub eval_dquote_str {
     my $line = shift;
     my %opt = @_;
@@ -218,12 +255,14 @@ sub eval_dquote_str {
         return $c;
     };
     my $body = '';
+    my $completed;
 
 
     while (length $line) {
         my $c = $shift_str->($line);
 
         if ($c eq $rquote) {    # end of string
+            $completed = 1;
             last;
         }
         elsif ($c eq "\\") {    # escape
@@ -233,6 +272,10 @@ sub eval_dquote_str {
         else {
             $body .= $c;
         }
+    }
+
+    unless ($completed) {
+        error("unexpected end of string while looking for $rquote");
     }
 
     return {
