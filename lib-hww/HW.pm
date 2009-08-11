@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.31";
+our $VERSION = "1.5.32";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(HWWrapper::UtilSub);
@@ -38,7 +38,6 @@ use HTTP::Cookies;
 use File::Basename;
 use Getopt::Std;
 use Digest::MD5 qw(md5_base64);
-use File::Temp qw(tempdir tempfile);
 use File::Spec;
 use Pod::Usage;
 use URI;
@@ -197,30 +196,6 @@ sub parse_opt {
         $self->hatena_url = URI->new(sprintf 'http://%s.g.hatena.ne.jp', ${ $arg_opt->{'g=s'} });
         debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
-}
-
-sub diff {
-    my $self = shift;
-    my $diff_date = shift;
-    my ($year, $month, $day) = $self->parse_date($diff_date);
-
-    # Login if necessary.
-    $self->login();
-
-    puts("Diff $year-$month-$day.");
-    my ($title, $body) = $self->load_diary_entry($year,$month,$day);
-    $self->logout();
-
-    my $src = $title."\n".$body;
-
-    my $tmpdir = tempdir(CLEANUP => 1);
-    my($fh, $tmpfilename) = tempfile('diff_XXXXXX', DIR => $tmpdir);
-    print $fh $src;
-    close $fh;
-
-    my $filename = $self->text_filename($year,$month,$day);
-    my $cmd = "diff $tmpfilename $filename";
-    system $cmd;
 }
 
 sub parse_date {

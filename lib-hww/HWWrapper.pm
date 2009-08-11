@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.15';
+our $VERSION = '1.5.16';
 
 use base qw(HW);
 # import all util commands!!
@@ -19,6 +19,7 @@ use FileHandle;
 use Scalar::Util qw(blessed);
 use POSIX ();
 use Term::ReadLine;
+use File::Temp qw(tempdir tempfile);
 
 
 
@@ -1388,6 +1389,29 @@ sub diff {
     }
 
 
+    my $diff = sub {
+        my ($year, $month, $day) = $self->parse_date(shift);
+
+        # Login if necessary.
+        $self->login();
+
+        puts("Diff $year-$month-$day.");
+        my ($title,  $body) = $self->load_diary_entry($year, $month, $day);
+        $self->logout();
+
+        my $src = $title."\n".$body;
+
+        my $tmpdir = tempdir(CLEANUP => 1);
+        my($fh, $tmpfilename) = tempfile('diff_XXXXXX', DIR => $tmpdir);
+        print $fh $src;
+        close $fh;
+
+        my $filename = $self->text_filename($year, $month, $day);
+        my $cmd = "diff $tmpfilename $filename";
+        system $cmd;
+    };
+
+
     if (defined $file) {
         # check if $file is entry file
         unless (-f $file) {
@@ -1398,16 +1422,16 @@ sub diff {
             error("$file: not entry file");
         }
 
-        $self->SUPER::diff(
+        $diff->(
             sprintf '%s-%s-%s', $date->{year}, $date->{month}, $date->{day}
         );
     }
     elsif (@$args) {
-        $self->SUPER::diff($args->[0]);
+        $diff->($args->[0]);
     }
     else {
         for (map { basename($_) } $self->get_updated_entries()) {
-            $self->SUPER::diff($_);
+            $diff->($_);
         }
     }
 }
