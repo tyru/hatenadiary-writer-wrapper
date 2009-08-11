@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.16';
+our $VERSION = '1.5.17';
 
 use base qw(HW);
 # import all util commands!!
@@ -615,9 +615,17 @@ sub release {
     }) or error("release: arguments error");
     $self->trivial = $trivial;
 
-    my $dir = shift @$args;
-    if (defined $dir) {
-        $self->txt_dir = $dir;
+    if (@$args) {
+        unless (-e $args->[0]) {
+            error($args->[0].": $!");
+        }
+
+        if (-d $args->[0]) {
+            $self->txt_dir = $args->[0];
+        }
+        elsif (-f $args->[0]) {
+            $self->target_file = $args->[0];
+        }
     }
 
     $self->SUPER::release();
