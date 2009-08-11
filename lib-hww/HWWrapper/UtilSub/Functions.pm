@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.11";
+our $VERSION = "1.0.12";
 
 use subs qw(dump);
 
@@ -180,13 +180,14 @@ sub shell_eval_str {
         next if $line =~ s/^ \s+//x;
 
         if ($line =~ /^"/) {    # double quotes
-            my $evaluated = eval_dquote_str($line, begin => q("), end => q("));
-
+            my $evaluated = get_quote_str($line, begin => q("), end => q("), eval => 1);
             $line = $evaluated->{rest_str};
             $push_args->($evaluated->{body});
         }
-        elsif ($line =~ s/^ (') ([^\1]*?) \1//x) {    # single quotes
-            $push_args->($2);    # push body
+        elsif ($line =~ /^'/) {    # single quotes
+            my $got = get_quote_str($line, begin => q('), end => q('));
+            $line = $got->{rest_str};
+            $push_args->($got->{body});    # push body
         }
         elsif ($line =~ s/^ (\S+)//mx) {    # literal WORD
             # evaluate it.
@@ -203,43 +204,24 @@ sub shell_eval_str {
 sub is_complete_str {
     my $line = shift;
 
-    if ($line =~ /\n/m) {
-        Carp::croak "give me the string which does NOT contain newline!";
+    eval {
+        shell_eval_str($line)
+    };
+
+    if ($@ =~ /unexpected end of string while looking for/) {
+        return 0;
     }
-
-    while (length $line) {
-        next if $line =~ s/^ \s+//x;
-
-        if ($line =~ /^"/) {    # double quotes
-            eval {
-                eval_dquote_str($line, begin => q("), end => q("));
-            };
-            if ($@) {
-                return 0;
-            }
-        }
-        elsif ($line =~ /^'/) {    # single quotes
-            eval {
-                eval_dquote_str($line, begin => q('), end => q('));
-            };
-            if ($@) {
-                return 0;
-            }
-        }
-        elsif ($line =~ s/^ (\S+)//mx) {    # literal WORD
-            # nop
-        }
-        else {    # wtf?
-            error("parse error");
-        }
+    else {
+        return 1;
     }
-
-    return 1;
 }
 
-sub eval_dquote_str {
+sub get_quote_str {
     my $line = shift;
-    my %opt = @_;
+    my %opt = (
+        eval => 0,
+        @_
+    );
     unless (exists $opt{begin} && exists $opt{end}) {
         Carp::croak "give me options 'begin' and 'end' at least!";
     }
@@ -266,8 +248,13 @@ sub eval_dquote_str {
             last;
         }
         elsif ($c eq "\\") {    # escape
-            $c = "\\" . $shift_str->($line);
-            $body .= eval sprintf q("%s"), $c;
+            if ($opt{eval}) {
+                $c = "\\" . $shift_str->($line);
+                $body .= eval sprintf q("%s"), $c;
+            }
+            else {
+                $body .= $c;
+            }
         }
         else {
             $body .= $c;

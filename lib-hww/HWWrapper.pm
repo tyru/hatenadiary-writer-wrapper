@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.10';
+our $VERSION = '1.5.11';
 
 use base qw(HW);
 # import all util commands!!
@@ -1399,74 +1399,103 @@ sub diff {
         q => sub { exit },
     );
 
-    my $debug = sub {
-        return unless $debug;
-        warn @_, "\n";
-        sleep 1;
-    };
-    my $grep_cmd = sub {
-        my ($incomp_cmd, $all_options) = @_;
-        grep {
-            $debug->("match [$_]? ".($incomp_cmd eq substr($_, 0, length $incomp_cmd)));
-            $incomp_cmd eq substr($_, 0, length $incomp_cmd)
-        } keys %$all_options;
-    };
+    my $dwarn;
+    my $grep_cmd;
+    my $term;
+    my $initialized;
 
-    my $term = Term::ReadLine->new;
-    $term->Attribs->{completion_function} = sub {
-        my ($prev_word, $cur_text, $str_len) = @_;
-        my $completed = $cur_text =~ / $/;
-
-        # TODO if $cur_text is complete string, eval it.
-        # DO NOT EVAL INCOMPLETE STRING. (e.g.: command "dquote is not terminated)
-        my @args = shell_eval_str($cur_text);
-        if (@args == 0) {
-            return keys %HWW_COMMAND;
-        }
-
-        my $last_args = $args[-1];
-        if (@$last_args == 0) {
-            return keys %HWW_COMMAND;
-        }
-        $debug->(join '', map { "[$_]" } @$last_args);
-
-        # complete command
-        if (is_hww_command($last_args->[0])) {
-            return $last_args->[0] unless $completed;
-
-            # complete options
-            my $options = $HWW_COMMAND{ $last_args->[0] }{option};
-            if (@$last_args >= 2 && (my ($bar, $opt) = $last_args->[-1] =~ /^(--?)(.*)$/)) {
-                $debug->("matced!:[$opt]");
-
-                if (length $opt) {
-                    $debug->("grep options");
-                    return map { $bar.$_ } $grep_cmd->($opt, $options);
-                } else {
-                    $debug->("all options");
-                    return keys %$options;
-                }
-            }
-            return undef;
-        }
-        # incomplete command
-        elsif (my @match = $grep_cmd->($last_args->[0], \%HWW_COMMAND)) {
-            return @match;
-        }
-
-        $debug->("no more completion...");
-        return undef;
-    };
 
     # TODO write help
     sub shell {
         my ($self, $args) = @_;
 
 
+        # initialize here for $self.
+        unless ($initialized) {
+            $dwarn = sub {
+                return unless $self->is_debug;
+                warn @_, "\n";
+                sleep 1;
+            };
+
+            $grep_cmd = sub {
+                my ($incomp_cmd, $all_options) = @_;
+                grep {
+                    if ($self->is_debug) {
+                        STDERR->print(
+                            "match [$_]? ", ($incomp_cmd eq substr($_, 0, length $incomp_cmd)), "\n"
+                        )
+                    }
+                    $incomp_cmd eq substr($_, 0, length $incomp_cmd)
+                } keys %$all_options;
+            };
+
+            $term = Term::ReadLine->new;
+
+            $term->Attribs->{completion_function} = sub {
+                my ($prev_word, $cur_text, $str_len) = @_;
+                my $completed = $cur_text =~ / $/;
+
+                unless (is_complete_str($cur_text)) {
+                    $dwarn->("[$cur_text] is not complete string. skip...");
+                    return undef;
+                }
+
+                my @args = shell_eval_str($cur_text);
+                if (@args == 0) {
+                    return keys %HWW_COMMAND;
+                }
+
+                my $last_args = $args[-1];
+                if (@$last_args == 0) {
+                    return keys %HWW_COMMAND;
+                }
+                $dwarn->(join '', map { "[$_]" } @$last_args);
+
+                # complete command
+                if (is_hww_command($last_args->[0])) {
+                    return $last_args->[0] unless $completed;
+
+                    # complete options
+                    my $options = $HWW_COMMAND{ $last_args->[0] }{option};
+                    if (@$last_args >= 2 && (my ($bar, $opt) = $last_args->[-1] =~ /^(--?)(.*)$/)) {
+                        $dwarn->("matced!:[$opt]");
+
+                        if (length $opt) {
+                            $dwarn->("grep options");
+                            return map { $bar.$_ } $grep_cmd->($opt, $options);
+                        } else {
+                            $dwarn->("all options");
+                            return keys %$options;
+                        }
+                    }
+                    return undef;
+                }
+                # incomplete command
+                elsif (my @match = $grep_cmd->($last_args->[0], \%HWW_COMMAND)) {
+                    return @match;
+                }
+
+                $dwarn->("no more completion...");
+                return undef;
+            };
+
+            $initialized = 1;
+        }
+
+
         # EOF (or q or quit) to leave shell.
         SHELL:
         while (defined(my $line = $term->readline("> "))) {
             next SHELL if $line =~ /^\s*$/;
+            unless (is_complete_str($line)) {
+                # TODO
+                warning("line has incomplete quote or string.");
+                warning("not implemented reading next line...sorry");
+                next SHELL;
+            }
+
+            debug("eval...[$line]");
 
             DISPATCH:
             for my $shell_args (shell_eval_str($line)) {
