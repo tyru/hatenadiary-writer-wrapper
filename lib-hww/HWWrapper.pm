@@ -1399,12 +1399,68 @@ sub diff {
         q => sub { exit },
     );
 
+    my $debug = sub {
+        return unless $debug;
+        warn @_, "\n";
+        sleep 1;
+    };
+    my $grep_cmd = sub {
+        my ($incomp_cmd, $all_options) = @_;
+        grep {
+            $debug->("match [$_]? ".($incomp_cmd eq substr($_, 0, length $incomp_cmd)));
+            $incomp_cmd eq substr($_, 0, length $incomp_cmd)
+        } keys %$all_options;
+    };
+
+    my $term = Term::ReadLine->new;
+    $term->Attribs->{completion_function} = sub {
+        my ($prev_word, $cur_text, $str_len) = @_;
+        my $completed = $cur_text =~ / $/;
+
+        # TODO if $cur_text is complete string, eval it.
+        # DO NOT EVAL INCOMPLETE STRING. (e.g.: command "dquote is not terminated)
+        my @args = shell_eval_string($cur_text);
+        if (@args == 0) {
+            return keys %HWW_COMMAND;
+        }
+
+        my $last_args = $args[-1];
+        if (@$last_args == 0) {
+            return keys %HWW_COMMAND;
+        }
+        $debug->(join '', map { "[$_]" } @$last_args);
+
+        # complete command
+        if (is_hww_command($last_args->[0])) {
+            return $last_args->[0] unless $completed;
+
+            # complete options
+            my $options = $HWW_COMMAND{ $last_args->[0] }{option};
+            if (@$last_args >= 2 && (my ($bar, $opt) = $last_args->[-1] =~ /^(--?)(.*)$/)) {
+                $debug->("matced!:[$opt]");
+
+                if (length $opt) {
+                    $debug->("grep options");
+                    return map { $bar.$_ } $grep_cmd->($opt, $options);
+                } else {
+                    $debug->("all options");
+                    return keys %$options;
+                }
+            }
+            return undef;
+        }
+        # incomplete command
+        elsif (my @match = $grep_cmd->($last_args->[0], \%HWW_COMMAND)) {
+            return @match;
+        }
+
+        $debug->("no more completion...");
+        return undef;
+    };
+
     # TODO write help
     sub shell {
         my ($self, $args) = @_;
-
-        my $term = Term::ReadLine->new;
-        # TODO write completion subroutine
 
 
         # EOF (or q or quit) to leave shell.
