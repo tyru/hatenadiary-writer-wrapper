@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.12';
+our $VERSION = '1.5.13';
 
 use base qw(HW);
 # import all util commands!!
@@ -215,27 +215,32 @@ our $no_cookie = 0;
 
 # TODO
 # - コマンドのヘルプドキュメント書く
-# - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
-# - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く (zshのcorrectみたいに)
+#
 # - $selfがblessedされてるかチェックするアトリビュート
-# - インタラクティブでない環境でshellを実行させないようにする
-# - diffのフォーマットを指定できるようにする
-# - fix bug(?) of the top of blank line when load.
-# - parse_opt() supports '|' in arguments keys.
-# - パスワードを表示するかしないかは設定ファイルで指定できるようにする
-# - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
-# - mk_accessorsが失敗する場合を考える
 # - サブルーチンにドキュメントをつけるアトリビュート
-# - shell_eval_str()の「;」対応
+#
+# - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
+# - インタラクティブでない環境でshellを実行させないようにする
+# - fix bug(?) of the top of blank line when load.
+# - mk_accessorsが失敗する場合を考える
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
+#
+# - parse_opt() supports '|' in arguments keys.
 # - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
-# - shellの組込みコマンドもhelpに表示する
+#
+# - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
+# - shell_eval_str()の「;」対応
+#
+# - '--verbose'オプションを追加。
+# -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
 # (YAML::XSとYAMLは互換性がないらしい。XSを使うのはWindowsにとって厳しいのでYAMLモジュールを使う)
 # -- $EDITORの設定
 # -- hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
+# -- コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く設定 (zshのcorrectみたいに)
+# -- パスワードを入力中、端末に表示するかしないか
 
 # XXX
 # - save_diary_draft()がクッキーを使ってログインできてない気がする
@@ -474,6 +479,10 @@ sub help {
     my ($self, $args) = @_;
     my $cmd = shift @$args;
 
+    # TODO
+    # - hww.plのオプションを見られるようにする (shellコマンドの為に)
+    # - --list-command (主にzsh補完用)
+    # - -p, --pager (ページャで起動)
 
     unless (defined $cmd) {
         pod2usage(-verbose => 1, -input => $0, -exitval => "NOEXIT");
@@ -1354,6 +1363,7 @@ sub chain {
 sub diff {
     my ($self, $args) = @_;
 
+    # TODO diffのフォーマットを指定できるようにする
     my $dir;
     my $file;
     $self->get_opt($args, {
@@ -1408,6 +1418,7 @@ sub diff {
 
         # initialize here for $self.
         unless ($initialized) {
+            # define built-in commands.
             %shell_cmd = (
                 quit => sub { exit },
                 q => sub { exit },
