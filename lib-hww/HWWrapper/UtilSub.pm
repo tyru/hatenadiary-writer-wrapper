@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.13";
+our $VERSION = "1.0.14";
 
 # import all util commands!!
 use HWWrapper::UtilSub::Functions;
@@ -215,29 +215,28 @@ sub arg_error {
     debug("arg_error: called at $filename line $line");
 
     $subname =~ s/.*:://;    # delete package's name
-    (my $cmdname = $subname) =~ s/_/-/g;
+    (my $cmdname = $subname) =~ s/_/-/g;    # XXX
 
-    # no need to localize $@ though
-    # because we are going to die :-)
-    local $@;
+    # print "error: " string to STDERR.
     eval {
         error("$cmdname: arguments error. show ${cmdname}'s help...");
     };
-    warn $@;
+    STDERR->print($@);
     STDERR->flush;
 
-    if ($HWWrapper::debug) {
+    # stop or sleep.
+    if ($self->is_debug) {
         print "press enter to continue...";
         <STDIN>;
     }
     else {
         sleep 1;
     }
+
+    # show help message!
     $self->dispatch('help', [$cmdname]);
 
-    # from HW::error_exit()
-    unlink($self->cookie_file);
-
+    unlink($self->cookie_file);    # delete cookie file when error occured.
     exit -1;
 }
 
