@@ -215,13 +215,7 @@ sub arg_error {
     debug("arg_error: called at $filename line $line");
 
     $subname =~ s/.*:://;    # delete package's name
-    my %rev_dict = reverse %HWWrapper::HWW_COMMAND;
-    my $cmdname = $rev_dict{$subname};
-
-    unless (defined $cmdname) {
-        # internal error (my mistake...)
-        error("can't find ${subname}'s command name");
-    }
+    (my $cmdname = $subname) =~ s/_/-/g;
 
     # no need to localize $@ though
     # because we are going to die :-)
