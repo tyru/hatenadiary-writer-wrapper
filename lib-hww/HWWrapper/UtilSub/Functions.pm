@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.9";
+our $VERSION = "1.0.10";
 
 use subs qw(dump);
 
@@ -156,7 +156,7 @@ sub split_opt {
 # NOTE:
 # pass "complete command line string".
 # DON'T pass incomplete string. e.g.: "right double quote missing
-sub shell_eval_string {
+sub shell_eval_str {
     my $line = shift;
     my @args;
 
