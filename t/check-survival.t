@@ -5,10 +5,12 @@ use Test::More;
 use Test::Exception;
 
 
+use File::Spec;
 use HWWrapper;
 my $wrapper = HWWrapper->new(args => \@ARGV);
 
 
+open STDERR, '>', File::Spec->devnull or plan 'skip' => "can't open null device";
 
 my @tests = (
     sub {
