@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.30";
+our $VERSION = "1.5.31";
 
 # call HWWrapper::UtilSub 's subroutines by $self!!
 use base qw(HWWrapper::UtilSub);
@@ -197,22 +197,6 @@ sub parse_opt {
         $self->hatena_url = URI->new(sprintf 'http://%s.g.hatena.ne.jp', ${ $arg_opt->{'g=s'} });
         debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
-}
-
-# load entries from hatena diary
-sub load {
-    my $self = shift;
-    my ($year, $month, $day) = $self->parse_date(shift);
-
-    # Login if necessary.
-    $self->login();
-
-    puts("Load $year-$month-$day.");
-    my ($title, $body) = $self->load_diary_entry($year,$month,$day);
-    $self->save_diary_entry($year,$month,$day,$title,$body);
-    puts("Load OK.");
-
-    $self->logout();
 }
 
 sub diff {

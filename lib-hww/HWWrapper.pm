@@ -824,7 +824,16 @@ sub load {
     }
     else {
         if (defined(my $ymd = shift(@$args))) {
-            $self->SUPER::load($ymd);
+            my ($year, $month, $day) = $self->parse_date($ymd);
+
+            $self->login();
+
+            puts("Load $year-$month-$day.");
+            my ($title, $body) = $self->load_diary_entry($year, $month, $day);
+            $self->save_diary_entry($year, $month, $day, $title, $body);
+            puts("Load OK.");
+
+            $self->logout();
         }
         else {
             $self->arg_error;
