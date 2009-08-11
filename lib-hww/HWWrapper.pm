@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.14';
+our $VERSION = '1.5.15';
 
 use base qw(HW);
 # import all util commands!!
