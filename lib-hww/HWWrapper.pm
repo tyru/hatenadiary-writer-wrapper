@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.7';
+our $VERSION = '1.5.8';
 
 use base qw(HW);
 # import all util commands!!
@@ -28,23 +28,175 @@ our $HWW_LIB = "$Bin/lib-hww";
 
 # command vs subname
 our %HWW_COMMAND = (
-    help => 'help',
-    version => 'version',
-    copyright => 'copyright',
-    init => 'init',
-    release => 'release',
-    update => 'update',
-    load => 'load',
-    verify => 'verify',
-    status => 'status',
-    'apply-headline' => 'apply_headline',
-    'revert-headline' => 'revert_headline',
-    touch => 'touch',
-    'gen-html' => 'gen_html',
-    'update-index' => 'update_index',
-    chain => 'chain',
-    diff => 'diff',
-    shell => 'shell',
+    help => {
+        coderef => \&help,
+    },
+    version => {
+        coderef => \&version,
+    },
+    copyright => {
+        coderef => \&copyright,
+    },
+    init => {
+        coderef => \&init,
+        option => {
+            config => {
+                desc => "apply config's settings",
+            },
+            c => {
+                desc => "apply config's settings",
+            },
+        },
+    },
+    release => {
+        coderef => \&release,
+        option => {
+            trivial => {
+                desc => "upload entries as trivial",
+            },
+            t => {
+                desc => "upload entries as trivial",
+            },
+        },
+    },
+    update => {
+        coderef => \&update,
+        option => {
+            trivial => {
+                desc => "upload entries as trivial",
+            },
+            t => {
+                desc => "upload entries as trivial",
+            },
+        },
+    },
+    load => {
+        coderef => \&load,
+        option => {
+            all => {
+                desc => "fetch all entries",
+            },
+            a => {
+                desc => "fetch all entries",
+            },
+            draft => {
+                desc => "fetch all draft entries",
+            },
+            d => {
+                desc => "fetch all draft entries",
+            },
+            'missing-only' => {
+                desc => "fetch only missing entries",
+            },
+            m => {
+                desc => "fetch only missing entries",
+            },
+        },
+    },
+    verify => {
+        coderef => \&verify,
+        option => {
+            html => {
+                desc => "verify html directory",
+            },
+        },
+    },
+    status => {
+        coderef => \&status,
+        option => {
+            all => {
+                desc => "show all entries",
+            },
+            a => {
+                desc => "show all entries",
+            },
+            C => {
+                desc => "do not show caption and indent",
+            },
+            'no-caption' => {
+                desc => "do not show caption and indent",
+            },
+        },
+    },
+    'apply-headline' => {
+        coderef => \&apply_headline,
+        option => {
+            all => {
+                desc => "check and rename all files",
+            },
+            a => {
+                desc => "check and rename all files",
+            },
+        },
+    },
+    'revert-headline' => {
+        coderef => \&revert_headline,
+        option => {
+            all => {
+                desc => "check and rename all files",
+            },
+            a => {
+                desc => "check and rename all files",
+            },
+        },
+    },
+    touch => {
+        coderef => \&touch,
+    },
+    'gen-html' => {
+        coderef => \&gen_html,
+        option => {
+            'update-index' => {
+                desc => "exec 'update-index' command after 'gen-html'",
+            },
+            i => {
+                desc => "exec 'update-index' command after 'gen-html'",
+            },
+            I => {
+                desc => "exec 'update-index' command with specified template file after 'gen-html'",
+            },
+            'missing-only' => {
+                desc => "generate html only missing entries",
+            },
+            m => {
+                desc => "generate html only missing entries",
+            },
+        },
+    },
+    'update-index' => {
+        coderef => \&update_index,
+        option => {
+            'max-length' => {
+                desc => "max summary byte length",
+            },
+            m => {
+                desc => "max summary byte length",
+            },
+        },
+    },
+    chain => {
+        coderef => \&chain,
+    },
+    diff => {
+        coderef => \&diff,
+        option => {
+            dir => {
+                desc => "diff all entries in that directory",
+            },
+            d => {
+                desc => "diff all entries in that directory",
+            },
+            file => {
+                desc => "diff only one file",
+            },
+            f => {
+                desc => "diff only one file",
+            },
+        },
+    },
+    shell => {
+        coderef => \&shell,
+    },
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
@@ -283,8 +435,8 @@ sub dispatch {
             join(', ', map { dumper($_) } @_), $filename, $line);
 
 
-    my $subname = $HWW_COMMAND{$cmd};
-    $self->$subname($args);
+    my $coderef = $HWW_COMMAND{$cmd}{coderef};
+    $coderef->($self, $args);
 }
 
 ### dispatch_with_args() ###
