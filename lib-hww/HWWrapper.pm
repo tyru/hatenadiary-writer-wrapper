@@ -430,7 +430,7 @@ sub dispatch {
         error("no command was given.");
     }
     unless (is_hww_command($cmd)) {
-        error("'$cmd' is not a hww-command. See perl $0 help");
+        error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 
     # some debug messages.
@@ -485,7 +485,8 @@ sub help {
     # - -p, --pager (ページャで起動)
 
     unless (defined $cmd) {
-        pod2usage(-verbose => 1, -input => $0, -exitval => "NOEXIT");
+        my $hww_pl_path = File::Spec->catfile($Bin, 'hww.pl');
+        pod2usage(-verbose => 1, -input => $hww_pl_path, -exitval => "NOEXIT");
         
         puts("available commands:");
         for my $command (sort keys %HWW_COMMAND) {
@@ -499,7 +500,7 @@ sub help {
 
 
     unless (is_hww_command($cmd)) {
-        error("'$cmd' is not a hww-command. See perl $0 help");
+        error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 
     my $podpath = File::Spec->catdir($HWW_LIB, 'pod', "hww-$cmd.pod");
