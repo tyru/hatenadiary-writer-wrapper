@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.11';
+our $VERSION = '1.5.12';
 
 use base qw(HW);
 # import all util commands!!
@@ -1394,11 +1394,7 @@ sub diff {
 
 
 {
-    my %shell_cmd = (
-        quit => sub { exit },
-        q => sub { exit },
-    );
-
+    my %shell_cmd;
     my $dwarn;
     my $grep_cmd;
     my $term;
@@ -1412,12 +1408,30 @@ sub diff {
 
         # initialize here for $self.
         unless ($initialized) {
+            %shell_cmd = (
+                quit => sub { exit },
+                q => sub { exit },
+                '?' => sub {
+                    puts("shell built-in commands here:");
+                    puts("  $_") for keys %shell_cmd;
+                    puts();
+                    puts("if you want to see the help of hww's commands, type 'help'.");
+                    STDOUT->flush;
+                },
+                h => sub { $shell_cmd{'?'}->() },
+            );
+
+            # for debug.
             $dwarn = sub {
                 return unless $self->is_debug;
                 warn @_, "\n";
                 sleep 1;
             };
 
+            # find commands in $all_options.
+            # e.g.:
+            # $incomp_cmd: di
+            # $all_options: { diff => { ... }, help => { ...}, ... }
             $grep_cmd = sub {
                 my ($incomp_cmd, $all_options) = @_;
                 grep {
@@ -1432,6 +1446,7 @@ sub diff {
 
             $term = Term::ReadLine->new;
 
+            # define completion function!
             $term->Attribs->{completion_function} = sub {
                 my ($prev_word, $cur_text, $str_len) = @_;
                 my $completed = $cur_text =~ / $/;
@@ -1457,6 +1472,7 @@ sub diff {
                     return $last_args->[0] unless $completed;
 
                     # complete options
+                    # XXX not completed...
                     my $options = $HWW_COMMAND{ $last_args->[0] }{option};
                     if (@$last_args >= 2 && (my ($bar, $opt) = $last_args->[-1] =~ /^(--?)(.*)$/)) {
                         $dwarn->("matced!:[$opt]");
