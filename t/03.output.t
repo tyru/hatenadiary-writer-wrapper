@@ -54,10 +54,9 @@ sub check_output {
     ok uniq(@outputs) == 1, "equals all stderr";
     ok $outputs[0] eq '', "stderr is ''";
 
-    my $output = qx(perl hww.pl help);
-    my $output2 = $stdout->(sub { $wrapper->dispatch('help') });
-    # because HWWrapper.pm sees $0.
-    ok $output ne $output2 or do {
+    my $output = qx(perl hww.pl $cmd);
+    my $output2 = $stdout->(sub { $wrapper->dispatch($cmd) });
+    ok($output eq $output2, 'equal output call hww.pl vs dispatch command') or do {
         writedb "call-hww.pl.txt", $output;
         writedb "dispatch-cmd.txt", $output2;
         diag "test failed. see 'call-hww.pl.txt' and 'dispatch-cmd.txt'.";
