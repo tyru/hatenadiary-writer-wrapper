@@ -18,6 +18,9 @@ perl -MCPAN -e 'install Bundle::HWWrapper'
 
 =head1 CONTENTS
 
+# for HWWrapper::Base
+List::MoreUtils
+
 # for HW
 LWP::UserAgent
 HTTP::Request::Common
@@ -34,9 +37,6 @@ Text::Hatena
 XML::TreePP
 LWP::Authen::Wsse
 IO::String
-
-# HWWrapper::UtilSub
-List::MoreUtils
 
 
 =head1 AUTHOR
