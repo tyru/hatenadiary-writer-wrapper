@@ -1,30 +1,5 @@
 package HWWrapper;
 
-use strict;
-use warnings;
-use utf8;
-
-our $VERSION = '1.5.20';
-
-use base qw(HW);
-use HWWrapper::Commands;
-# import all util commands!!
-use HWWrapper::Functions;
-
-
-use Carp;
-use File::Basename qw(basename);
-use Scalar::Util qw(blessed);
-
-
-
-# command vs subname
-
-our $debug = 0;
-our $debug_stderr = 0;
-our $no_cookie = 0;
-
-
 # TODO
 # - コマンドのヘルプドキュメント書く
 #
@@ -66,6 +41,28 @@ our $no_cookie = 0;
 # - load_config()で設定ファイルの値をセットして
 # - parse_opt()で引数の値をセット
 
+
+use strict;
+use warnings;
+use utf8;
+
+our $VERSION = '1.5.21';
+
+use base qw(HW);
+use HWWrapper::Commands;
+# import all util commands!!
+use HWWrapper::Functions;
+
+
+use Carp;
+use File::Basename qw(basename);
+use Scalar::Util qw(blessed);
+
+
+
+our $debug = 0;
+our $debug_stderr = 0;
+our $no_cookie = 0;
 
 
 
