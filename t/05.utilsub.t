@@ -6,15 +6,17 @@ use Test::Exception;
 use Test::Output qw(output_from);
 # plan 'skip_all' => "HWWrapper::UtilSub depends on HW 's variables...";
 
+use File::Spec;
+
 use HWWrapper;
-use HWWrapper::UtilSub::Functions;
+use HWWrapper::Functions;
 
 my $wrapper = HWWrapper->new(args => []);
 
 
 my @tests = (
     sub {
-        dies_ok { error() };
+        dies_ok { error() }, "error() dies ok";
     },
     sub {
         dies_ok { error("going to die!!") }, "error() dies ok";
@@ -67,10 +69,10 @@ EOB
     },
 
     sub {
-        is \&HWWrapper::UtilSub::dump, \&dump, 'dump() was exported';
+        is \&HWWrapper::Functions::dump, \&dump, 'dump() was exported';
     },
     sub {
-        is \&HWWrapper::UtilSub::dump, \&CORE::GLOBAL::dump, 'dump() was exported';
+        is \&HWWrapper::Functions::dump, \&CORE::GLOBAL::dump, 'dump() was exported';
     },
 
     ### shell_eval_str ###

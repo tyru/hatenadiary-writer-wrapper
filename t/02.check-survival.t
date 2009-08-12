@@ -24,8 +24,8 @@ my @tests = (
     },
     sub {
         lives_ok {
-            require HWWrapper::UtilSub::Functions;
-            HWWrapper::UtilSub::Functions->import('dump');
+            require HWWrapper::Functions;
+            HWWrapper::Functions->import('dump');
             dump("dumping...");
         };
     },

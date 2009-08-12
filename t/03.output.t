@@ -11,7 +11,7 @@ use List::MoreUtils qw(uniq);
 use HWWrapper;
 my $wrapper = HWWrapper->new(args => \@ARGV);
 
-use HWWrapper::UtilSub;
+use HWWrapper::Functions;
 
 
 sub writedb {
@@ -42,7 +42,6 @@ sub check_output {
     my @same = (
         sub { $wrapper->dispatch($cmd) },
         sub { $wrapper->dispatch($cmd, []) },
-        sub { $wrapper->$cmd() },
     );
 
     my $stdout = sub { (output_from \&{ shift() })[0] };
