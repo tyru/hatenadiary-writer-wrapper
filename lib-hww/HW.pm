@@ -26,10 +26,9 @@ use strict;
 use warnings;
 our $VERSION = "1.5.32";
 
-# call HWWrapper::UtilSub 's subroutines by $self!!
-use base qw(HWWrapper::UtilSub);
+use base qw(HWWrapper::Base);
 # import all util commands!!
-use HWWrapper::UtilSub::Functions;
+use HWWrapper::Functions;
 
 
 use LWP::UserAgent;

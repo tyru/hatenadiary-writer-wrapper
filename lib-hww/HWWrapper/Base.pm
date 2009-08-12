@@ -1,4 +1,4 @@
-package HWWrapper::UtilSub;
+package HWWrapper::Base;
 
 use strict;
 use warnings;
@@ -7,14 +7,17 @@ use utf8;
 our $VERSION = "1.0.14";
 
 # import all util commands!!
-use HWWrapper::UtilSub::Functions;
+use HWWrapper::Functions;
 
 
-use Carp;
-use FileHandle ();
 use POSIX ();
 use Getopt::Long ();
 use List::MoreUtils qw(uniq);
+
+# OO modules
+use File::Spec;
+use File::Basename;
+use FileHandle;
 
 
 
@@ -25,7 +28,7 @@ use List::MoreUtils qw(uniq);
 sub get_entrydate {
     my $self = shift;
     my $path = shift;
-    $path = File::Basename::basename($path);
+    $path = basename($path);
 
     # $path might be html file.
     if ($path =~ /\A(\d{4})-(\d{2})-(\d{2})(-[\w\W]+)?\.(html|txt)\Z/m) {
@@ -211,7 +214,7 @@ sub get_touchdate {
 sub arg_error {
     my $self = shift;
     my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
-    $filename = File::Basename::basename($filename);
+    $filename = basename($filename);
     debug("arg_error: called at $filename line $line");
 
     $subname =~ s/.*:://;    # delete package's name

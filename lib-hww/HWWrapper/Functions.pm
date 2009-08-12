@@ -1,10 +1,10 @@
-package HWWrapper::UtilSub::Functions;
+package HWWrapper::Functions;
 
 use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.12";
+our $VERSION = "1.0.13";
 
 use subs qw(dump);
 
@@ -13,7 +13,7 @@ use base qw(Exporter);
 our @EXPORT = our @EXPORT_OK = do {
     no strict 'refs';
 
-    my @codes = grep { *$_{CODE} } keys %HWWrapper::UtilSub::Functions::;
+    my @codes = grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
     # export all subroutines and $DEBUG.
     (@codes, qw($DEBUG));
 };
@@ -85,7 +85,7 @@ sub puts {
 
 sub is_hww_command {
     my $cmd = shift;
-    exists $HWWrapper::HWW_COMMAND{$cmd};
+    exists $HWWrapper::Commands::HWW_COMMAND{$cmd};
 }
 
 # NOTE: unused
