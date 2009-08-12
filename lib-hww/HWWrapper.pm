@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.18';
+our $VERSION = '1.5.19';
 
 use base qw(HW);
 # import all util commands!!
@@ -1566,25 +1566,28 @@ sub diff {
 
             debug("eval...[$line]");
 
-            DISPATCH:
-            for my $shell_args (shell_eval_str($line)) {
-                my ($cmd, @cmd_args) = @$shell_args;
+            eval {
+                DISPATCH:
+                for my $shell_args (shell_eval_str($line)) {
+                    my ($cmd, @cmd_args) = @$shell_args;
 
-                if ($cmd eq 'shell') {
-                    warning("you have been already in the shell.");
-                    last DISPATCH;
+                    if ($cmd eq 'shell') {
+                        warning("you have been already in the shell.");
+                        last DISPATCH;
+                    }
+                    elsif (is_hww_command($cmd)) {
+                        $self->dispatch($cmd => \@cmd_args);
+                    }
+                    elsif (exists $shell_cmd{$cmd}) {
+                        $shell_cmd{$cmd}->(\@cmd_args);
+                    }
+                    else {
+                        warning("$cmd: command not found");
+                        last DISPATCH;
+                    }
                 }
-                elsif (is_hww_command($cmd)) {
-                    $self->dispatch($cmd => \@cmd_args);
-                }
-                elsif (exists $shell_cmd{$cmd}) {
-                    $shell_cmd{$cmd}->(\@cmd_args);
-                }
-                else {
-                    warning("$cmd: command not found");
-                    last DISPATCH;
-                }
-            }
+            };
+            if ($@) { warning($@) }
         }
     }
 }
