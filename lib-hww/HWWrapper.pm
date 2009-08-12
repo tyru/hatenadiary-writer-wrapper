@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.17';
+our $VERSION = '1.5.18';
 
 use base qw(HW);
 # import all util commands!!
@@ -23,8 +23,8 @@ use File::Temp qw(tempdir tempfile);
 
 
 
-use FindBin qw($Bin);
-our $HWW_LIB = "$Bin/lib-hww";
+our $BASE_DIR = dirname(dirname(__FILE__));
+our $HWW_LIB = File::Spec->catfile($BASE_DIR, "lib-hww");
 
 
 # command vs subname
@@ -486,7 +486,7 @@ sub help {
     # - -p, --pager (ページャで起動)
 
     unless (defined $cmd) {
-        my $hww_pl_path = File::Spec->catfile($Bin, 'hww.pl');
+        my $hww_pl_path = File::Spec->catfile($BASE_DIR, 'hww.pl');
         pod2usage(-verbose => 1, -input => $hww_pl_path, -exitval => "NOEXIT");
         
         puts("available commands:");
