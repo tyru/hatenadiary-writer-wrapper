@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.19';
+our $VERSION = '1.5.20';
 
 use base qw(HW);
 use HWWrapper::Commands;

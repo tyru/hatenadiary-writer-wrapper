@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.14";
+our $VERSION = "1.0.15";
 
 # import all util commands!!
 use HWWrapper::Functions;

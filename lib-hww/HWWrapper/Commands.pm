@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use utf8;
 
+our $VERSION = "1.0.0";
+
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 use HWWrapper::Functions;
 
