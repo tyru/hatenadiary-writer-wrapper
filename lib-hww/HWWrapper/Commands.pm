@@ -1269,7 +1269,7 @@ sub diff {
         unless ($initialized) {
             # define built-in commands.
             %shell_cmd = (
-                quit => sub { CORE::exit(@_ ? $_[0] : 0) },
+                quit => sub { goto EXIT_LOOP },
                 q => sub { $shell_cmd{quit}->(@_) },
                 '?' => sub {
                     puts("shell built-in commands here:");
@@ -1369,7 +1369,7 @@ sub diff {
             # EOF for the first time
             unless (defined $line) {
                 # exit shell
-                $shell_cmd{quit}->(0);
+                $shell_cmd{quit}->();
             }
             # read lines until $line is complete
             until (is_complete_str($line)) {
@@ -1412,6 +1412,8 @@ sub diff {
             };
             if ($@) { warning($@) }
         }
+
+        EXIT_LOOP:
     }
 }
 
