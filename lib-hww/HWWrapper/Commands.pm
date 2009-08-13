@@ -218,7 +218,7 @@ sub help {
     # TODO
     # - hww.plのオプションを見られるようにする (shellコマンドの為に)
     # - --list-command (主にzsh補完用)
-    # - -p, --pager (ページャで起動)
+    # - -P, --no-pager (ページャで起動)
 
     unless (defined $cmd) {
         my $hww_pl_path = File::Spec->catfile($BASE_DIR, 'hww.pl');
@@ -291,6 +291,8 @@ EOD
 # TODO write help pod
 sub init {
     my ($self, $args) = @_;
+
+    # TODO すでにinitされてたら警告を表示
 
     my $txt_dir = "text";
     my $config_file = "config.txt";
@@ -1189,7 +1191,9 @@ sub chain {
 sub diff {
     my ($self, $args) = @_;
 
-    # TODO diffのフォーマットを指定できるようにする
+    # TODO
+    # - diffのフォーマットを指定できるようにする
+    # - --all
     my $dir;
     my $file;
     $self->get_opt($args, {
@@ -1307,6 +1311,7 @@ sub diff {
             $term = Term::ReadLine->new;
 
             # define completion function!
+            # TODO 補完関数をもっと賢くする
             $term->Attribs->{completion_function} = sub {
                 my ($prev_word, $cur_text, $str_len) = @_;
                 my $completed = $cur_text =~ / $/;
@@ -1356,6 +1361,7 @@ sub diff {
                 return undef;
             };
 
+            debug("initialized shell...");
             $initialized = 1;
         }
 
@@ -1426,6 +1432,7 @@ sub diff {
     }
 }
 
+# TODO write help
 sub truncate_cmd {
     my ($self, $args) = @_;
 

@@ -16,6 +16,10 @@ package HWWrapper;
 # - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
 # - shell_eval_str()の「;」対応
 #
+# - %HWWrapper::Commands::HWW_COMMANDを見て、dispatchでget_optを事前にやっといて、第3引数として渡す
+#
+# - プロファイリングして最適化
+#
 # - '--verbose'オプションを追加。
 # -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
 #
