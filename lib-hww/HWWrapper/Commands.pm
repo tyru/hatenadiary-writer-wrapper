@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.1";
+our $VERSION = "1.0.2";
 
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 use HWWrapper::Functions;
@@ -354,8 +354,80 @@ sub release {
         }
     }
 
-    HW::release($self);    # quick hack
-    # $self->SUPER::release();
+
+    my $count = 0;
+    my @files;
+
+    # Setup file list.
+    if ($self->target_file) {
+        # Do not check timestamp.
+        push(@files, $self->target_file);
+        debug("files: option -f: @files");
+    }
+    else {
+        for ($self->get_entries($self->txt_dir)) {
+            # Check timestamp.
+            next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
+            push(@files, $_);
+        }
+        debug(sprintf 'files: current dir (%s): %s', $self->txt_dir, join ' ', @files);
+    }
+
+    # Process it.
+    for my $file (@files) {
+        # Check file name.
+        next unless ($file =~ /\b(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?\.txt$/);
+        # Check if it is a file.
+        next unless (-f $file);
+
+        my ($year, $month, $day) = ($1, $2, $3);
+        my $date = $year . $month . $day;
+
+        # Login if necessary.
+        $self->login();
+
+        # Replace "*t*" unless suppressed.
+        $self->replace_timestamp($file) unless ($self->no_timestamp);
+
+        # Read title and body.
+        my ($title, $body) = $self->read_title_body($file);
+
+        # Find image files.
+        my $imgfile = $self->find_image_file($file);
+
+        if ($title eq $self->delete_title) {
+            # Delete entry.
+            puts("Delete $year-$month-$day.");
+            $self->delete_diary_entry($date);
+            puts("Delete OK.");
+        }
+        else {
+            # Update entry.
+            puts("Post $year-$month-$day.  " . ($imgfile ? " (image: $imgfile)" : ""));
+            $self->update_diary_entry($year, $month, $day, $title, $body, $imgfile);
+            puts("Post OK.");
+        }
+
+        sleep(1);
+
+        $count++;
+    }
+
+    # Logout if necessary.
+    $self->logout();
+
+    if ($count == 0) {
+        puts("No files are posted.");
+    }
+    else {
+        unless ($self->target_file) {
+            # Touch file.
+            my $FILE;
+            open($FILE, '>', $self->touch_file) or error($self->touch_file.": $!");
+            print $FILE $self->get_timestamp();
+            close($FILE);
+        }
+    }
 }
 
 # upload entries to hatena diary as trivial
