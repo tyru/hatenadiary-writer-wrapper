@@ -24,9 +24,16 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.34";
+our $VERSION = "1.5.35";
 
 use base qw(HWWrapper::Base);
+
+# import builtin op's hooks
+# (these ops are hooked in HWWrapper::Commands::shell())
+#
+# and this package also exports these ops.
+use HWWrapper::Hook::BuiltinOp;
+
 # import all util commands!!
 use HWWrapper::Functions;
 

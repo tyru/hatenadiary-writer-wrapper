@@ -4,10 +4,15 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.4";
+our $VERSION = "1.0.5";
 
-use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
+# import builtin op's hooks
+# (these ops are hooked in HWWrapper::Commands::shell())
+#
+# and this package also exports these ops.
+use HWWrapper::Hook::BuiltinOp;
 use HWWrapper::Functions;
+use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 
 use File::Basename qw(dirname basename);
 use Scalar::Util qw(blessed);
@@ -670,7 +675,7 @@ sub verify {
     unless (@entry) {
         $dir = defined $dir ? $dir : $self->txt_dir;
         puts("$dir: no entries found.");
-        exit 0;
+        return;
     }
 
     # check if a entry duplicates other entries.
@@ -687,7 +692,6 @@ sub verify {
                             $date->{day};
         if (exists $entry{$ymd}) {
             debug("$file is duplicated.");
-            puts("foo:$ymd, $file");
             push @{ $entry{$ymd}{file} }, $file;
         }
         else {
@@ -804,7 +808,7 @@ sub apply_headline {
         my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
-            exit;
+            return;
         }
         for (@entry) {
             $apply->($_);
@@ -856,7 +860,7 @@ sub revert_headline {
         my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
-            exit;
+            return;
         }
         for (@entry) {
             $revert->($_);
@@ -1261,8 +1265,8 @@ sub diff {
         unless ($initialized) {
             # define built-in commands.
             %shell_cmd = (
-                quit => sub { exit },
-                q => sub { exit },
+                quit => sub { CORE::exit },
+                q => sub { CORE::exit },
                 '?' => sub {
                     puts("shell built-in commands here:");
                     puts("  $_") for keys %shell_cmd;
@@ -1350,6 +1354,10 @@ sub diff {
 
             $initialized = 1;
         }
+
+        local $HWWrapper::Hook::BuiltinOp::exit = sub (;$) {
+            warning("program exited with ".(@_ ? $_[0] : 0));
+        };
 
 
         # EOF (or q or quit) to leave shell.

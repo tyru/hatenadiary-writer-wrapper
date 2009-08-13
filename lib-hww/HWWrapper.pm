@@ -44,10 +44,15 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.22';
+our $VERSION = '1.5.23';
 
 use base qw(HW HWWrapper::Commands);
-use HWWrapper::Commands;
+
+# import builtin op's hooks
+# (these ops are hooked in HWWrapper::Commands::shell())
+#
+# and this package also exports these ops.
+use HWWrapper::Hook::BuiltinOp;
 # import all util commands!!
 use HWWrapper::Functions;
 

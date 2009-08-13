@@ -4,9 +4,14 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.13";
+our $VERSION = "1.0.14";
 
-use subs qw(dump);
+# import builtin op's hooks
+# (these ops are hooked in HWWrapper::Commands::shell())
+#
+# and this package also exports these ops.
+use HWWrapper::Hook::BuiltinOp;
+
 
 use base qw(Exporter);
 
@@ -15,7 +20,7 @@ our @EXPORT = our @EXPORT_OK = do {
 
     my @codes = grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
     # export all subroutines and $DEBUG.
-    (@codes, qw($DEBUG));
+    (@codes, qw($DEBUG), @HWWrapper::Hook::BuiltinOp::EXPORT);
 };
 
 
@@ -64,12 +69,6 @@ sub debug {
     my $subname = (caller 1)[3];
     $DEBUG->print("debug: $subname(): ", @_, "\n");
 }
-
-sub dump {
-    @_ = (dumper(@_));
-    goto &debug;
-}
-*CORE::GLOBAL::dump = \&dump;
 
 sub dumper {
     local $Data::Dumper::Indent = 0;
