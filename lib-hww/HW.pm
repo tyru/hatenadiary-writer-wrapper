@@ -49,8 +49,6 @@ use Pod::Usage;
 use URI;
 use IO::Prompt qw(prompt);
 
-our $enable_encode = eval('use Encode; 1');
-
 my $rkm; # session id for posting.
 
 
@@ -139,6 +137,8 @@ sub new {
 
         # login url.
         hatena_sslregister_url => 'https://www.hatena.ne.jp/login',
+
+        enable_encode => eval('use Encode; 1'),
     );
 
     # add $self->{config} to %config
@@ -594,7 +594,7 @@ sub read_title_body {
     close($FILE);
 
     # Convert encodings.
-    if ($enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+    if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
         debug(sprintf 'Convert from %s to %s.',
                 $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->client_encoding, $self->server_encoding);
@@ -784,7 +784,7 @@ sub load_diary_entry {
     $body = $self->unescape($body);
 
     # Convert encodings.
-    if ($enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+    if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
         debug(sprintf 'Convert from %s to %s.', $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->server_encoding, $self->client_encoding);
         Encode::from_to($body, $self->server_encoding, $self->client_encoding);
