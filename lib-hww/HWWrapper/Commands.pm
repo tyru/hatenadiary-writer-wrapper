@@ -334,11 +334,17 @@ sub init {
     my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
 
 
-    unless (-e $txt_dir) {
+    if (-e $txt_dir) {
+        warning("$txt_dir already exists.");
+    }
+    else {
         mkdir $txt_dir;
     }
 
-    unless (-e $config_file) {
+    if (-e $config_file) {
+        warning("$config_file already exists.");
+    }
+    else {
         my $CONF = FileHandle->new($config_file, 'w') or error("$config_file:$!");
         $CONF->print(<<EOT);
 id:yourid
@@ -350,12 +356,16 @@ EOT
         $CONF->close;
     }
 
-    unless (-e $cookie_file) {
+    if (-e $cookie_file) {
+        warning("$config_file already exists.");
+    }
+    else {
         # make empty file
         my $TOUCH = FileHandle->new($cookie_file, 'w') or error("$cookie_file:$!");
         $TOUCH->close;
     }
 
+    debug("chmod 0600 $cookie_file");
     chmod 0600, $cookie_file;
 }
 
