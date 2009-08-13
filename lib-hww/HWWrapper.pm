@@ -111,16 +111,6 @@ sub new {
 
     # initialize config of HW.
     $self->SUPER::new;
-
-    # make accessors.
-    #
-    # $self->$method
-    # is lvalue method and identical to
-    # $self->{config}{$method}
-    $self->mk_accessors(keys %{ $self->{config} });
-
-
-    return $self;
 }
 
 

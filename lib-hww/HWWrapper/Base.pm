@@ -26,6 +26,18 @@ use FileHandle;
 
 
 
+sub new {
+    my $self = shift;
+
+    # make all(HW and HWWrapper) class's accessors.
+    #
+    # $self->$method
+    # is lvalue method and identical to
+    # $self->{config}{$method}
+    $self->mk_accessors(keys %{ $self->{config} });
+
+    return $self;
+}
 
 
 ### util subs (need $self) ###

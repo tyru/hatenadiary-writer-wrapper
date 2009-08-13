@@ -51,28 +51,11 @@ use IO::Prompt qw(prompt);
 
 our $enable_encode = eval('use Encode; 1');
 
-
-
-# Hatena URL.
-our $hatena_sslregister_url = 'https://www.hatena.ne.jp/login';
-
-# TODO check this in new().
-# Crypt::SSLeay check.
-eval {
-    require Crypt::SSLeay;
-};
-if ($@) {
-    puts("WARNING: Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
-    $hatena_sslregister_url = 'http://www.hatena.ne.jp/login';
-}
-
-
 my $rkm; # session id for posting.
 
 
 
 # TODO
-# - アクセッサを自動的に$self->{config}以下に連動させる
 # - login()のwsse対応
 # - configにwsseヘッダを保存するファイル名を追加
 
@@ -104,6 +87,8 @@ sub new {
         # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
     };
 
+
+    ### make default config - begin ###
 
     my $hatena_url = 'http://d.hatena.ne.jp';
 
@@ -151,6 +136,9 @@ sub new {
         delete_title => 'delete',
         cookie_jar => undef,
         user_agent => undef,
+
+        # login url.
+        hatena_sslregister_url => 'https://www.hatena.ne.jp/login',
     );
 
     # add $self->{config} to %config
@@ -161,8 +149,21 @@ sub new {
     # stash config into myself
     $self->{config} = \%config;
 
+    ### make default config - end ###
 
-    return $self;
+
+    # Crypt::SSLeay check.
+    eval {
+        require Crypt::SSLeay;
+    };
+    if ($@) {
+        warning("Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
+        $self->{config}{hatena_sslregister_url} = 'http://www.hatena.ne.jp/login';
+    }
+
+
+    # make accessors at base class.
+    $self->SUPER::new;
 }
 
 ### set arguments settings ###
@@ -266,10 +267,11 @@ sub login {
             $form{persistent} = "1";
         }
 
-        puts("Login to $hatena_sslregister_url as $form{name}.");
+        puts(sprintf 'Login to %s as %s.',
+            $self->hatena_sslregister_url, $form{name});
 
         $r = $self->user_agent->simple_request(
-            HTTP::Request::Common::POST("$hatena_sslregister_url", \%form)
+            HTTP::Request::Common::POST($self->hatena_sslregister_url, \%form)
         );
 
         debug($r->status_line);
