@@ -1364,12 +1364,16 @@ sub diff {
         };
 
 
-        my $readline = sub {
+        my $readline; $readline = sub {
             my $line = $term->readline("> ");
             # EOF for the first time
             unless (defined $line) {
                 # exit shell
-                $shell_cmd{quit}->();
+                return undef;
+            }
+            elsif ($line =~ /^\s*$/) {
+                # retry to read line.
+                goto &$readline;
             }
 
             # read lines until $line is complete
@@ -1391,11 +1395,9 @@ sub diff {
 
         # EOF (or q or quit) to leave shell.
         SHELL:
-        while (my $line = $readline->()) {
-            next SHELL if $line =~ /^\s*$/;
+        while (defined(my $line = $readline->())) {
 
             debug("eval...[$line]");
-
             eval {
                 DISPATCH:
                 for my $shell_args (shell_eval_str($line)) {
