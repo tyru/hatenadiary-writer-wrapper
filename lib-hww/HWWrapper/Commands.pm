@@ -1339,19 +1339,31 @@ sub diff {
                     return undef;
                 }
 
+                # all commands
+                my @commands = keys %HWW_COMMAND;
+
+
                 my @args = shell_eval_str($cur_text);
                 if (@args == 0) {
-                    return keys %HWW_COMMAND;
+                    return @commands
                 }
 
                 my $last_args = $args[-1];
                 if (@$last_args == 0) {
-                    return keys %HWW_COMMAND;
+                    return @commands;
                 }
                 $dwarn->(join '', map { "[$_]" } @$last_args);
 
+
+                if ($last_args->[0] eq 'help') {
+                    return undef
+                        unless @$last_args == 1 || @$last_args == 2 && ! $completed;
+                    return $last_args->[0]
+                        if $prev_word eq 'help' && ! $completed;
+                    return @commands;
+                }
                 # complete command
-                if (is_hww_command($last_args->[0])) {
+                elsif (is_hww_command($last_args->[0])) {
                     return $last_args->[0] unless $completed;
 
                     # complete options
@@ -1383,10 +1395,10 @@ sub diff {
             $initialized = 1;
         }
 
+
         local $HWWrapper::Hook::BuiltinFunc::exit = sub (;$) {
             warning("program exited with ".(@_ ? $_[0] : 0));
         };
-
 
         my $readline; $readline = sub {
             my $line = $term->readline("> ");
@@ -1416,6 +1428,7 @@ sub diff {
 
             return $line;
         };
+
 
         # EOF (or q or quit) to leave shell.
         SHELL:
