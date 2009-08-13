@@ -19,6 +19,7 @@ use Scalar::Util qw(blessed);
 use File::Temp qw(tempdir tempfile);
 use Term::ReadLine;
 use Pod::Usage;
+use List::MoreUtils qw(first_index last_index);
 
 
 our %HWW_COMMAND = (
@@ -191,6 +192,9 @@ our %HWW_COMMAND = (
     shell => {
         coderef => \&shell,
     },
+    truncate => {
+        coderef => \&truncate_cmd,
+    }
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
@@ -1395,6 +1399,48 @@ sub diff {
                 }
             };
             if ($@) { warning($@) }
+        }
+    }
+}
+
+sub truncate_cmd {
+    my ($self, $args) = @_;
+
+    my $truncate = sub {
+        my $file = shift;
+
+        my $FH = FileHandle->new($file, 'r') or error("$file: $!");
+        my ($title, @body) = <$FH>;
+        $FH->close;
+
+        # find the line number of the top or bottom of blank lines.
+        my $first = first_index { not /^\s*$/ } @body;
+        my $last  = last_index { not /^\s*$/ } @body;
+
+        # no waste blank lines.
+        if ($first == 0 && $last == $#body) {
+            return;
+        }
+        puts("$file: found waste blank lines...");
+
+        # remove waste blank lines.
+        debug("truncate: [0..$#body] -> [$first..$last]");
+        @body = @body[$first .. $last];
+
+        # write result.
+        $FH = FileHandle->new($file, 'w') or error("$file: $!");
+        $FH->print($title);
+        $FH->print($_) for @body;
+        $FH->close;
+    };
+
+    if (@$args && -f $args->[0] && defined $self->get_entrydate($args->[0])) {
+        $truncate->($args->[0]);
+    }
+    else {
+        $self->txt_dir = $args->[0] if @$args && -d $args->[0];
+        for ($self->get_entries($self->txt_dir)) {
+            $truncate->($_);
         }
     }
 }
