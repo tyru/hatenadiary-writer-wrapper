@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.0.1';
+our $VERSION = '1.0.2';
 
 use base qw(Exporter);
 
