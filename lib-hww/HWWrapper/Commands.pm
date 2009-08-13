@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.0";
+our $VERSION = "1.0.1";
 
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 use HWWrapper::Functions;
@@ -354,7 +354,8 @@ sub release {
         }
     }
 
-    $self->SUPER::release();
+    HW::release($self);    # quick hack
+    # $self->SUPER::release();
 }
 
 # upload entries to hatena diary as trivial
