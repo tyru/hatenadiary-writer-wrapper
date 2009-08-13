@@ -10,7 +10,7 @@ our $VERSION = "1.0.15";
 # (these ops are hooked in HWWrapper::Commands::shell())
 #
 # and this package also exports these ops.
-use HWWrapper::Hook::BuiltinOp;
+use HWWrapper::Hook::BuiltinFunc;
 
 
 use base qw(Exporter);
@@ -20,7 +20,7 @@ our @EXPORT = our @EXPORT_OK = do {
 
     my @codes = grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
     # export all subroutines and $DEBUG.
-    (@codes, qw($DEBUG), @HWWrapper::Hook::BuiltinOp::EXPORT);
+    (@codes, qw($DEBUG), @HWWrapper::Hook::BuiltinFunc::EXPORT);
 };
 
 

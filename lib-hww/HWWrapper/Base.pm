@@ -10,7 +10,7 @@ our $VERSION = "1.0.16";
 # (these ops are hooked in HWWrapper::Commands::shell())
 #
 # and this package also exports these ops.
-use HWWrapper::Hook::BuiltinOp;
+use HWWrapper::Hook::BuiltinFunc;
 # import all util commands!!
 use HWWrapper::Functions;
 

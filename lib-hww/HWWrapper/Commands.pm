@@ -10,7 +10,7 @@ our $VERSION = "1.0.9";
 # (these ops are hooked in HWWrapper::Commands::shell())
 #
 # and this package also exports these ops.
-use HWWrapper::Hook::BuiltinOp;
+use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper::Functions;
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 
@@ -1359,7 +1359,7 @@ sub diff {
             $initialized = 1;
         }
 
-        local $HWWrapper::Hook::BuiltinOp::exit = sub (;$) {
+        local $HWWrapper::Hook::BuiltinFunc::exit = sub (;$) {
             warning("program exited with ".(@_ ? $_[0] : 0));
         };
 

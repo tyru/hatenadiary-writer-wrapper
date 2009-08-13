@@ -1,4 +1,4 @@
-package HWWrapper::Hook::BuiltinOp;
+package HWWrapper::Hook::BuiltinFunc;
 
 use strict;
 use warnings;
