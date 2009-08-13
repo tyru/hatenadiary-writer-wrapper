@@ -1269,8 +1269,8 @@ sub diff {
         unless ($initialized) {
             # define built-in commands.
             %shell_cmd = (
-                quit => sub { CORE::exit },
-                q => sub { CORE::exit },
+                quit => sub { CORE::exit(@_ ? $_[0] : 0) },
+                q => sub { $shell_cmd{quit}->(@_) },
                 '?' => sub {
                     puts("shell built-in commands here:");
                     puts("  $_") for keys %shell_cmd;
@@ -1364,16 +1364,28 @@ sub diff {
         };
 
 
+        my $readline = sub {
+            my $line = $term->readline("> ");
+            # EOF for the first time
+            unless (defined $line) {
+                # exit shell
+                $shell_cmd{quit}->(0);
+            }
+            # read lines until $line is complete
+            until (is_complete_str($line)) {
+                debug("reading next line...[$line]");
+                my $l = $term->readline("");
+                # EOF
+                return $line unless defined $l;
+                $line .= $l;
+            }
+            return $line;
+        };
+
         # EOF (or q or quit) to leave shell.
         SHELL:
-        while (defined(my $line = $term->readline("> "))) {
+        while (my $line = $readline->()) {
             next SHELL if $line =~ /^\s*$/;
-            unless (is_complete_str($line)) {
-                # TODO
-                warning("line has incomplete quote or string.");
-                warning("not implemented reading next line...sorry");
-                next SHELL;
-            }
 
             debug("eval...[$line]");
 
