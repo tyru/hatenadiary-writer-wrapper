@@ -7,12 +7,10 @@ package HWWrapper;
 # - サブルーチンにドキュメントをつけるアトリビュート
 #
 # - HWのサブルーチンをHatena AtomPub APIを使うように書き換える
-# - インタラクティブでない環境でshellを実行させないようにする
-# - fix bug(?) of the top of blank line when load.
+# - 'load'コマンドで取ってきたファイルの先頭行に空行が入るバグを直す
 # - mk_accessorsが失敗する場合を考える
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
 #
-# - parse_opt() supports '|' in arguments keys.
 # - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
 #
 # - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
@@ -46,9 +44,9 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.5.21';
+our $VERSION = '1.5.22';
 
-use base qw(HW);
+use base qw(HW HWWrapper::Commands);
 use HWWrapper::Commands;
 # import all util commands!!
 use HWWrapper::Functions;
