@@ -8,46 +8,43 @@ our $VERSION = '1.0.1';
 
 use base qw(Exporter);
 
-our @EXPORT = our @EXPORT_OK = qw(
-    dump
-    exit
-    sub
-);
+our @EXPORT;
+our @EXPORT_OK;
+BEGIN {
+    @EXPORT = @EXPORT_OK = qw(
+        dump
+        exit
+    );
+}
+use subs @EXPORT;
+
+
+use HWWrapper::Functions;
 
 use Scalar::Util qw(set_prototype);
 
+
+# NOTE:
 # do NOT taint CORE::GLOBAL.
 # also CPAN module's builtin func was destroyed!
 
 
 
-our $dump = CORE::sub {
+
+our $dump = sub {
     @_ = (HWWrapper::Functions::dumper(@_));
     goto &HWWrapper::Functions::debug;
 };
-CORE::sub dump { goto &$dump }
+alias 'dump' => $dump;
 
 
-our $exit = CORE::sub ($) {
+our $exit = sub ($) {
     # default
     CORE::exit @_;
 };
-CORE::sub exit (;$) { goto &$exit }
+alias 'exit' => $exit;
 
 
-our $sub = CORE::sub (&;$) {
-    my $realsub = shift;
-    my $subname = @_ ? shift : '';
-
-    my $coderef = CORE::sub {
-        local *__ANON__ = "__ANON__$subname";
-        $realsub->(@_);
-    };
-    set_prototype(\&$coderef, prototype $realsub);
-
-    return $coderef;
-};
-CORE::sub sub (&) { goto &$sub }
 
 
 

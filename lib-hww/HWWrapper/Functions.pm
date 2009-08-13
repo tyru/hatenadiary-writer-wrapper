@@ -93,8 +93,14 @@ sub alias {
     my ($to, $from_ref) = @_;
 
     if (ref $from_ref) {
+        my $type = ref $from_ref;
+
         no strict 'refs';
-        *{"${pkg}::$to"} = $from_ref;
+
+        my $globref = *{"${pkg}::$to"};
+        *$globref = $from_ref;
+
+        debug("install $type reference to ${pkg}::${to}");
     }
     else {
         warning("$from_ref is not reference");
