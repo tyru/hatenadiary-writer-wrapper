@@ -1447,6 +1447,7 @@ sub diff {
                 debug(sprintf "process %s...", dumper($shell_args));
 
                 my ($cmd, @cmd_args) = @$shell_args;
+
                 if ($cmd eq 'shell') {
                     warning("you have been already in the shell.");
                     last DISPATCH;
@@ -1462,7 +1463,28 @@ sub diff {
                     };
                 }
                 else {
-                    warning("$cmd: command not found");
+                    # I can emulate 'correct' in zsh by using familiar_words().
+                    # but that might be annoying if that's default.
+                    my @familiar = familiar_words(
+                        $cmd,
+                        [
+                            keys(%HWW_COMMAND),
+                            keys(%shell_cmd),
+                        ],
+                        {
+                            diff_strlen => 4,
+                            partial_match_len => 3,
+                        },
+                    );
+
+                    if (@familiar) {
+                        # so currently I just suggest that words.
+                        puts("\nDid you mean this?");
+                        puts("\t$_") for @familiar;
+                    }
+                    else {
+                        warning("$cmd: command not found");
+                    }
                 }
 
                 warning($@) if $@;

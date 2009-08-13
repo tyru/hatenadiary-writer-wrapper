@@ -29,6 +29,7 @@ use Data::Dumper ();
 use File::Basename ();
 use IO::String ();
 use Carp ();
+use List::MoreUtils ();
 
 
 our $DEBUG = IO::String->new;
@@ -270,6 +271,48 @@ sub get_quote_str {
         body => $body,
         rest_str => $line,
     };
+}
+
+sub familiar_words {
+    my ($word, $words, $opt) = @_;
+    return () unless @$words;
+
+    debug(sprintf 'word:[%s], candidates:[%s]', $word, dumper($words));
+
+    %$opt = (diff_strlen => 4, partial_match_len => 4, %$opt);
+
+    my @chars = split //, $word;
+    my $last_idx;
+    my @familiar;
+
+    # get words which contains same orders chars of $word.
+    for my $w (@$words) {
+        $last_idx = 0;
+        # push its word.
+        push @familiar, $w
+            # if $w contains all chars of $word.
+            # (and chars orders are the same)
+            if List::MoreUtils::all {
+                ($last_idx = index($w, $_, $last_idx)) != -1
+            } @chars;
+    }
+
+
+    if (length($word) >= $opt->{partial_match_len}) {
+        # get words which contain $word.
+        @familiar = grep {
+            index($_, $word) != -1
+        } @familiar;
+    }
+    else {
+        # different string length is lower than diff_strlen.
+        @familiar = grep {
+            abs(length($_) - length($word)) < $opt->{diff_strlen}
+        } @familiar;
+    }
+
+
+    return @familiar;
 }
 
 
