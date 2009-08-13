@@ -4,10 +4,12 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-
-use File::Spec;
+use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper;
 my $wrapper = HWWrapper->new(args => \@ARGV);
+
+
+use File::Spec;
 
 
 open STDERR, '>', File::Spec->devnull or plan 'skip' => "can't open null device";
@@ -24,10 +26,8 @@ my @tests = (
     },
     sub {
         lives_ok {
-            require HWWrapper::Functions;
-            HWWrapper::Functions->import('dump');
             dump("dumping...");
-        };
+        }, "dump() is exported correctly";
     },
 );
 plan tests => scalar @tests;
