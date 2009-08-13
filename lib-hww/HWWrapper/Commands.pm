@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.0.2";
+our $VERSION = "1.0.3";
 
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 use HWWrapper::Functions;
@@ -434,7 +434,8 @@ sub release {
 sub update {
     my ($self, $args) = @_;
     unshift @$args, '-t';
-    $self->release($args);
+    release($self, $args);    # quick hack
+    # $self->release($args);
 }
 
 # load entries from hatena diary
