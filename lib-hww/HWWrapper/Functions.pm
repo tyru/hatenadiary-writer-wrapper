@@ -87,26 +87,6 @@ sub is_hww_command {
     exists $HWWrapper::Commands::HWW_COMMAND{$cmd};
 }
 
-# NOTE: unused
-sub alias {
-    my $pkg = caller;
-    my ($to, $from_ref) = @_;
-
-    if (ref $from_ref) {
-        my $type = ref $from_ref;
-
-        no strict 'refs';
-
-        my $globref = *{"${pkg}::$to"};
-        *$globref = $from_ref;
-
-        debug("install $type reference to ${pkg}::${to}");
-    }
-    else {
-        warning("$from_ref is not reference");
-    }
-}
-
 sub require_modules {
     my @failed;
 
@@ -153,8 +133,6 @@ sub split_opt {
 }
 
 # TODO
-# - if text's end is backslash, read nextline.
-#
 # - pipe
 # - runnning background
 #
@@ -169,14 +147,19 @@ sub shell_eval_str {
         Carp::croak "give me the string line which does NOT contain newline!";
     }
 
+    my $push_new_args = sub {
+        debug("push new args!:[%s]", join ', ', @_);
+        push @args, [@_];
+    };
     my $push_args = sub {
         Carp::croak "push_args: receive empty args" unless @_;
 
         if (@args) {
+            debug("push args!:[%s]", join ', ', @_);
             push @{ $args[-1] }, @_;
         }
         else {
-            push @args, [@_];
+            $push_new_args->(@_);
         }
     };
 
@@ -194,7 +177,10 @@ sub shell_eval_str {
             $line = $got->{rest_str};
             $push_args->($got->{body});    # push body
         }
-        elsif ($line =~ s/^ (\S+)//mx) {    # literal WORD
+        elsif ($line =~ s/^;//) {    # ;
+            $push_new_args->();
+        }
+        elsif ($line =~ s/^([^\s"';]+)//) {    # literal
             # evaluate it.
             $line = (sprintf q("%s"), $1).$line;
         }
@@ -213,8 +199,13 @@ sub is_complete_str {
         shell_eval_str($line)
     };
 
-    if ($@ =~ /unexpected end of string while looking for/) {
-        return 0;
+    if ($@) {
+        if ($@ =~ /unexpected end of string while looking for/) {
+            return 0;
+        }
+        else {
+            warning("failed to parse cmdline string: ".$@);
+        }
     }
     else {
         return 1;

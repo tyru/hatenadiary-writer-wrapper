@@ -1404,28 +1404,31 @@ sub diff {
         while (defined(my $line = $readline->())) {
 
             debug("eval...[$line]");
-            eval {
-                DISPATCH:
-                for my $shell_args (shell_eval_str($line)) {
-                    my ($cmd, @cmd_args) = @$shell_args;
+            DISPATCH:
+            for my $shell_args (shell_eval_str($line)) {
+                debug(sprintf "process %s...", dumper($shell_args));
 
-                    if ($cmd eq 'shell') {
-                        warning("you have been already in the shell.");
-                        last DISPATCH;
-                    }
-                    elsif (is_hww_command($cmd)) {
-                        $self->dispatch($cmd => \@cmd_args);
-                    }
-                    elsif (exists $shell_cmd{$cmd}) {
-                        $shell_cmd{$cmd}->(\@cmd_args);
-                    }
-                    else {
-                        warning("$cmd: command not found");
-                        last DISPATCH;
-                    }
+                my ($cmd, @cmd_args) = @$shell_args;
+                if ($cmd eq 'shell') {
+                    warning("you have been already in the shell.");
+                    last DISPATCH;
                 }
-            };
-            if ($@) { warning($@) }
+                elsif (is_hww_command($cmd)) {
+                    eval {
+                        $self->dispatch($cmd => \@cmd_args);
+                    };
+                }
+                elsif (exists $shell_cmd{$cmd}) {
+                    eval {
+                        $shell_cmd{$cmd}->(\@cmd_args);
+                    };
+                }
+                else {
+                    warning("$cmd: command not found");
+                }
+
+                warning($@) if $@;
+            }
         }
 
         EXIT_LOOP:

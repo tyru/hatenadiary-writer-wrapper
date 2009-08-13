@@ -8,15 +8,10 @@ our $VERSION = '1.0.2';
 
 use base qw(Exporter);
 
-our @EXPORT;
-our @EXPORT_OK;
-BEGIN {
-    @EXPORT = @EXPORT_OK = qw(
-        dump
-        exit
-    );
-}
-use subs @EXPORT;
+our @EXPORT = our @EXPORT_OK = qw(
+    dump
+    exit
+);
 
 
 use HWWrapper::Functions;
@@ -35,14 +30,14 @@ our $dump = sub {
     @_ = (HWWrapper::Functions::dumper(@_));
     goto &HWWrapper::Functions::debug;
 };
-alias 'dump' => $dump;
+sub dump { goto &$dump }
 
 
-our $exit = sub ($) {
+our $exit = sub (;$) {
     # default
     CORE::exit @_;
 };
-alias 'exit' => $exit;
+sub exit (;$) { goto &$exit }
 
 
 
