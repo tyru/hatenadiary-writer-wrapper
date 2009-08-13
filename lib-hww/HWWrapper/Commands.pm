@@ -1371,14 +1371,21 @@ sub diff {
                 # exit shell
                 $shell_cmd{quit}->();
             }
+
             # read lines until $line is complete
             until (is_complete_str($line)) {
+                if (length $line && substr($line, -1, 1) eq  "\\") {
+                    chop $line;
+                }
+
                 debug("reading next line...[$line]");
                 my $l = $term->readline("");
+
                 # EOF
                 return $line unless defined $l;
                 $line .= $l;
             }
+
             return $line;
         };
 

@@ -231,6 +231,7 @@ sub get_quote_str {
     }
 
     my $shift_str = sub {
+        return undef if length $_[0] == 0;
         my $c = substr $_[0], 0, 1;    # first char
         $_[0] = substr $_[0], 1;       # rest
         return $c;
@@ -248,7 +249,11 @@ sub get_quote_str {
         }
         elsif ($c eq "\\") {    # escape
             if ($opt{eval}) {
-                $c = "\\" . $shift_str->($line);
+                my $ch = $shift_str->($line);
+                # unexpected end of string ...
+                last unless defined $ch;
+
+                $c = "\\".$ch;
                 $body .= eval sprintf q("%s"), $c;
             }
             else {
