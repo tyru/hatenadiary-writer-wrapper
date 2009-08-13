@@ -1356,28 +1356,35 @@ sub diff {
 
 
                 if ($last_args->[0] eq 'help') {
+                    # stop completion
+                    # unless num of args is 1, or num of args is 2 and not completed
                     return undef
-                        unless @$last_args == 1 || @$last_args == 2 && ! $completed;
+                        unless @$last_args == 1 || (@$last_args == 2 && ! $completed);
+                    # if arg 1 'help' is not completed, return it
                     return $last_args->[0]
                         if $prev_word eq 'help' && ! $completed;
+                    # or return all commands
                     return @commands;
                 }
                 # complete command
                 elsif (is_hww_command($last_args->[0])) {
-                    return $last_args->[0] unless $completed;
+                    return $last_args->[0]
+                        if $prev_word eq $last_args->[0] && ! $completed;
 
                     # complete options
                     # XXX not completed...
                     my $options = $HWW_COMMAND{ $last_args->[0] }{option};
-                    if (@$last_args >= 2 && (my ($bar, $opt) = $last_args->[-1] =~ /^(--?)(.*)$/)) {
+                    if (@$last_args >= 2 && $last_args->[-1] =~ /^(--?)(.*)$/) {
+                        my ($bar, $opt) = ($1, $2);
                         $dwarn->("matced!:[$opt]");
 
                         if (length $opt) {
                             $dwarn->("grep options");
                             return map { $bar.$_ } $grep_cmd->($opt, $options);
-                        } else {
+                        }
+                        else {
                             $dwarn->("all options");
-                            return keys %$options;
+                            return map { $bar.$_ } keys %$options;
                         }
                     }
                     return undef;
