@@ -255,13 +255,16 @@ sub mk_accessors {
 
     for my $method (uniq @_) {
         unless (exists $self->{config}{$method}) {
-            error("internal: \$self->{config}{$method} does NOT exist!!");
+            error("internal error, sorry.: \$self->{config}{$method} does NOT exist!!");
         }
 
         my $subname = $pkg."::".$method;
         my $coderef = sub : lvalue { shift->{config}{$method} };
 
         no strict 'refs';
+        if (defined &{$subname}) {
+            error("internal error, sorry.: $subname is already defined!!");
+        }
         *$subname = $coderef;
     }
 }
