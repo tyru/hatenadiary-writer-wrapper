@@ -25,9 +25,11 @@ use List::MoreUtils qw(first_index last_index);
 our %HWW_COMMAND = (
     help => {
         coderef => \&help,
+        desc => 'display help information about hww',
     },
     version => {
         coderef => \&version,
+        desc => 'display version information about hww',
     },
     copyright => {
         coderef => \&copyright,
@@ -45,6 +47,7 @@ our %HWW_COMMAND = (
     },
     release => {
         coderef => \&release,
+        desc => 'upload entries to hatena diary',
         option => {
             trivial => {
                 desc => "upload entries as trivial",
@@ -56,6 +59,7 @@ our %HWW_COMMAND = (
     },
     update => {
         coderef => \&update,
+        desc => 'upload entries to hatena diary as trivial',
         option => {
             trivial => {
                 desc => "upload entries as trivial",
@@ -67,6 +71,7 @@ our %HWW_COMMAND = (
     },
     load => {
         coderef => \&load,
+        desc => 'load entries from hatena diary',
         option => {
             all => {
                 desc => "fetch all entries",
@@ -90,6 +95,7 @@ our %HWW_COMMAND = (
     },
     verify => {
         coderef => \&verify,
+        desc => 'verify misc information',
         option => {
             html => {
                 desc => "verify html directory",
@@ -98,6 +104,7 @@ our %HWW_COMMAND = (
     },
     status => {
         coderef => \&status,
+        desc => 'show information about entry files',
         option => {
             all => {
                 desc => "show all entries",
@@ -115,6 +122,7 @@ our %HWW_COMMAND = (
     },
     'apply-headline' => {
         coderef => \&apply_headline,
+        desc => 'rename if modified headlines',
         option => {
             all => {
                 desc => "check and rename all files",
@@ -137,9 +145,11 @@ our %HWW_COMMAND = (
     },
     touch => {
         coderef => \&touch,
+        desc => "update 'touch.txt'",
     },
     'gen-html' => {
         coderef => \&gen_html,
+        desc => 'generate htmls from entry files',
         option => {
             'update-index' => {
                 desc => "exec 'update-index' command after 'gen-html'",
@@ -160,6 +170,7 @@ our %HWW_COMMAND = (
     },
     'update-index' => {
         coderef => \&update_index,
+        desc => 'make html from template file by HTML::Template',
         option => {
             'max-length' => {
                 desc => "max summary byte length",
@@ -171,6 +182,7 @@ our %HWW_COMMAND = (
     },
     chain => {
         coderef => \&chain,
+        desc => "chain commands with '--'",
     },
     diff => {
         coderef => \&diff,
@@ -226,7 +238,12 @@ sub help {
         
         puts("available commands:");
         for my $command (sort keys %HWW_COMMAND) {
-            puts("  $command");
+            if (exists $HWW_COMMAND{$command}{desc}) {
+                puts("  $command - $HWW_COMMAND{$command}{desc}");
+            }
+            else {
+                puts("  $command");
+            }
         }
         puts();
         puts("and if you want to know hww.pl's option, perldoc -F hww.pl");
@@ -256,6 +273,7 @@ EOD
     HW::VERSION_MESSAGE();
 }
 
+# TODO write help
 sub copyright {
     print <<EOD;
 
