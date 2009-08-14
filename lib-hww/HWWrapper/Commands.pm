@@ -310,8 +310,6 @@ EOD
 sub init {
     my ($self, $args) = @_;
 
-    # TODO すでにinitされてたら警告を表示
-
     my $txt_dir = "text";
     my $config_file = "config.txt";
     my $cookie_file = "cookie.txt";
@@ -973,7 +971,6 @@ sub gen_html {
         # cut blank lines in order not to generate blank section.
         shift @text while ($text[0] =~ /^\s*$/);
 
-        # TODO use POE(option)?
         my $html = Text::Hatena->parse(join "\n", @text);
         $IN->close;
 
@@ -1219,14 +1216,16 @@ sub chain {
 sub diff {
     my ($self, $args) = @_;
 
-    # TODO
-    # - diffのフォーマットを指定できるようにする
-    # - --all
     my $dir;
     my $file;
+    my $format;
+    my $all;
     $self->get_opt($args, {
         'd=s' => \$dir,
         'dir=s' => \$dir,
+        # TODO
+        # 'format=s' => \$format,
+        # all => \$all,
         'f=s' => \$file,
         'file=s' => \$file,
     }) or error("diff: arguments error");
@@ -1339,7 +1338,6 @@ sub diff {
             $term = Term::ReadLine->new;
 
             # define completion function!
-            # TODO 補完関数をもっと賢くする
             $term->Attribs->{completion_function} = sub {
                 my ($prev_word, $cur_text, $str_len) = @_;
                 my $completed = $cur_text =~ / $/;
