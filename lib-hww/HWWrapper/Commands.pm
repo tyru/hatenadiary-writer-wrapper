@@ -1507,6 +1507,13 @@ sub diff {
 sub truncate_cmd {
     my ($self, $args) = @_;
 
+    my $all;
+    $self->get_opt($args, {
+        all => \$all,
+        a => \$all,
+    });
+
+
     my $truncate = sub {
         my $file = shift;
 
@@ -1535,14 +1542,31 @@ sub truncate_cmd {
         $FH->close;
     };
 
-    if (@$args && -f $args->[0] && defined $self->get_entrydate($args->[0])) {
-        $truncate->($args->[0]);
+
+    if ($all) {
+        if (@$args) {
+            $self->txt_dir = shift @$args;
+        }
+        unless (-d $self->txt_dir) {
+            mkdir $self->txt_dir or error($self->txt_dir.": $!");
+        }
+
+        for my $entrypath ($self->get_entries($self->txt_dir)) {
+            debug($entrypath);
+            $truncate->($entrypath);
+        }
     }
     else {
-        $self->txt_dir = $args->[0] if @$args && -d $args->[0];
-        for ($self->get_entries($self->txt_dir)) {
-            $truncate->($_);
+        unless (@$args) {
+            $self->arg_error;
         }
+
+        my $file = shift @$args;
+        unless (-f $file) {
+            error("$file: $!");
+        }
+
+        $truncate->($file);
     }
 }
 
