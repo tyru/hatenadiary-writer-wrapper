@@ -231,11 +231,12 @@ sub help {
     # - hww.plのオプションを見られるようにする (shellコマンドの為に)
     # - --list-command (主にzsh補完用)
     # - -P, --no-pager (ページャで起動)
+    # - Pod::Manでヘルプを出力し、utf8オプションを有効にし、日本語を出力できるようにする。
 
     unless (defined $cmd) {
         my $hww_pl_path = File::Spec->catfile($BASE_DIR, 'hww.pl');
         pod2usage(-verbose => 1, -input => $hww_pl_path, -exitval => "NOEXIT");
-        
+
         puts("available commands:");
         for my $command (sort keys %HWW_COMMAND) {
             if (exists $HWW_COMMAND{$command}{desc}) {
@@ -318,7 +319,7 @@ sub init {
     $self->get_opt($args, {
         config => \$read_config,
         c => \$read_config,
-    }) or error("init: arguments error");
+    }) or $self->arg_error();
 
     my $dir = shift @$args;
     if (defined $dir) {
@@ -375,7 +376,7 @@ sub release {
     $self->get_opt($args, {
         trivial => \$trivial,
         t => \$trivial,
-    }) or error("release: arguments error");
+    }) or $self->arg_error();
     $self->trivial = $trivial;
 
     if (@$args) {
@@ -491,7 +492,7 @@ sub load {
         # 'c' => \$compare,
         'missing-only' => \$missing_only,
         m => \$missing_only,
-    }) or error("load: arguments error");
+    }) or $self->arg_error();
 
 
     if ($all) {
@@ -694,7 +695,7 @@ sub verify {
     my $verify_html;
     $self->get_opt($args, {
         html => \$verify_html,
-    }) or error("verify: arguments error");
+    }) or $self->arg_error();
 
     my $dir = shift(@$args);
     my $fileglob;
@@ -760,7 +761,7 @@ sub status {
         a => \$all,
         C => \$no_caption,
         'no-caption' => \$no_caption,
-    }) or error("status: arguments error");
+    }) or $self->arg_error();
 
     # if undef, $self->txt_dir is used.
     my $dir = shift @$args;
@@ -805,7 +806,7 @@ sub apply_headline {
     $self->get_opt($args, {
         all => \$all,
         a => \$all,
-    }) or error("apply-headline: arguments error");
+    }) or $self->arg_error();
 
 
     my $apply = sub {
@@ -865,7 +866,7 @@ sub revert_headline {
     $self->get_opt($args, {
         all => \$all,
         a => \$all,
-    }) or error("revert-headline: arguments error");
+    }) or $self->arg_error();
 
 
     my $revert = sub {
@@ -947,7 +948,7 @@ sub gen_html {
         'I=s' => \$index_tmpl,
         'missing-only' => \$missing_only,
         m => \$missing_only,
-    }) or error("gen-html: arguments error");
+    }) or $self->arg_error();
 
     require_modules(qw(Text::Hatena));
 
@@ -1027,7 +1028,7 @@ sub update_index {
     $self->get_opt($args, {
         'max-length=s' => \$max_strlen,
         'm=s' => \$max_strlen,
-    }) or error("update-index: arguments error");
+    }) or $self->arg_error();
 
 
     require_modules(qw(
@@ -1228,7 +1229,7 @@ sub diff {
         # all => \$all,
         'f=s' => \$file,
         'file=s' => \$file,
-    }) or error("diff: arguments error");
+    }) or $self->arg_error();
 
     if (defined $dir) {
         $self->txt_dir = $dir;
@@ -1511,7 +1512,7 @@ sub truncate_cmd {
     $self->get_opt($args, {
         all => \$all,
         a => \$all,
-    });
+    }) or $self->arg_error();
 
 
     my $truncate = sub {
@@ -1558,7 +1559,7 @@ sub truncate_cmd {
     }
     else {
         unless (@$args) {
-            $self->arg_error;
+            $self->arg_error();
         }
 
         my $file = shift @$args;
