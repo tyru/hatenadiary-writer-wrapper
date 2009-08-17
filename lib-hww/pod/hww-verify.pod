@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-    hww-verify - verify misc information
+    hww-verify - verify current status
 
 
 =head1 SYNOPSIS
@@ -22,8 +22,8 @@ entry files or html files doesn't duplicate other files.
 =item --html
 
 verify html directory.
-this changes suffix to verify to '*.html'.
-(default is '*.txt')
+this changes suffix to verify to B<*.html>.
+(default is B<*.txt>)
 
 =back
 

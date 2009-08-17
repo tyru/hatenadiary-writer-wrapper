@@ -1,0 +1,25 @@
+
+=head1 NAME
+
+    hww-version - バージョン情報を表示する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl version
+
+
+=head1 DESCRIPTION
+
+このコマンドはバージョンを表示する。
+
+
+=head1 OPTIONS
+
+このコマンドのオプションは存在しない。
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

@@ -1,0 +1,21 @@
+
+=head1 NAME
+
+    hww-update - 「ちょっとした更新」としてはてなダイアリーに投稿する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl update [release command options]
+
+
+=head1 DESCRIPTION
+
+このコマンドはB<release>コマンドにB<--trivial>オプションを渡した時の動作と同様のことをする。
+詳しくはB<release>を参照。
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

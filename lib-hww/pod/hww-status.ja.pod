@@ -1,0 +1,37 @@
+
+=head1 NAME
+
+    hww-status - エントリーファイルの情報を表示する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl status [-a | --all] [-C | --no-caption]
+
+
+=head1 DESCRIPTION
+
+現在このコマンドは更新されたエントリーを確認するためだけのものである。
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+全てのエントリーファイルを表示。
+
+=item -C, --no-caption
+
+説明とインデントをつけない。
+このオプションは他の実行コマンドに渡す時に有用かもしれない。
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

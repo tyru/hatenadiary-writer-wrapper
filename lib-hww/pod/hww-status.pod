@@ -11,7 +11,7 @@
 
 =head1 DESCRIPTION
 
-currently this command just shows updated entries to be uploaded.
+currently this command just shows updated entries to be posted.
 
 
 =head1 OPTIONS
@@ -25,7 +25,7 @@ show all entry files.
 =item -C, --no-caption
 
 do not show caption and indent.
-(this option for other executable commands (pipeline).)
+this option might be useful to pass other executable commands.
 
 =back
 

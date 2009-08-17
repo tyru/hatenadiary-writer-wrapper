@@ -1,0 +1,29 @@
+
+=head1 NAME
+
+    hww-touch - touch.txtを更新する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl touch [<date format>]
+
+
+=head1 DESCRIPTION
+
+B<touch.txt>を現在の日付に更新する。
+<date format>はDate::Manipモジュールによってパースされる。
+なのでもしB<touch.txt>の日付を現在より古いか新しいものにしたい場合、
+Date::Manipモジュールをインストールする必要がある。
+
+
+=head1 OPTIONS
+
+このコマンドのオプションは存在しない。
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

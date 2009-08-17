@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-    hww-update - upload entries to hatena diary as trivial
+    hww-update - post entries to hatena diary as trivial
 
 
 =head1 SYNOPSIS
@@ -11,7 +11,8 @@
 
 =head1 DESCRIPTION
 
-this command is identical to 'release' command with '--trivial' option.
+this command is identical to B<release> command with B<--trivial> option.
+see B<release> for the detail.
 
 
 =head1 OPTIONS

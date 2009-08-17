@@ -1,0 +1,36 @@
+
+=head1 NAME
+
+    hww-apply-headline - 見出しが変更されていたらリネームする
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl apply-headline [-a | --all] [--] <file>
+
+
+=head1 DESCRIPTION
+
+もし指定された日記ファイルの中に追加・削除された見出しを見つけたら、そのファイル名を変更する。
+もし日記ファイルに独自のファイル名をつけたいのなら、このコマンドは使わなくてもよい。
+元のファイル名に戻したい場合については、revert-headlineコマンドを参照。
+
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+全てのファイルをチェックし、もし追加・削除された見出しを見つけたらリネームする。
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+
+

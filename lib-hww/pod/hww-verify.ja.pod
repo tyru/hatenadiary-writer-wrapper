@@ -1,0 +1,35 @@
+
+=head1 NAME
+
+    hww-verify - 現在の状態が正しいかチェックする
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl verify [--html] [--] [<directory>]
+
+
+=head1 DESCRIPTION
+
+現在このコマンドはエントリーファイルかHTMLファイルの入ったディレクトリに、
+重複したファイルがないかチェックするだけのものである。
+
+
+=head1 OPTIONS
+
+=over
+
+=item --html
+
+HTMLディレクトリをチェックする。
+このオプションが渡されると、B<*.html>にマッチするファイルのみをチェックする。
+(デフォルトはB<*.txt>)
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

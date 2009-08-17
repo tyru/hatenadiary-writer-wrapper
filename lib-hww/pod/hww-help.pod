@@ -13,7 +13,7 @@
 
 show help.
 or if command name was given, show help about its command.
-(help text is written as pod under lib-hww/pod/)
+(help text is written as pod under B<lib-hww/pod/>)
 
 
 =head1 OPTIONS

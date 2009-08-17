@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-    hww-release - upload entries to hatena diary
+    hww-release - post entries to hatena diary
 
 
 =head1 SYNOPSIS
@@ -11,7 +11,7 @@
 
 =head1 DESCRIPTION
 
-upload entries to hatena diary.
+post entries to hatena diary.
 this command calls hw.pl internally.
 
 
@@ -27,8 +27,8 @@ we will rewrite old subroutines which does not use Hatena AtomPub API in the fut
 
 =item -t, --trivial
 
-upload entries as trivial. see also perldoc -F hw.pl about '-t' option.
-this is identical with 'update' command.
+post entries as trivial. see also perldoc -F hw.pl about B<-t> option.
+B<release -t> is identical with B<update> command.
 
 =back
 

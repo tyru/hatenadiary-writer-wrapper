@@ -18,7 +18,7 @@ generate htmls in second directory from entry files in first directory
 if two path are both files (or second path doesn't exist),
 generate a html to second path from first path.
 
-and if you give '-i' option, exec 'update-index' command
+and if you give B<-i> option, exec B<update-index> command
 after this command performed.
 
 
@@ -28,7 +28,15 @@ after this command performed.
 
 =item -i, --update-index
 
-exec 'update-index' command after this command.
+if this option was given and if two directories were given,
+this performs 'perl hww.pl update-index <destination directory>'.
+
+or if this option was given and if two files were given,
+this performs 'perl hww.pl update-index <directory of destination file>'.
+
+=item -I <template file>
+
+this performs 'perl hww.pl update-index <template file> <destination directory>'.
 
 =item -m, --missing-only
 

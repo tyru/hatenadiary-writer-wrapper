@@ -1,0 +1,30 @@
+
+=head1 NAME
+
+    hww-chain - '--'で繋がれたコマンドを実行する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl chain COMMANDS [-- COMMANDS ...]
+
+
+=head1 EXAMPLES
+
+    # ヘルプとバージョンを表示
+    $ perl hww.pl chain help -- version
+
+    # これは'perl hww.pl gen-html -I index.tmpl from to'と同じこと
+    $ perl hww.pl chain gen-html from to -- update-index index.tmpl to
+
+
+=head1 OPTIONS
+
+このコマンドのオプションは存在しない。
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

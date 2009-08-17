@@ -1,0 +1,46 @@
+
+=head1 NAME
+
+    hww-load - はてなダイアリーからエントリを取ってくる
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl load [-a | --all] [-d | --draft] [--] <directory>
+    or
+    perl hww.pl load <YYYY-MM-DD>
+
+
+=head1 DESCRIPTION
+
+全てのエントリーを持ってくるにはB<--all>オプションを参照。
+特定の日付のエントリーを持ってきたければB<YYYY-MM-DD>
+(B<YYYY>は4桁の年。B<MM>は2桁の月。B<DD>は2桁の日)のフォーマットで日付を指定する。
+このフォーマットはB<hw.pl>のB<-l>オプションと互換性がある。
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+全てのエントリを持ってくる。
+これは
+http://d.hatena.ne.jp/tyru/export
+にGETして、全てのエントリーの内容が入ったXMLをパースして保存する。
+
+=item -d, --draft
+
+全ての下書きファイルを保存する。
+このオプションを渡す時に--allオプションを渡す必要はない。
+むしろその場合--allオプションの方が優先度が高いため、
+全てのエントリを取ってきてしまう。
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

@@ -1,0 +1,57 @@
+
+=head1 NAME
+
+    hww-gen-html - 日記ファイルからHTMLを生成する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl gen-html [-i | --update-index] [-m | --missing-only] [--] [<directory> <directory> | <file> <file>]
+
+
+
+=head1 DESCRIPTION
+
+もし渡された2つのパスがディレクトリなら(2つ目のパスは存在しなくてもいい)
+1つ目のディレクトリの中の日記ファイルからそれぞれHTMLを生成する。
+
+もし渡された2つのパスがファイルなら(2つ目のパスは存在しなくてもいい)
+1つ目の日記ファイルから1つのHTMLファイルを生成する。
+
+また、もしB<--update-index>オプションが渡されていたなら、
+B<update-index>コマンドをB<gen-html>コマンドの終わりに実行する。
+
+
+=head1 OPTIONS
+
+=over
+
+=item -i, --update-index
+
+もしこのオプションと共に2つのディレクトリが渡されていたなら、
+'perl hww.pl update-index <destination directory>'
+と同様のことを実行する。
+
+または、もしこのオプションと共に2つのファイルが渡されていたなら、
+'perl hww.pl update-index <directory of destination file>'
+と同様のことを実行する。
+
+=item -I <template file>
+
+このオプションは、
+'perl hww.pl update-index <template file> <destination directory>'
+と同様のことを実行する。
+
+=item -m, --missing-only
+
+存在しないHTMLのみ生成する。
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+
+

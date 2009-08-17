@@ -1,0 +1,36 @@
+
+=head1 NAME
+
+    hww-release - はてなダイアリーにエントリーを投稿する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl release [-t | --trivial]
+
+
+=head1 DESCRIPTION
+
+このコマンドは現在https://www.hatena.ne.jp/loginにGETし、
+ログインした状態ではてなダイアリーを操作しているが、
+将来WSSE認証とHatena AtomPub APIによる投稿に書き換える予定である。
+
+
+=head1 OPTIONS
+
+=over
+
+=item -t, --trivial
+
+「ちょっとした更新」にする。
+これはhw.plのB<-t>オプションに対応するものである。
+B<release -t>はB<update>コマンドと同等なものである。
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+
+

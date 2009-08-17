@@ -13,9 +13,11 @@
 
 =head1 DESCRIPTION
 
-load entries from hatena diary.
-if you don't give any options, load diary of YYYY-MM-DD.
-see hw.pl's '-l' option.
+to fetch all entries, see B<--all> option.
+if you want to fetch one entry,
+specify that day in the format of B<YYYY-MM-DD>.
+(B<YYYY> is year, B<MM> is month, B<DD> is day)
+this format is compatible with hw.pl's B<-l> option.
 
 
 =head1 OPTIONS

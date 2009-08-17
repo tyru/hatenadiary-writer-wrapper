@@ -1,0 +1,27 @@
+
+=head1 NAME
+
+    hww-help - hwwの様々なヘルプを表示する
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl help [COMMAND]
+
+
+=head1 DESCRIPTION
+
+もし引数が何もなければ、hwwの簡単なヘルプを表示する。
+もしコマンド名が渡されれば、そのコマンドのヘルプを表示する。
+(ヘルプファイルはB<lib-hww/pod/>ディレクトリに保存されている)
+
+
+=head1 OPTIONS
+
+このコマンドのオプションは存在しない。
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
+

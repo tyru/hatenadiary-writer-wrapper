@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-    hww-update-index - make html from template file by HTML::Template
+    hww-update-index - テンプレートファイルからHTMLを生成する
 
 
 =head1 SYNOPSIS
@@ -11,8 +11,9 @@
 
 =head1 DESCRIPTION
 
-make index.html or other filename's html file from template file.
-this defines some parameter and generate html file by HTML::Template.
+index.htmlか他のファイル名のHTMLファイルをテンプレートファイルから生成する。
+このコマンドはいくつかのパラメータを定義し、
+HTML::Templateによってその値を元にテンプレートファイルを生成する。
 
 
 =head1 THE SAMPLES OF THE TEMPLATE FILE
@@ -30,8 +31,8 @@ this defines some parameter and generate html file by HTML::Template.
   </TMPL_LOOP>
 
 
-this is my index.html.
-this might be published at 'http://tyru.yu-nagi.com/hateda-mirror/index.html'.
+以下は私のindex.htmlである。
+HTMLは'http://tyru.yu-nagi.com/hateda-mirror/index.html'で公開されているかもしれない。
 
   <?xml version="1.0" encoding="UTF-8"?>
   <html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja">
@@ -98,8 +99,8 @@ this might be published at 'http://tyru.yu-nagi.com/hateda-mirror/index.html'.
 
 =item -m <length>, --max-length <length>
 
-define max length of summary's literal bytes.
-but currently this option value is recognized as string bytes.
+要約の文字数分の最大値を決める。
+しかし現在このオプションの値はバイト値として扱われる。
 
 =back
 
