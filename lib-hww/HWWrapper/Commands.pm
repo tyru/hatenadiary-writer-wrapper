@@ -11,6 +11,7 @@ our $VERSION = "1.0.22";
 #
 # and this package also exports these ops.
 use HWWrapper::Hook::BuiltinFunc;
+
 use HWWrapper::Functions;
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 
@@ -167,12 +168,16 @@ our %HWW_COMMAND = (
     },
     truncate => {
         coderef => \&truncate_cmd,
-    }
-
-    # TODO
-    # editor => {
-    #     coderef => \&editor,
-    # },
+    },
+    editor => {
+        coderef => \&editor,
+        # TODO
+        # option => {
+        #     'g|gui' => {
+        #         desc => 'watch until editor exits.',
+        #     },
+        # },
+    },
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
@@ -1476,6 +1481,42 @@ sub truncate_cmd {
         }
 
         $truncate->($file);
+    }
+}
+
+sub editor {
+    my ($self, $args, $opt) = @_;
+
+    unless (exists $ENV{EDITOR}) {
+        error("set 'EDITOR' environment variable.");
+    }
+    my $editor = $ENV{EDITOR};
+    my ($year, $month, $day) = (localtime)[5, 4, 3];
+    $year  += 1900;
+    $month += 1;
+    my $entrypath = $self->text_filename($year, $month, $day);
+    my $exist_entry = (-f $entrypath);
+    my $mtime       = (-M $entrypath);
+
+    # open the editor.
+    system $editor, $entrypath;
+
+    # check entry's status
+    if ($exist_entry) {
+        if ($mtime == -M $entrypath) {
+            puts("changed $entrypath.");
+        }
+        else {
+            puts("not changed $entrypath.");
+        }
+    }
+    else {
+        if (-f $entrypath) {
+            puts("saved $entrypath.");
+        }
+        else {
+            puts("not saved $entrypath.");
+        }
     }
 }
 
