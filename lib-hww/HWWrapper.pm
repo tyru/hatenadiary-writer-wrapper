@@ -88,7 +88,7 @@ sub new {
         };
     }
     else {
-        croak "currently 'args' option is required!!";
+        croak "currently, 'args' option is required!!";
     }
 
 
@@ -239,9 +239,24 @@ sub dispatch {
     debug(sprintf '$self->dispatch(%s) at %s line %s',
             join(', ', map { dumper($_) } @_), $filename, $line);
 
+    # get arguments value
+    my %opt;
+    my $cmd_info = $HWWrapper::Commands::HWW_COMMAND{$cmd};
+    if (exists $cmd_info->{option}) {
+        # prepare result options.
+        %opt = map {
+            $_ => \do {my $anon_scalar}
+        } keys %{ $cmd_info->{option} };
 
-    my $coderef = $HWWrapper::Commands::HWW_COMMAND{$cmd}{coderef};
-    $coderef->($self, $args);
+        # get options.
+        $self->get_opt($args, \%opt) or $self->arg_error($cmd);
+
+        # deref values.
+        %opt = map { $_ => ${ $opt{$_} } } keys %opt;
+    }
+
+    # dispatch
+    $cmd_info->{coderef}->($self, $args, \%opt);
 }
 
 ### dispatch_with_args() ###

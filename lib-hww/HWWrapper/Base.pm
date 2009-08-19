@@ -230,12 +230,16 @@ sub get_touchdate {
 
 sub arg_error {
     my $self = shift;
-    my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
-    $filename = basename($filename);
-    debug("arg_error: called at $filename line $line");
+    my $cmdname = shift;
 
-    $subname =~ s/.*:://;    # delete package's name
-    (my $cmdname = $subname) =~ s/_/-/g;    # XXX
+    unless (defined $cmdname) {
+        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
+        $filename = basename($filename);
+        debug("arg_error: called at $filename line $line");
+
+        $subname =~ s/.*:://;    # delete package's name
+        ($cmdname = $subname) =~ s/_/-/g;    # TODO search $subname in %HWWrapper::Commands::HWW_COMMAND
+    }
 
     # print "error: " string to STDERR.
     eval {

@@ -209,7 +209,7 @@ sub parse_date {
     my $self = shift;
     my ($date) = @_;
     if ($date !~ /\A(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?(?:\.txt)?\Z/) {
-        error("Illegal date format.");
+        error("$date: Illegal date format.");
     }
     return ($1, $2, $3);
 }

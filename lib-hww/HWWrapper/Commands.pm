@@ -37,10 +37,7 @@ our %HWW_COMMAND = (
     init => {
         coderef => \&init,
         option => {
-            config => {
-                desc => "apply config's settings",
-            },
-            c => {
+            'c|config' => {
                 desc => "apply config's settings",
             },
         },
@@ -49,10 +46,7 @@ our %HWW_COMMAND = (
         coderef => \&release,
         desc => 'upload entries to hatena diary',
         option => {
-            trivial => {
-                desc => "upload entries as trivial",
-            },
-            t => {
+            't|trivial' => {
                 desc => "upload entries as trivial",
             },
         },
@@ -61,10 +55,7 @@ our %HWW_COMMAND = (
         coderef => \&update,
         desc => 'upload entries to hatena diary as trivial',
         option => {
-            trivial => {
-                desc => "upload entries as trivial",
-            },
-            t => {
+            't|trivial' => {
                 desc => "upload entries as trivial",
             },
         },
@@ -73,24 +64,18 @@ our %HWW_COMMAND = (
         coderef => \&load,
         desc => 'load entries from hatena diary',
         option => {
-            all => {
+            'a|all' => {
                 desc => "fetch all entries",
             },
-            a => {
-                desc => "fetch all entries",
-            },
-            draft => {
+            'd|draft' => {
                 desc => "fetch all draft entries",
             },
-            d => {
-                desc => "fetch all draft entries",
-            },
-            'missing-only' => {
+            'm|missing-only' => {
                 desc => "fetch only missing entries",
             },
-            m => {
-                desc => "fetch only missing entries",
-            },
+            # TODO fetch only different data's entries.
+            # 'c|compare' => {
+            # },
         },
     },
     verify => {
@@ -106,16 +91,10 @@ our %HWW_COMMAND = (
         coderef => \&status,
         desc => 'show information about entry files',
         option => {
-            all => {
+            'a|all' => {
                 desc => "show all entries",
             },
-            a => {
-                desc => "show all entries",
-            },
-            C => {
-                desc => "do not show caption and indent",
-            },
-            'no-caption' => {
+            'C|no-caption' => {
                 desc => "do not show caption and indent",
             },
         },
@@ -124,10 +103,7 @@ our %HWW_COMMAND = (
         coderef => \&apply_headline,
         desc => 'rename if modified headlines',
         option => {
-            all => {
-                desc => "check and rename all files",
-            },
-            a => {
+            'a|all' => {
                 desc => "check and rename all files",
             },
         },
@@ -135,10 +111,7 @@ our %HWW_COMMAND = (
     'revert-headline' => {
         coderef => \&revert_headline,
         option => {
-            all => {
-                desc => "check and rename all files",
-            },
-            a => {
+            'a|all' => {
                 desc => "check and rename all files",
             },
         },
@@ -151,19 +124,13 @@ our %HWW_COMMAND = (
         coderef => \&gen_html,
         desc => 'generate htmls from entry files',
         option => {
-            'update-index' => {
+            'i|update-index' => {
                 desc => "exec 'update-index' command after 'gen-html'",
             },
-            i => {
-                desc => "exec 'update-index' command after 'gen-html'",
-            },
-            I => {
+            'I=s' => {
                 desc => "exec 'update-index' command with specified template file after 'gen-html'",
             },
-            'missing-only' => {
-                desc => "generate html only missing entries",
-            },
-            m => {
+            'm|missing-only' => {
                 desc => "generate html only missing entries",
             },
         },
@@ -172,10 +139,7 @@ our %HWW_COMMAND = (
         coderef => \&update_index,
         desc => 'make html from template file by HTML::Template',
         option => {
-            'max-length' => {
-                desc => "max summary byte length",
-            },
-            m => {
+            'm|max-length=s' => {
                 desc => "max summary byte length",
             },
         },
@@ -187,18 +151,15 @@ our %HWW_COMMAND = (
     diff => {
         coderef => \&diff,
         option => {
-            dir => {
+            'd|dir=s' => {
                 desc => "diff all entries in that directory",
             },
-            d => {
-                desc => "diff all entries in that directory",
-            },
-            file => {
+            'f|file=s' => {
                 desc => "diff only one file",
             },
-            f => {
-                desc => "diff only one file",
-            },
+            # TODO
+            # 'format=s' => {},
+            # all => {},
         },
     },
     shell => {
@@ -207,6 +168,11 @@ our %HWW_COMMAND = (
     truncate => {
         coderef => \&truncate_cmd,
     }
+
+    # TODO
+    # editor => {
+    #     coderef => \&editor,
+    # },
 
     # TODO commands to manipulate tags.
     # 'add-tag' => 'add_tag',
@@ -309,17 +275,13 @@ EOD
 
 # TODO write help pod
 sub init {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
+
+    my $read_config = $opt->{'c|config'};
 
     my $txt_dir = "text";
     my $config_file = "config.txt";
     my $cookie_file = "cookie.txt";
-
-    my $read_config;
-    $self->get_opt($args, {
-        config => \$read_config,
-        c => \$read_config,
-    }) or $self->arg_error();
 
     my $dir = shift @$args;
     if (defined $dir) {
@@ -370,14 +332,8 @@ EOT
 
 # upload entries to hatena diary
 sub release {
-    my ($self, $args) = @_;
-
-    my $trivial;
-    $self->get_opt($args, {
-        trivial => \$trivial,
-        t => \$trivial,
-    }) or $self->arg_error();
-    $self->trivial = $trivial;
+    my ($self, $args, $opt) = @_;
+    $self->trivial = $opt->{'t|trivial'};
 
     if (@$args) {
         unless (-e $args->[0]) {
@@ -470,29 +426,18 @@ sub release {
 
 # upload entries to hatena diary as trivial
 sub update {
-    my ($self, $args) = @_;
-    unshift @$args, '-t';
-    $self->release($args);
+    my ($self, $args, $opt) = @_;
+    $opt->{'t|trivial'} = 1;
+    $self->release($args, $opt);
 }
 
 # load entries from hatena diary
 sub load {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $all;
-    my $draft;
-    my $missing_only;
-    $self->get_opt($args, {
-        all => \$all,
-        a => \$all,
-        draft => \$draft,
-        d => \$draft,
-        # TODO comparing each entries, and it's different, fetch it.
-        # 'compare' => \$compare,
-        # 'c' => \$compare,
-        'missing-only' => \$missing_only,
-        m => \$missing_only,
-    }) or $self->arg_error();
+    my $all = $opt->{'a|all'};
+    my $draft = $opt->{'d|draft'};
+    my $missing_only = $opt->{'m|missing-only'};
 
 
     if ($all) {
@@ -668,38 +613,32 @@ sub load {
         $self->logout();
 
     }
+    elsif (defined(my $ymd = shift @$args)) {
+        my ($year, $month, $day) = $self->parse_date($ymd);
+
+        $self->login();
+
+        puts("Load $year-$month-$day.");
+        my ($title, $body) = $self->load_diary_entry($year, $month, $day);
+        $self->save_diary_entry($year, $month, $day, $title, $body);
+        puts("Load OK.");
+
+        $self->logout();
+    }
     else {
-        if (defined(my $ymd = shift(@$args))) {
-            my ($year, $month, $day) = $self->parse_date($ymd);
-
-            $self->login();
-
-            puts("Load $year-$month-$day.");
-            my ($title, $body) = $self->load_diary_entry($year, $month, $day);
-            $self->save_diary_entry($year, $month, $day, $title, $body);
-            puts("Load OK.");
-
-            $self->logout();
-        }
-        else {
-            $self->arg_error;
-        }
+        $self->arg_error;
     }
 }
 
 # verify misc information
 # NOTE: currently only checking duplicated entries.
 sub verify {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $verify_html;
-    $self->get_opt($args, {
-        html => \$verify_html,
-    }) or $self->arg_error();
-
-    my $dir = shift(@$args);
-    my $fileglob;
-    if ($verify_html) {
+    my $dir = shift @$args;
+    my $fileglob = '*.txt';
+    # verify html files.
+    if ($opt->{html}) {
         $fileglob = '*.html';
     }
 
@@ -752,16 +691,10 @@ sub verify {
 
 # show information about entry files
 sub status {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $all;
-    my $no_caption;
-    $self->get_opt($args, {
-        all => \$all,
-        a => \$all,
-        C => \$no_caption,
-        'no-caption' => \$no_caption,
-    }) or $self->arg_error();
+    my $all = $opt->{'a|all'};
+    my $no_caption = $opt->{'C|no-caption'};
 
     # if undef, $self->txt_dir is used.
     my $dir = shift @$args;
@@ -800,13 +733,7 @@ sub status {
 
 # rename if modified headlines.
 sub apply_headline {
-    my ($self, $args) = @_;
-
-    my $all;
-    $self->get_opt($args, {
-        all => \$all,
-        a => \$all,
-    }) or $self->arg_error();
+    my ($self, $args, $opt) = @_;
 
 
     my $apply = sub {
@@ -836,7 +763,7 @@ sub apply_headline {
         }
     };
 
-    if ($all) {
+    if ($opt->{'a|all'}) {
         my $dir = @$args ? $args->[0] : $self->txt_dir;
         my @entry = $self->get_entries($dir);
         unless (@entry) {
@@ -860,13 +787,7 @@ sub apply_headline {
 
 # TODO ヘルプ書く
 sub revert_headline {
-    my ($self, $args) = @_;
-
-    my $all;
-    $self->get_opt($args, {
-        all => \$all,
-        a => \$all,
-    }) or $self->arg_error();
+    my ($self, $args, $opt) = @_;
 
 
     my $revert = sub {
@@ -888,7 +809,7 @@ sub revert_headline {
         }
     };
 
-    if ($all) {
+    if ($opt->{'a|all'}) {
         my $dir = @$args ? $args->[0] : $self->txt_dir;
         my @entry = $self->get_entries($dir);
         unless (@entry) {
@@ -937,25 +858,21 @@ sub touch {
 
 # generate htmls from entry files
 sub gen_html {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $make_index;
-    my $index_tmpl;
-    my $missing_only;
-    $self->get_opt($args, {
-        'update-index' => \$make_index,
-        i => \$make_index,
-        'I=s' => \$index_tmpl,
-        'missing-only' => \$missing_only,
-        m => \$missing_only,
-    }) or $self->arg_error();
+    my $make_index = $opt->{'i|update-index'};
+    my $index_tmpl = $opt->{'I=s'};
+    my $missing_only = $opt->{'m|missing-only'};
 
+    # prereq modules.
     require_modules(qw(Text::Hatena));
 
+    # both are directories, or both are files.
     my ($in, $out) = @$args;
     if (! defined $in || ! defined $out) {
         $self->arg_error;
     }
+
 
     my $gen_html = sub {
         my ($in, $out) = @_;
@@ -1022,13 +939,15 @@ sub gen_html {
 
 # make html from template file by HTML::Template
 sub update_index {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $max_strlen = 200;
-    $self->get_opt($args, {
-        'max-length=s' => \$max_strlen,
-        'm=s' => \$max_strlen,
-    }) or $self->arg_error();
+    my $max_strlen;
+    if (defined $opt->{'m|max-length=s'}) {
+        $max_strlen = $opt->{'m|max-length=s'};
+    }
+    else {
+        $max_strlen = 200;
+    }
 
 
     require_modules(qw(
@@ -1215,21 +1134,10 @@ sub chain {
 
 # TODO ヘルプ書く
 sub diff {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
 
-    my $dir;
-    my $file;
-    my $format;
-    my $all;
-    $self->get_opt($args, {
-        'd=s' => \$dir,
-        'dir=s' => \$dir,
-        # TODO
-        # 'format=s' => \$format,
-        # all => \$all,
-        'f=s' => \$file,
-        'file=s' => \$file,
-    }) or $self->arg_error();
+    my $dir = $opt->{'d|dir=s'};
+    my $file = $opt->{'f|file=s'};
 
     if (defined $dir) {
         $self->txt_dir = $dir;
