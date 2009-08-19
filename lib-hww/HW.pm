@@ -24,7 +24,7 @@ package HW;
 
 use strict;
 use warnings;
-our $VERSION = "1.5.38";
+our $VERSION = "1.5.39";
 
 use base qw(HWWrapper::Base);
 
