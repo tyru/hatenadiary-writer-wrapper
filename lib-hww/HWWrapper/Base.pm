@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.2.0";
+our $VERSION = "1.3.0";
 
 # import builtin op's hooks
 # (these ops are hooked in HWWrapper::Commands::shell())
