@@ -13,6 +13,8 @@ package HWWrapper;
 # - プロファイリングして最適化
 # - '--verbose'オプションを追加。
 # -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
+# - login()のwsse対応
+# - configにwsseヘッダを保存するファイル名を追加
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -28,7 +30,6 @@ package HWWrapper;
 # -- それLWP::Authen::Wsse使ってるからじゃ・・・
 # -- 違った。はてなのAtomPub APIがcookieでの認証廃止したからだった。
 # 受け取ったcookieは即expiredになる。
-
 
 
 # NOTE
