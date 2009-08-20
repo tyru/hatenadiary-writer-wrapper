@@ -171,12 +171,11 @@ our %HWW_COMMAND = (
     },
     editor => {
         coderef => \&editor,
-        # TODO
-        # option => {
-        #     'g|gui' => {
-        #         desc => 'watch until editor exits.',
-        #     },
-        # },
+        option => {
+            'g|gui' => {
+                desc => 'wait until gui program exits',
+            },
+        }
     },
 
     # TODO commands to manipulate tags.
@@ -1487,6 +1486,8 @@ sub truncate_cmd {
 sub editor {
     my ($self, $args, $opt) = @_;
 
+    my $is_gui_prog = $opt->{'g|gui'};
+
     unless (exists $ENV{EDITOR}) {
         error("set 'EDITOR' environment variable.");
     }
@@ -1498,8 +1499,48 @@ sub editor {
     my $exist_entry = (-f $entrypath);
     my $mtime       = (-M $entrypath);
 
-    # open the editor.
-    system $editor, $entrypath;
+
+    puts("opening editor...");
+
+    if ($is_gui_prog) {
+        require_modules(qw(IPC::Run));
+
+        # prepare editor process.
+        my $editor_proc = IPC::Run::harness(
+            [$editor, $entrypath], \my $in, \my $out, \my $err
+        );
+
+        # install signal handlers.
+        my @sig_to_trap = qw(INT);
+        local @SIG{@sig_to_trap} = map {
+            my $signame = $sig_to_trap[$_];
+            STDERR->autoflush(1);
+
+            sub {
+                STDERR->print(
+                   "caught SIG$signame, "
+                   ."sending SIGKILL to editor process...\n"
+                );
+                # kill the process immediatelly.
+                # (wait 0 second)
+                $editor_proc->kill_kill(grace => 0);
+
+                debug("exiting with -1...");
+                exit -1;
+            };
+        } 0 .. $#sig_to_trap;
+
+        # spawn editor program.
+        debug("start [$editor $entrypath]...");
+        $editor_proc->start;
+        debug("finish [$editor $entrypath]...");
+        $editor_proc->finish;
+        debug("done.");
+    }
+    else {
+        system $editor, $entrypath;
+    }
+
 
     # check entry's status
     if ($exist_entry) {
