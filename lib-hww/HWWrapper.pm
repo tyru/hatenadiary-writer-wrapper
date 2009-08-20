@@ -3,18 +3,15 @@ package HWWrapper;
 # TODO
 # - コマンドのヘルプドキュメント書く
 # - $selfがblessedされてるかチェックするアトリビュート
-# - ログインなどの処理をHatena AtomPub APIを使うように書き換える。
+# - Hatena AtomPub APIを使うように書き換える
 # 現在の処理もオプションで指定すれば使用できるようにする。
 # - 'load'コマンドで取ってきたファイルの先頭行に空行が入るバグを直す
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
 # - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
 # - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
-# - %HWWrapper::Commands::HWW_COMMANDを見て、dispatchでget_optを事前にやっといて、第3引数として渡す
 # - プロファイリングして最適化
 # - '--verbose'オプションを追加。
 # -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
-# - login()のwsse対応
-# - configにwsseヘッダを保存するファイル名を追加
 #
 # - config-hww.txtにHWWrapperの設定を書く
 # -- フォーマットはYAML
@@ -23,13 +20,6 @@ package HWWrapper;
 # -- hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
 # -- コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く設定 (zshのcorrectみたいに)
 # -- パスワードを入力中、端末に表示するかしないか
-#
-# XXX
-# - save_diary_draft()がクッキーを使ってログインできてない気がする
-# (一回ログインした次が401 Authorizedになる)
-# -- それLWP::Authen::Wsse使ってるからじゃ・・・
-# -- 違った。はてなのAtomPub APIがcookieでの認証廃止したからだった。
-# 受け取ったcookieは即expiredになる。
 
 
 # NOTE

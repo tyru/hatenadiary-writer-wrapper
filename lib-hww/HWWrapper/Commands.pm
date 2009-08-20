@@ -534,10 +534,6 @@ sub load {
 
     }
     elsif ($draft) {
-        # FIXME
-        # unstable.
-        # sometimes I can't login.
-        # (something wrong with cookie.txt ?)
         require_modules(qw(XML::TreePP));
 
 
@@ -1312,7 +1308,6 @@ sub diff {
                         if $prev_word eq $last_args->[0] && ! $completed;
 
                     # complete options
-                    # XXX not completed...
                     my $options = $HWW_COMMAND{ $last_args->[0] }{option};
                     if (@$last_args >= 2 && $last_args->[-1] =~ /^(--?)(.*)$/) {
                         my ($bar, $opt) = ($1, $2);

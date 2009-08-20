@@ -10,6 +10,7 @@ use File::Spec;
 use FindBin qw($Bin);
 use lib "$Bin/lib-hww";
 
+# use HWWrapper;    # for debug.
 eval { require HWWrapper };
 if ($@) {
     die <<EOM;

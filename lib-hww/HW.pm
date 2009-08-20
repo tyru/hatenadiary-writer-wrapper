@@ -116,6 +116,7 @@ sub new {
         # string to delete entry from hatena diary.
         # see the URLs at the top of the front comment lines.
         delete_title => 'delete',
+
         cookie_jar => undef,
         user_agent => undef,
 
