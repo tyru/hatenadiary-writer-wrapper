@@ -26,7 +26,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.7.0";
+our $VERSION = "1.7.1";
 
 use base qw(HWWrapper::Base);
 
