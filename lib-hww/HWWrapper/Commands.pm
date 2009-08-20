@@ -1203,6 +1203,7 @@ sub diff {
 {
     my %shell_cmd;
     my $dwarn;
+    my $get_options;
     my $grep_cmd;
     my $term;
     my $initialized;
@@ -1236,6 +1237,13 @@ sub diff {
                 sleep 1;
             };
 
+            # split '|' in options.
+            $get_options = sub {
+                map {
+                    /\|/ ? (split /\|/) : $_
+                } keys %{ $_[0] };
+            };
+
             # find commands in $all_options.
             # e.g.:
             # $incomp_cmd: di
@@ -1249,7 +1257,7 @@ sub diff {
                         )
                     }
                     $incomp_cmd eq substr($_, 0, length $incomp_cmd)
-                } keys %$all_options;
+                } $get_options->($all_options);
             };
 
             $term = Term::ReadLine->new;
@@ -1309,7 +1317,7 @@ sub diff {
                         }
                         else {
                             $dwarn->("all options");
-                            return map { $bar.$_ } keys %$options;
+                            return map { $bar.$_ } $get_options->($options);
                         }
                     }
                     return undef;
