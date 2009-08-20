@@ -8,18 +8,20 @@ use utf8;
 use File::Spec;
 
 use FindBin qw($Bin);
-our $BASE_DIR;
-our $HWW_LIB;
-BEGIN {
-    $BASE_DIR = $Bin;
-    $HWW_LIB = "$Bin/lib-hww";
+use lib "$Bin/lib-hww";
+
+eval { require HWWrapper };
+if ($@) {
+    die <<EOM;
+error: no prereq modules.
+
+you need to install some modules,
+please see README.md for install.
+
+EOM
 }
-use lib $HWW_LIB;
 
-use HWWrapper;
 my $wrapper = HWWrapper->new(args => \@ARGV);
-
-
 
 ### sub ###
 sub usage () {
