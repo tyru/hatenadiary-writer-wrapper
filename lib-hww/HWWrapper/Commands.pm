@@ -519,6 +519,7 @@ sub load {
                 error($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
             }
 
+            # XXX $year-$month-$dayは0詰めされた日付？
             unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
                 $self->save_diary_entry(
                     $year,
@@ -1215,8 +1216,6 @@ sub diff {
 {
     my %shell_cmd;
     my $dwarn;
-    my $get_options;
-    my $grep_cmd;
     my $term;
     my $initialized;
 
@@ -1249,8 +1248,12 @@ sub diff {
                 sleep 1;
             };
 
+            my $comp_cmd = sub { keys %HWW_COMMAND };
+            my $comp_files = sub {
+            };
+
             # split '|' in options.
-            $get_options = sub {
+            my $get_options = sub {
                 map {
                     /\|/ ? (split /\|/) : $_
                 } keys %{ $_[0] };
@@ -1260,7 +1263,7 @@ sub diff {
             # e.g.:
             # $incomp_cmd: di
             # $all_options: { diff => { ... }, help => { ...}, ... }
-            $grep_cmd = sub {
+            my $grep_cmd = sub {
                 my ($incomp_cmd, $all_options) = @_;
                 grep {
                     if ($self->is_debug) {
@@ -1271,6 +1274,29 @@ sub diff {
                     $incomp_cmd eq substr($_, 0, length $incomp_cmd)
                 } $get_options->($all_options);
             };
+
+            my $glob_files = sub {
+                my %opt = @_;
+                $opt{file} = '*' unless exists $opt{file};
+
+                # TODO hidden files?
+                if (exists $opt{dir} && -d $opt{dir}) {
+                    $dwarn->("complete $opt{file} in '$opt{dir}'");
+                    glob $opt{dir}.'/'.$opt{file};
+                }
+                else {
+                    $dwarn->("complete $opt{file} in current dir");
+                    glob $opt{file};
+                }
+            };
+
+            # directory's separator.
+            my %sep = (
+                MSWin32 => qr{\\ | /}x,
+                MacOS => ':',
+            );
+            my $sep = exists $sep{$^O} ? $sep{$^O} : '/';
+
 
             $term = Term::ReadLine->new;
 
@@ -1284,18 +1310,15 @@ sub diff {
                     return undef;
                 }
 
-                # all commands
-                my @commands = keys %HWW_COMMAND;
-
 
                 my @args = shell_eval_str($cur_text);
                 if (@args == 0) {
-                    return @commands
+                    return $comp_cmd->();
                 }
 
                 my $last_args = $args[-1];
                 if (@$last_args == 0) {
-                    return @commands;
+                    return $comp_cmd->();
                 }
                 $dwarn->(join '', map { "[$_]" } @$last_args);
 
@@ -1303,13 +1326,13 @@ sub diff {
                 if ($last_args->[0] eq 'help') {
                     # stop completion
                     # unless num of args is 1, or num of args is 2 and not completed
-                    return undef
+                    return $glob_files->()
                         unless @$last_args == 1 || (@$last_args == 2 && ! $completed);
                     # if arg 1 'help' is not completed, return it
                     return $last_args->[0]
                         if $prev_word eq 'help' && ! $completed;
                     # or return all commands
-                    return @commands;
+                    return $comp_cmd->();
                 }
                 # complete command
                 elsif (is_hww_command($last_args->[0])) {
@@ -1331,15 +1354,25 @@ sub diff {
                             return map { $bar.$_ } $get_options->($options);
                         }
                     }
-                    return undef;
+
+                    if ($completed) {
+                        return $glob_files->();
+                    }
+                    elsif ($last_args->[-1] =~ m{^ (.*) $sep $}x) {    # ending with $sep
+                        # complete directory's files
+                        return $glob_files->(dir => $1);
+                    } else {
+                        # complete incomplete files
+                        return $glob_files->(file => $last_args->[-1].'*');
+                    }
                 }
                 # incomplete command
                 elsif (my @match = $grep_cmd->($last_args->[0], \%HWW_COMMAND)) {
                     return @match;
                 }
 
-                $dwarn->("no more completion...");
-                return undef;
+
+                return $glob_files->();
             };
 
             debug("initialized shell...");

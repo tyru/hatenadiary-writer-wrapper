@@ -61,6 +61,7 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
+    # TODO
     # unlink($HW::cookie_file);    # from HW::error_exit()
 
     die @errmsg;

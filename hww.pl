@@ -12,6 +12,9 @@ use lib "$Bin/lib-hww";
 
 # use HWWrapper;    # for debug.
 eval { require HWWrapper };
+
+# TODO
+# die if 'require error'
 if ($@) {
     die <<EOM;
 error: no prereq modules.
