@@ -18,25 +18,21 @@ perl -MCPAN -e 'install Bundle::HWWrapper'
 
 =head1 CONTENTS
 
-# for HWWrapper::Base
-List::MoreUtils
-
-# for HW
-LWP::UserAgent
-HTTP::Request::Common
 Crypt::SSLeay
-URI
-IO::Prompt
-
-# for HWWrapper
 Date::Manip
 DateTime
 HTML::Template
 HTML::TreeBuilder
-Text::Hatena
-XML::TreePP
-LWP::Authen::Wsse
+HTTP::Request::Common
+IO::Prompt
 IO::String
+IPC::Run
+LWP::Authen::Wsse
+LWP::UserAgent
+List::MoreUtils
+Text::Hatena
+URI
+XML::TreePP
 
 
 =head1 AUTHOR
