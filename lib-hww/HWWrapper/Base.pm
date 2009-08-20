@@ -298,15 +298,6 @@ sub mk_accessors {
 ### from HW.pm ###
 # (...and original subrontines from hateda loader)
 
-sub parse_date {
-    my $self = shift;
-    my ($date) = @_;
-    if ($date !~ /\A(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?(?:\.txt)?\Z/) {
-        error("$date: Illegal date format.");
-    }
-    return ($1, $2, $3);
-}
-
 # Login.
 sub login {
     my $self = shift;
@@ -808,8 +799,7 @@ sub get_entrypath {
     }
 
     # not found entry's path.
-    my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
-    my $filename = $datename.join('-', @$headlines).'.txt';
+    my $filename = cat_date($year, $month, $day).join('-', @$headlines).'.txt';
     return File::Spec->catfile($self->txt_dir, $filename);
 }
 

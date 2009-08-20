@@ -315,6 +315,30 @@ sub familiar_words {
     return @familiar;
 }
 
+# split 'date'.
+#
+# NOTE:
+# $self->get_entrydate() takes path,
+# and returns undef or hash reference.
+sub split_date {
+    my $date = shift;
+    if ($date =~ /\A(\d{4})-(\d{2})-(\d{2})(?:-.+)?(?:\.txt)?\Z/) {
+        return ($1, $2, $3);
+    }
+    else {
+        error("$date: Illegal date format.");
+    }
+}
+
+# concat 'date'.
+sub cat_date {
+    my ($year, $month, $day, $headlines) = @_;
+    # concat ymd.
+    my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
+    # concat headlines
+    $datename .= defined $headlines ? '-'.join('-', @$headlines) : '';
+    return $datename;
+}
 
 
 1;

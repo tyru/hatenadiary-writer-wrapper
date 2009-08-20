@@ -618,7 +618,7 @@ sub load {
 
     }
     elsif (defined(my $ymd = shift @$args)) {
-        my ($year, $month, $day) = $self->parse_date($ymd);
+        my ($year, $month, $day) = split_date($ymd);
 
         $self->login();
 
@@ -660,12 +660,7 @@ sub verify {
     for my $file (@entry) {
         my $date = $self->get_entrydate($file);
         dump($date);
-        # no checking because $self->get_entries()
-        # might return only existed file.
-        my $ymd = sprintf "%s-%s-%s",
-                            $date->{year},
-                            $date->{month},
-                            $date->{day};
+        my $ymd = cat_date($date->{year}, $date->{month}, $date->{day});
         if (exists $entry{$ymd}) {
             debug("$file is duplicated.");
             push @{ $entry{$ymd}{file} }, $file;
@@ -803,7 +798,7 @@ sub revert_headline {
             return;
         }
         # <year>-<month>-<day>.txt
-        my $new_filename = sprintf '%s-%s-%s.txt', @$date{qw(year month day)};
+        my $new_filename = cat_date($date->{year}, $date->{month}, $date->{day});
 
         debug("check if $filename and $new_filename is same basename?");
         unless (basename($filename) eq basename($new_filename)) {
@@ -1149,7 +1144,7 @@ sub diff {
 
 
     my $diff = sub {
-        my ($year, $month, $day) = $self->parse_date(shift);
+        my ($year, $month, $day) = split_date(shift);
 
         # Login if necessary.
         $self->login();
@@ -1182,7 +1177,7 @@ sub diff {
         }
 
         $diff->(
-            sprintf '%s-%s-%s', $date->{year}, $date->{month}, $date->{day}
+            cat_date($date->{year}, $date->{month}, $date->{day})
         );
     }
     elsif (@$args) {
