@@ -794,28 +794,26 @@ sub load_diary_entry {
     return ($title, $body);
 }
 
-sub text_filename {
+# return entry's path,
+# even if specified entry does not exist.
+sub get_entrypath {
     my $self = shift;
-    my ($year,$month,$day, $headlines) = @_;
-    my $datename;
-    if (defined $headlines
-        && ref $headlines eq 'ARRAY'
-        && @$headlines) {
-        # XXX ヘッドラインは下の正規表現で無視されてるんじゃ？
-        $datename = "$year-$month-$day-".join('-', @$headlines);
-    }
-    else {
-        $datename = "$year-$month-$day";
+    my ($year, $month, $day, $headlines) = @_;
+    $headlines = [] unless defined $headlines;
+
+    # find entry.
+    for my $path ($self->get_entries($self->txt_dir)) {
+        my $info = $self->get_entrydate($path);
+        return $path
+            if $info->{year} eq $year
+            && $info->{month} eq $month
+            && $info->{day} eq $day;
     }
 
-    for ($self->get_entries($self->txt_dir)) {
-        next unless (/\b(\d\d\d\d-\d\d-\d\d)(?:-.+)?\.txt$/);
-        next unless (-f $_);
-        return $_ if $datename eq $1
-    }
-
-    my $filename = File::Spec->catfile($self->txt_dir, "$datename.txt");
-    return $filename;
+    # not found entry's path.
+    my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
+    my $filename = $datename.join('-', @$headlines).'.txt';
+    return File::Spec->catfile($self->txt_dir, $filename);
 }
 
 sub save_diary_entry {
@@ -827,12 +825,12 @@ sub save_diary_entry {
         # this can take 'headlines' option additionally.
         my %opt = %{ shift() };
         ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
-        $filename = $self->text_filename($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
+        $filename = $self->get_entrypath($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
     }
     else {
         # Original way of passing arguments.
         ($year,$month,$day,$title,$body) = @_;
-        $filename = $self->text_filename($year, $month, $day);
+        $filename = $self->get_entrypath($year, $month, $day);
     }
 
 
