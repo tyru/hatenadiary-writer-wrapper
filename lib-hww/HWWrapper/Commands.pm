@@ -1067,10 +1067,10 @@ sub update_index {
             = (localtime $epoch)[5, 4, 3, 2, 1, 0];
         $year += 1900;
         $month++;
-        # TODO padding 0 before one character's digit
-        my $iso8601 = join('-', $year, $month, $day)
+        my $iso8601 = cat_date($year, $month, $day)
                      .'T'
-                     .join(':', $hour, $min, $sec).'Z';
+                     .sprintf('%02d:%02d:%02d', $hour, $min, $sec)
+                     .'Z';
 
         $template->param(lastchanged_datetime => $iso8601);
         $template->param(lastchanged_year  => $year);
@@ -1084,6 +1084,7 @@ sub update_index {
         open my $OUT, '>', $index_html or error("$index_html:$!");
         print $OUT $template->output;
         close $OUT;
+        puts("wrote $index_html");
 
         debug("generated $index_html...");
     };
