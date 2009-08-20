@@ -20,7 +20,7 @@ perl -MCPAN -e 'install Bundle::HWWrapper'
 
 Crypt::SSLeay
 Date::Manip
-DateTime
+Digest::SHA1
 HTML::Template
 HTML::TreeBuilder
 HTTP::Request::Common
@@ -30,6 +30,7 @@ IPC::Run
 LWP::Authen::Wsse
 LWP::UserAgent
 List::MoreUtils
+MIME::Base64
 Text::Hatena
 URI
 XML::TreePP
