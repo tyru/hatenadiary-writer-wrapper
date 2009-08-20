@@ -538,7 +538,7 @@ sub load {
         # unstable.
         # sometimes I can't login.
         # (something wrong with cookie.txt ?)
-        require_modules(qw(LWP::Authen::Wsse XML::TreePP));
+        require_modules(qw(XML::TreePP));
 
 
         my $draft_dir = shift(@$args);
@@ -578,7 +578,14 @@ sub load {
         }
 
 
-        $self->login();
+        {
+            local $self->{config}{use_cookie} = 0;
+            $self->login();    # login if necessary.
+        }
+
+        # don't use cookie.
+        # just add X-WSSE header.
+        $self->user_agent->cookie_jar(undef);
 
         # TODO
         # save wsse header.
@@ -601,7 +608,7 @@ sub load {
             # $self->user_agent->simple_request() can't handle authentication response.
             debug("GET $url");
             my $r = $self->user_agent->request(
-                HTTP::Request::Common::GET($url)
+                HTTP::Request::Common::GET($url, 'X-WSSE' => $self->get_wsse_header)
             );
 
             unless ($r->is_success) {

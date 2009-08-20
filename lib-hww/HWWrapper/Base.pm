@@ -853,6 +853,29 @@ sub unescape {
     return $str;
 }
 
+# wsse authetication
+sub get_wsse_header {
+    my $self = shift;
+    my ($user, $pass) = ($self->username, $self->password);
+
+    require_modules(qw(
+        Digest::SHA1
+        MIME::Base64
+        DateTime
+    ));
+
+    my $sha1 = \&Digest::SHA1::sha1;
+    my $encode_base64 = \&MIME::Base64::encode_base64;
+
+    my $nonce = $sha1->($sha1->(time() . {} . rand() . $$));
+    my $now = DateTime->now->iso8601 . 'Z';
+    my $digest = $encode_base64->($sha1->($nonce . $now . $pass || ''), '');
+    return sprintf(
+        q(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
+                                $user, $digest,  $encode_base64->($nonce, ''), $now
+    );
+}
+
 
 
 
