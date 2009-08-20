@@ -760,7 +760,7 @@ sub apply_headline {
         return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
-        my $new_filename = $self->text_filename(
+        my $new_filename = $self->get_entrypath(
             $date->{year},
             $date->{month},
             $date->{day},
@@ -964,7 +964,6 @@ sub update_index {
     require_modules(qw(
         HTML::TreeBuilder
         HTML::Template
-        DateTime
         Time::Local
     ));
 
@@ -1063,12 +1062,21 @@ sub update_index {
         }
         $template->param(entrylist => \@entry);
 
-        my $now = DateTime->now;
-        $template->param(lastchanged_datetime => $now);
-        $template->param(lastchanged_year  => $now->year);
-        $template->param(lastchanged_month => $now->month);
-        $template->param(lastchanged_day   => $now->day);
-        $template->param(lastchanged_epoch => $now->epoch);
+        my $epoch = time;
+        my ($year, $month, $day, $hour, $min, $sec)
+            = (localtime $epoch)[5, 4, 3, 2, 1, 0];
+        $year += 1900;
+        $month++;
+        # TODO padding 0 before one character's digit
+        my $iso8601 = join('-', $year, $month, $day)
+                     .'T'
+                     .join(':', $hour, $min, $sec).'Z';
+
+        $template->param(lastchanged_datetime => $iso8601);
+        $template->param(lastchanged_year  => $year);
+        $template->param(lastchanged_month => $month);
+        $template->param(lastchanged_day   => $day);
+        $template->param(lastchanged_epoch => $epoch);
 
 
         # Output
@@ -1172,7 +1180,7 @@ sub diff {
         print $fh $src;
         close $fh;
 
-        my $filename = $self->text_filename($year, $month, $day);
+        my $filename = $self->get_entrypath($year, $month, $day);
         my $cmd = "diff $tmpfilename $filename";
         system $cmd;
     };
@@ -1339,7 +1347,8 @@ sub diff {
 
 
         local $HWWrapper::Hook::BuiltinFunc::exit = sub (;$) {
-            warning("program exited with ".(@_ ? $_[0] : 0));
+            error("program exited with ".(@_ ? $_[0] : 0));
+            # trapped with eval, this won't die.
         };
 
         my $readline; $readline = sub {
@@ -1509,7 +1518,7 @@ sub editor {
     my ($year, $month, $day) = (localtime)[5, 4, 3];
     $year  += 1900;
     $month += 1;
-    my $entrypath = $self->text_filename($year, $month, $day);
+    my $entrypath = $self->get_entrypath($year, $month, $day);
     my $exist_entry = (-f $entrypath);
     my $mtime       = (-M $entrypath);
 

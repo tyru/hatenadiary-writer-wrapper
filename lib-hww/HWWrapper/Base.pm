@@ -861,14 +861,18 @@ sub get_wsse_header {
     require_modules(qw(
         Digest::SHA1
         MIME::Base64
-        DateTime
     ));
 
     my $sha1 = \&Digest::SHA1::sha1;
     my $encode_base64 = \&MIME::Base64::encode_base64;
 
     my $nonce = $sha1->($sha1->(time() . {} . rand() . $$));
-    my $now = DateTime->now->iso8601 . 'Z';
+    my $now = do {
+        my ($year, $month, $day, $hour, $min, $sec) = (localtime)[5, 4, 3, 2, 1, 0];
+        $year += 1900;
+        $month++;
+        join('-', $year, $month, $day).'T'.join(':', $hour, $min, $sec).'Z';
+    };
     my $digest = $encode_base64->($sha1->($nonce . $now . $pass || ''), '');
     return sprintf(
         q(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
