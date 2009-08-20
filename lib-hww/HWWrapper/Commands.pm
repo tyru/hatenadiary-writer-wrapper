@@ -238,14 +238,20 @@ sub help {
 
 # display version information about hww
 sub version {
+    # hw
+    print <<"EOD";
+Hatena Diary Writer(+Loader) Version $VERSION
+Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
+EOD
+    # hww
     print <<EOD;
 Hatena Diary Writer Wrapper version v$HWWrapper::VERSION
 EOD
-    HW::VERSION_MESSAGE();
 }
 
 # TODO write help
 sub copyright {
+    # hw
     print <<EOD;
 
 hw.pl - Hatena Diary Writer (with Loader).
@@ -267,6 +273,9 @@ modify it under the same terms as Perl itself.
 
 Modified by Kengo Koseki (id:koseki2)
    http://d.hatena.ne.jp/koseki2/
+EOD
+    # hww
+    print <<EOD;
 
 
 hww.pl - Hatena Diary Writer Wrapper
