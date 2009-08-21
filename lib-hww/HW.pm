@@ -141,7 +141,7 @@ sub new {
         'timeout=s' => 'timeout',
 
         'g=s' => 'groupname',    # "groupname" option.
-        'group=s' => 'group',
+        'group=s' => 'groupname',
 
         M => 'no_timestamp',    # "no timestamp" flag.
         'no-replace' => 'no_timestamp',
