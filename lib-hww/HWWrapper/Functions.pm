@@ -6,10 +6,7 @@ use utf8;
 
 our $VERSION = "1.2.2";
 
-# import builtin op's hooks
-# (these ops are hooked in HWWrapper::Commands::shell())
-#
-# and this package also exports these ops.
+# import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
 
 
@@ -137,6 +134,8 @@ sub split_opt {
 # TODO
 # - pipe
 # - runnning background
+#
+# FIXME UTF8以外の環境だとMalformed UTF-8 characterと出る
 #
 # NOTE:
 # pass "complete command line string".

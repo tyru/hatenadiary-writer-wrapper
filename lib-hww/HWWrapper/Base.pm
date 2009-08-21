@@ -6,10 +6,7 @@ use utf8;
 
 our $VERSION = "1.4.1";
 
-# import builtin op's hooks
-# (these ops are hooked in HWWrapper::Commands::shell())
-#
-# and this package also exports these ops.
+# import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
 
 # import all util commands!!
@@ -136,12 +133,12 @@ sub get_touchdate {
         error("touch.txt: bad format");
     }
     return {
-        year => $1,
+        year  => $1,
         month => $2,
-        day => $3,
-        hour => $4,
-        min => $5,
-        sec => $6,
+        day   => $3,
+        hour  => $4,
+        min   => $5,
+        sec   => $6,
         epoch => POSIX::mktime($6, $5, $4, $3, $2-1, $1-1900),
     };
 }

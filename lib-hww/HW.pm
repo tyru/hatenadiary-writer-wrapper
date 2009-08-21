@@ -30,10 +30,7 @@ our $VERSION = "1.7.1";
 
 use base qw(HWWrapper::Base);
 
-# import builtin op's hooks
-# (these ops are hooked in HWWrapper::Commands::shell())
-#
-# and this package also exports these ops.
+# import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
 
 # import all util commands!!

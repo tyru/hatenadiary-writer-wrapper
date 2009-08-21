@@ -2,19 +2,17 @@ package HWWrapper;
 
 # TODO
 # - コマンドのヘルプドキュメント書く
-# - $selfがblessedされてるかチェックするアトリビュート
 # - Hatena AtomPub APIを使うように書き換える
 # 現在の処理もオプションで指定すれば使用できるようにする。
 # - 'load'コマンドで取ってきたファイルの先頭行に空行が入るバグを直す
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
 # - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
-# - shell_eval_str()はutf8に対応しているか。ダメ文字にひっかからないか。またUTF-8じゃない端末ではどうか。
 # - プロファイリングして最適化
 # - '--verbose'オプションを追加。
 # -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
 #
 # - config-hww.txtにHWWrapperの設定を書く
-# -- フォーマットはYAML
+# -- フォーマットは拡張子によって決まる。ymlだったらYAML。txtだったらconfig.txtと同じような形式。
 # (YAML::XSとYAMLは互換性がないらしい。XSを使うのはWindowsにとって厳しいのでYAMLモジュールを使う)
 # -- $EDITORの設定
 # -- hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
@@ -38,10 +36,7 @@ our $VERSION = '1.7.3';
 
 use base qw(HW HWWrapper::Commands);
 
-# import builtin op's hooks
-# (these ops are hooked in HWWrapper::Commands::shell())
-#
-# and this package also exports these ops.
+# import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
 # import all util commands!!
 use HWWrapper::Functions;
@@ -160,8 +155,8 @@ sub parse_opt {
         croak "you did not passed 'args' option to HWWrapper->new().";
     }
 
-    my $options = $self->{args}{options};
-    my $cmd = $self->{args}{command};
+    my $options  = $self->{args}{options};
+    my $cmd      = $self->{args}{command};
     my $cmd_args = $self->{args}{command_args};
 
     return ($cmd, $cmd_args) unless @$options;
@@ -244,7 +239,7 @@ sub dispatch {
         $self->get_opt($args, \%opt) or $self->arg_error($cmd);
 
         # deref values.
-        %opt = map { $_ => ${ $opt{$_} } } keys %opt;
+        $opt{$_} = ${ $opt{$_} } for keys %opt;
     }
 
     # dispatch

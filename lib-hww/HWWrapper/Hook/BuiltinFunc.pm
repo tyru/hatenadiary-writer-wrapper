@@ -16,8 +16,6 @@ our @EXPORT = our @EXPORT_OK = qw(
 
 use HWWrapper::Functions;
 
-use Scalar::Util qw(set_prototype);
-
 
 # NOTE:
 # do NOT taint CORE::GLOBAL.
