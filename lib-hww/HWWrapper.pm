@@ -46,10 +46,6 @@ use IO::String;
 
 
 
-our $debug = 0;
-our $debug_stderr = 0;
-our $no_cookie = 0;
-
 
 
 
@@ -66,22 +62,22 @@ sub new {
 
 
     # set members
-    $self->{config} = {
-        # this option is default to 1.
-        # to make this false, pass '-C' or '--no-cookie' option.
-        use_cookie => 1,
+    my $c = $self->{config} = {
+        # use cookie. (default)
+        no_cookie => 0,
 
+        is_debug_stderr => 0,
         is_debug => 0,
     };
     $self->{arg_opt}{HWWrapper} = {
-        d => \$debug,
-        debug => \$debug,
+        d => \$c->{is_debug},
+        debug => \$c->{is_debug},
 
-        D => \$debug_stderr,
-        'debug-stderr' => \$debug_stderr,
+        D => \$c->{is_debug_stderr},
+        'debug-stderr' => \$c->{is_debug_stderr},
 
-        C => \$no_cookie,
-        'no-cookie' => \$no_cookie,
+        C => \$c->{no_cookie},
+        'no-cookie' => \$c->{no_cookie},
     };
     $self->{debug_fh} = IO::String->new;
 
@@ -157,21 +153,21 @@ sub parse_opt {
         exit -1;
     };
 
-    $self->use_cookie = ! $no_cookie;
-    $self->is_debug   = ($debug || $debug_stderr);
 
     # option arguments result handling
-    if ($debug) {
+    if ($self->is_debug) {
         print ${ $self->{debug_fh}->string_ref };    # flush all
         $self->{debug_fh} = *STDOUT;
     }
-    elsif ($debug_stderr) {
+    elsif ($self->is_debug_stderr) {
         $self->warning(${ $self->{debug_fh}->string_ref });    # flush all
         $self->{debug_fh} = *STDERR;
     }
     else {
         $self->{debug_fh} = FileHandle->new(File::Spec->devnull, 'w') or $self->error("Can't open null device.");
     }
+
+    $self->is_debug = 1 if $self->is_debug_stderr;
 
 
     # parse HW 's options.

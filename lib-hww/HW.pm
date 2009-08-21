@@ -246,7 +246,6 @@ sub load_config {
         }
         elsif (/^cookie:(.*)$/) {
             $self->cookie_file = glob($1);
-            $self->use_cookie = 1; # If cookie file is specified, Assume '-c' is given.
             $self->debug("cookie:".$self->cookie_file);
         }
         elsif (/^proxy:(.*)$/) {

@@ -318,7 +318,7 @@ sub login {
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
-    if ($self->use_cookie() and -e($self->cookie_file)) {
+    if (! $self->no_cookie() and -e($self->cookie_file)) {
         $self->debug("Loading cookie jar.");
 
         $self->cookie_jar = HTTP::Cookies->new;
@@ -347,7 +347,7 @@ sub login {
 
         $form{backurl} = $diary_url;
         $form{mode} = "enter";
-        if ($self->use_cookie) {
+        unless ($self->no_cookie) {
             $form{persistent} = "1";
         }
 
@@ -418,7 +418,7 @@ sub logout {
     return unless $self->user_agent;
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
-    if ($self->use_cookie() and -e($self->cookie_file)) {
+    if (! $self->no_cookie() and -e($self->cookie_file)) {
         puts("Skip logout.");
         return;
     }
@@ -477,7 +477,7 @@ sub doit_and_retry {
 
     while ($retry < 2) {
         $ok = $funcref->();
-        if ($ok or not $self->use_cookie) {
+        if ($ok or $self->no_cookie) {
             last;
         }
         $self->debug($msg);

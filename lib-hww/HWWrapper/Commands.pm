@@ -585,7 +585,7 @@ sub load {
 
 
         {
-            local $self->{config}{use_cookie} = 0;
+            local $self->{config}{no_cookie} = 1;
             $self->login();    # login if necessary.
         }
 
