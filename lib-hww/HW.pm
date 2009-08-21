@@ -73,7 +73,7 @@ sub new {
         %ua_option,
 
         no_timestamp => 0,
-        enable_ssl => 1,
+        enable_ssl => 1,    # NOTE: this value always 1.
 
         trivial => 0,
 
@@ -126,15 +126,28 @@ sub new {
     # prepare arguments options.
     my %arg_opt = (
         t => 'trivial',    # "trivial" flag.
+        trivial => 'trivial',
+
         'u=s' => 'username',    # "username" option.
+        'username=s' => 'username',
+
         'p=s' => 'password',    # "password" option.
+        'password=s' => 'password',
+
         'a=s' => 'agent',    # "agent" option.
+        'agent=s' => 'agent',
+
         'T=s' => 'timeout',    # "timeout" option.
+        'timeout=s' => 'timeout',
+
         'g=s' => 'groupname',    # "groupname" option.
-        # 'f=s' => 'file',    # "file" option. XXX: maybe not needed.
+        'group=s' => 'group',
+
         M => 'no_timestamp',    # "no timestamp" flag.
+        'no-replace' => 'no_timestamp',
+
         'n=s' => 'config_file',    # "config file" option.
-        # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
+        'config-hw=s' => 'config_file',
     );
     $self->{arg_opt}{HW} = {map {
         # arg option => config value
@@ -192,10 +205,10 @@ sub load_config {
     # default
     my $config_file = $self->config_file;
     # process only '-n' option in @ARGV.
-    $self->get_opt_only(
-        $self->{args}{options},
-        {'n=s' => \$config_file}
-    ) or error("arguments error");
+    $self->get_opt_only($self->{args}{options}, {
+        'n=s' => \$config_file,
+        'config-hw=s' => \$config_file,
+    }) or error("arguments error");
 
     unless (-f $config_file) {
         debug("$config_file was not found. skip to load config...");

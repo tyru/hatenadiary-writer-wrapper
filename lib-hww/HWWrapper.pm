@@ -2,11 +2,8 @@ package HWWrapper;
 
 # TODO
 # - コマンドのヘルプドキュメント書く
-# - Hatena AtomPub APIを使うように書き換える
-# 現在の処理もオプションで指定すれば使用できるようにする。
 # - 'load'コマンドで取ってきたファイルの先頭行に空行が入るバグを直す
 # - エラー時にcookie.txtを削除 (DESTROY? $SIG{__DIE__}?)
-# - 引数を保存するハッシュにわざわざ\undefを置いておくぐらいならキーのみ指定させて後から\undef追加すればいいんでは
 # - プロファイリングして最適化
 # - '--verbose'オプションを追加。
 # -- 現在の--debugの様なオプション。動作が変わることはない。(Enter押さないと次の処理に移らないとかはない)
@@ -128,23 +125,6 @@ sub load_config {
 
 
 ### parse_opt() ###
-
-# this is additinal options which I added.
-# not hw.pl's options.
-# TODO
-# DO NOT DEPEND ON %HW::arg_opt !
-# THAT HAS BEEN DELETED ALREADY!!
-# our %hw_opt_long = (
-#     trivial => \$HW::arg_opt{t},
-#     'username=s' => \$HW::arg_opt{u},
-#     'password=s' => \$HW::arg_opt{p},
-#     'agent=s' => \$HW::arg_opt{a},
-#     'timeout=s' => \$HW::arg_opt{T},
-#     'group=s' => \$HW::arg_opt{g},
-#     'file=s' => \$HW::arg_opt{f},
-#     'no-replace' => \$HW::arg_opt{M},
-#     'config-file=s' => \$HW::arg_opt{n},
-# );
 
 sub parse_opt {
     my $self = shift;
