@@ -16,6 +16,9 @@ our @EXPORT = our @EXPORT_OK = qw(
 
 use HWWrapper::Functions;
 
+use Carp;
+use Scalar::Util qw(blessed);
+
 
 # NOTE:
 # do NOT taint CORE::GLOBAL.
@@ -26,8 +29,13 @@ use HWWrapper::Functions;
 
 our $dump = sub {
     my $self = shift;
-    @_ = ($self, HWWrapper::Functions::dumper(@_));
-    goto &HWWrapper::Base::debug;
+    unless (blessed $self) {
+        croak 'give me blessed $self';
+    }
+
+    $self->debug(
+        HWWrapper::Functions::dumper(@_)
+    );
 };
 sub dump { goto &$dump }
 
