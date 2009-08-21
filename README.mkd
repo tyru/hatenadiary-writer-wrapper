@@ -2,8 +2,8 @@
 Hatena Diary Writer Wrapper って何？
 ============================================
 
-Hatena Diary Writerをラップしてさまざまな機能を加えたものです。
-略称は個人的にはどうでもいいですが
+[Hatena Diary Writer](http://www.hyuki.com/techinfo/hatena_diary_writer.html)にさまざまな機能を加えたものです。
+個人的に
 
 - はてなダイアリーライターラッパー (そのまま)
 - はてだらっぱー
