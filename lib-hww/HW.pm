@@ -160,7 +160,7 @@ sub new {
         require Crypt::SSLeay;
     };
     if ($@) {
-        warning("Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
+        $self->warning("Crypt::SSLeay is not found, use non-encrypted HTTP mode.");
         $self->{config}{hatena_sslregister_url} = 'http://www.hatena.ne.jp/login';
     }
 
@@ -180,7 +180,7 @@ sub parse_opt {
         $self->{args}{options},
         $self->{arg_opt}{HW}
     ) or do {
-        warning("arguments error");
+        $self->warning("arguments error");
         sleep 1;
         $self->dispatch('help');
         exit -1;
@@ -192,7 +192,7 @@ sub parse_opt {
         $self->hatena_url = URI->new(
             sprintf 'http://%s.g.hatena.ne.jp', $self->groupname
         );
-        debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
+        $self->debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
 }
 
@@ -208,19 +208,19 @@ sub load_config {
     $self->get_opt_only($self->{args}{options}, {
         'n=s' => \$config_file,
         'config-hw=s' => \$config_file,
-    }) or error("arguments error");
+    }) or $self->error("arguments error");
 
     unless (-f $config_file) {
-        debug("$config_file was not found. skip to load config...");
+        $self->debug("$config_file was not found. skip to load config...");
         return;
     }
 
 
-    debug("Loading config file ($config_file).");
+    $self->debug("Loading config file ($config_file).");
 
     my $CONF;
     if (not open($CONF, '<', $config_file)) {
-        error("Can't open $config_file.");
+        $self->error("Can't open $config_file.");
     }
 
     # TODO make dispatch table
@@ -234,47 +234,47 @@ sub load_config {
         }
         elsif (/^id:([^:]+)$/) {
             $self->username = $1;
-            debug("id:".$self->username);
+            $self->debug("id:".$self->username);
         }
         elsif (/^g:([^:]+)$/) {
             $self->groupname = $1;
-            debug("g:".$self->groupname);
+            $self->debug("g:".$self->groupname);
         }
         elsif (/^password:(.*)$/) {
             $self->password = $1;
-            debug("password:********");
+            $self->debug("password:********");
         }
         elsif (/^cookie:(.*)$/) {
             $self->cookie_file = glob($1);
             $self->use_cookie = 1; # If cookie file is specified, Assume '-c' is given.
-            debug("cookie:".$self->cookie_file);
+            $self->debug("cookie:".$self->cookie_file);
         }
         elsif (/^proxy:(.*)$/) {
             $self->http_proxy = $1;
-            debug("proxy:".$self->http_proxy);
+            $self->debug("proxy:".$self->http_proxy);
         }
         elsif (/^client_encoding:(.*)$/) {
             $self->client_encoding = $1;
-            debug("client_encoding:".$self->client_encoding);
+            $self->debug("client_encoding:".$self->client_encoding);
         }
         elsif (/^server_encoding:(.*)$/) {
             $self->server_encoding = $1;
-            debug("server_encoding:".$self->server_encoding);
+            $self->debug("server_encoding:".$self->server_encoding);
         }
         elsif (/^filter:(.*)$/) {
             $self->filter_command = $1;
-            debug("filter:".$self->filter_command);
+            $self->debug("filter:".$self->filter_command);
         }
         elsif (/^txt_dir:(.*)$/) {
             $self->txt_dir = glob($1);
-            debug("txt_dir:".$self->txt_dir);
+            $self->debug("txt_dir:".$self->txt_dir);
         }
         elsif (/^touch:(.*)$/) {
             $self->touch_file = glob($1);
-            debug("touch:".$self->touch_file);
+            $self->debug("touch:".$self->touch_file);
         }
         else {
-            error("Unknown command '$_' in $config_file.");
+            $self->error("Unknown command '$_' in $config_file.");
         }
     }
     close($CONF);

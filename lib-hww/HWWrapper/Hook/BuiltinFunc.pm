@@ -25,8 +25,9 @@ use HWWrapper::Functions;
 
 
 our $dump = sub {
-    @_ = (HWWrapper::Functions::dumper(@_));
-    goto &HWWrapper::Functions::debug;
+    my $self = shift;
+    @_ = ($self, HWWrapper::Functions::dumper(@_));
+    goto &HWWrapper::Base::debug;
 };
 sub dump { goto &$dump }
 

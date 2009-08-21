@@ -42,6 +42,7 @@ use HWWrapper::Functions;
 use Carp;
 use File::Basename qw(basename);
 use Scalar::Util qw(blessed);
+use IO::String;
 
 
 
@@ -63,19 +64,8 @@ sub new {
 
     my $self = bless { @_ }, $pkg;
 
-    if (exists $self->{args}) {
-        my ($opts, $cmd, $cmd_args) = split_opt(@{ $self->{args} });
-        $self->{args} = {
-            options => $opts,
-            command => $cmd,
-            command_args => $cmd_args,
-        };
-    }
-    else {
-        croak "currently, 'args' option is required!!";
-    }
 
-
+    # set members
     $self->{config} = {
         # this option is default to 1.
         # to make this false, pass '-C' or '--no-cookie' option.
@@ -93,6 +83,20 @@ sub new {
         C => \$no_cookie,
         'no-cookie' => \$no_cookie,
     };
+    $self->{debug_fh} = IO::String->new;
+
+    # split arguments
+    if (exists $self->{args}) {
+        my ($opts, $cmd, $cmd_args) = $self->split_opt(@{ $self->{args} });
+        $self->{args} = {
+            options => $opts,
+            command => $cmd,
+            command_args => $cmd_args,
+        };
+    }
+    else {
+        croak "currently, 'args' option is required!!";
+    }
 
     # initialize config of HW.
     $self->SUPER::new;
@@ -109,13 +113,13 @@ sub load_config {
     $self->get_opt_only($self->{args}{options}, {
         'N=s' => \$config_file,
         'config-hww=s' => \$config_file,
-    }) or error("arguments error");
+    }) or $self->error("arguments error");
 
     if (-f $config_file) {
         # TODO
     }
     else {
-        debug("$config_file is not found. skip to load config...");
+        $self->debug("$config_file is not found. skip to load config...");
     }
 
 
@@ -147,7 +151,7 @@ sub parse_opt {
         $options,
         $self->{arg_opt}{HWWrapper}
     ) or do {
-        warning("arguments error");
+        $self->warning("arguments error");
         sleep 1;
         $self->dispatch('help');
         exit -1;
@@ -158,15 +162,15 @@ sub parse_opt {
 
     # option arguments result handling
     if ($debug) {
-        print ${ $DEBUG->string_ref };    # flush all
-        $DEBUG = *STDOUT;
+        print ${ $self->{debug_fh}->string_ref };    # flush all
+        $self->{debug_fh} = *STDOUT;
     }
     elsif ($debug_stderr) {
-        warning(${ $DEBUG->string_ref });    # flush all
-        $DEBUG = *STDERR;
+        $self->warning(${ $self->{debug_fh}->string_ref });    # flush all
+        $self->{debug_fh} = *STDERR;
     }
     else {
-        $DEBUG = FileHandle->new(File::Spec->devnull, 'w') or error("Can't open null device.");
+        $self->{debug_fh} = FileHandle->new(File::Spec->devnull, 'w') or $self->error("Can't open null device.");
     }
 
 
@@ -194,16 +198,16 @@ sub dispatch {
 
     # detect some errors.
     unless (defined $cmd) {
-        error("no command was given.");
+        $self->error("no command was given.");
     }
     unless (is_hww_command($cmd)) {
-        error("'$cmd' is not a hww-command. See perl hww.pl help");
+        $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 
     # some debug messages.
     my ($filename, $line) = (caller)[1,2];
     $filename = basename($filename);
-    debug(sprintf '$self->dispatch(%s) at %s line %s',
+    $self->debug(sprintf '$self->dispatch(%s) at %s line %s',
             join(', ', map { dumper($_) } @_), $filename, $line);
 
     # get arguments value

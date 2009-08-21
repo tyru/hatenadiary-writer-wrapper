@@ -20,6 +20,7 @@ use File::Basename qw(basename);
 use Digest::MD5 qw(md5_base64);
 use IO::Prompt qw(prompt);
 use HTTP::Request::Common ();
+use List::MoreUtils ();
 
 # require OO modules.
 # (derived modules don't need to require these modules)
@@ -29,6 +30,8 @@ use FileHandle;
 use URI;
 use HTTP::Cookies;
 use LWP::UserAgent;
+
+
 
 
 
@@ -123,14 +126,14 @@ sub get_touchdate {
     my $self = shift;
 
     my $touch_time = do {
-        my $FH = FileHandle->new($self->touch_file, 'r') or error(":$!");
+        my $FH = FileHandle->new($self->touch_file, 'r') or $self->error(":$!");
         chomp(my $line = <$FH>);
         $FH->close;
 
         $line;
     };
     unless ($touch_time =~ /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/) {
-        error("touch.txt: bad format");
+        $self->error("touch.txt: bad format");
     }
     return {
         year  => $1,
@@ -163,15 +166,15 @@ sub get_touchdate {
         my ($argv, $opt) = @_;
 
         return 1 unless @$argv;
-        debug("get options: ".dumper([keys %$opt]));
+        $self->debug("get options: ".dumper([keys %$opt]));
 
         local @ARGV = @$argv;
         my $result = $parser->getoptions(%$opt);
 
-        debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
-        debug("true value options:");
+        $self->debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
+        $self->debug("true value options:");
         for (grep { ${ $opt->{$_} } } keys %$opt) {
-            debug(sprintf "  [%s]:[%s]",
+            $self->debug(sprintf "  [%s]:[%s]",
                             $_, ${ $opt->{$_} });
         }
 
@@ -192,7 +195,7 @@ sub get_touchdate {
         my ($argv, $proc_opt) = @_;
 
         return 1 unless @$argv;
-        debug("get options only: ".dumper([keys %$proc_opt]));
+        $self->debug("get options only: ".dumper([keys %$proc_opt]));
 
         # cache
         $self->{arg_opt}{all_opt_cache} ||= [
@@ -220,7 +223,7 @@ sub get_touchdate {
             }
             else {
                 # don't apply value and restore it to $argv
-                debug("restore to args: $opt => ${ $dummy_result->{$opt} }");
+                $self->debug("restore to args: $opt => ${ $dummy_result->{$opt} }");
                 if ($opt =~ s/^((.+)=s)$/$2/) {
                     unshift @$argv, "-$2" => ${ $dummy_result->{$1} };
                 }
@@ -241,7 +244,7 @@ sub arg_error {
     unless (defined $cmdname) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = basename($filename);
-        debug("arg_error: called at $filename line $line");
+        $self->debug("arg_error: called at $filename line $line");
 
         $subname =~ s/.*:://;    # delete package's name
         ($cmdname = $subname) =~ s/_/-/g;    # TODO search $subname in %HWWrapper::Commands::HWW_COMMAND
@@ -249,7 +252,7 @@ sub arg_error {
 
     # print "error: " string to STDERR.
     eval {
-        error("$cmdname: arguments error. show ${cmdname}'s help...");
+        $self->error("$cmdname: arguments error. show ${cmdname}'s help...");
     };
     STDERR->print($@);
     STDERR->flush;
@@ -273,11 +276,11 @@ sub arg_error {
 sub mk_accessors {
     my $self = shift;
     my $pkg = caller;
-    debug("make accessor to $pkg: ".dumper([@_]));
+    $self->debug("make accessor to $pkg: ".dumper([@_]));
 
     for my $method (uniq @_) {
         unless (exists $self->{config}{$method}) {
-            error("internal error, sorry.: \$self->{config}{$method} does NOT exist!!");
+            $self->error("internal error, sorry.: \$self->{config}{$method} does NOT exist!!");
         }
 
         my $subname = $pkg."::".$method;
@@ -285,7 +288,7 @@ sub mk_accessors {
 
         no strict 'refs';
         if (defined &{$subname}) {
-            error("internal error, sorry.: $subname is already defined!!");
+            $self->error("internal error, sorry.: $subname is already defined!!");
         }
         *$subname = $coderef;
     }
@@ -304,9 +307,9 @@ sub login {
     $self->user_agent->env_proxy;
     if ($self->http_proxy) {
         $self->user_agent->proxy('http', $self->http_proxy);
-        debug("proxy for http: ".$self->http_proxy);
+        $self->debug("proxy for http: ".$self->http_proxy);
         $self->user_agent->proxy('https', $self->http_proxy);
-        debug("proxy for https: ".$self->http_proxy);
+        $self->debug("proxy for https: ".$self->http_proxy);
     }
 
     # Ask username if not set.
@@ -316,13 +319,13 @@ sub login {
 
     # If "cookie" flag is on, and cookie file exists, do not login.
     if ($self->use_cookie() and -e($self->cookie_file)) {
-        debug("Loading cookie jar.");
+        $self->debug("Loading cookie jar.");
 
         $self->cookie_jar = HTTP::Cookies->new;
         $self->cookie_jar->load($self->cookie_file);
         $self->cookie_jar->scan(\&get_rkm);
 
-        debug("\$cookie_jar = " . $self->cookie_jar->as_string);
+        $self->debug("\$cookie_jar = " . $self->cookie_jar->as_string);
 
         puts("Skip login.");
 
@@ -355,29 +358,29 @@ sub login {
             HTTP::Request::Common::POST($self->hatena_sslregister_url, \%form)
         );
 
-        debug($r->status_line);
+        $self->debug($r->status_line);
 
-        debug("\$r = " . $r->content());
+        $self->debug("\$r = " . $r->content());
     }
     else {
         # For older version.
 
-        debug('hatena_url: '.$self->hatena_url);
+        $self->debug('hatena_url: '.$self->hatena_url);
         puts(sprintf 'Login to %s as %s.', $self->hatena_url, $form{name});
         $r = $self->user_agent->simple_request(
             HTTP::Request::Common::POST($self->hatena_url."/login", \%form)
         );
 
-        debug($r->status_line);
+        $self->debug($r->status_line);
 
         if (not $r->is_redirect) {
-            error("Login: Unexpected response: ", $r->status_line);
+            $self->error("Login: Unexpected response: ", $r->status_line);
         }
     }
 
     # Check to exist <meta http-equiv="refresh" content="1;URL=..." />
     unless (defined $r->header('refresh')) {
-        debug("failed to login. retry...");
+        $self->debug("failed to login. retry...");
         # $username = '';    # needless?
         $self->password = '';
         # Retry to login.
@@ -387,14 +390,14 @@ sub login {
 
     puts("Login OK.");
 
-    debug("Making cookie jar.");
+    $self->debug("Making cookie jar.");
 
     $self->cookie_jar = HTTP::Cookies->new;
     $self->cookie_jar->extract_cookies($r);
     $self->cookie_jar->save($self->cookie_file);
     $self->cookie_jar->scan(\&get_rkm);
 
-    debug("\$cookie_jar = " . $self->cookie_jar->as_string);
+    $self->debug("\$cookie_jar = " . $self->cookie_jar->as_string);
 }
 
 # session id for posting.
@@ -406,7 +409,6 @@ sub get_rkm {
     my ($version, $key, $val) = @_;
     if ($key eq 'rk') {
         $rkm = md5_base64($val);
-        debug("\$rkm = " . $rkm);
     }
 }
 
@@ -429,10 +431,10 @@ sub logout {
 
     $self->user_agent->cookie_jar($self->cookie_jar);
     my $r = $self->user_agent->get($self->hatena_url."/logout");
-    debug($r->status_line);
+    $self->debug($r->status_line);
 
     if (not $r->is_redirect and not $r->is_success) {
-        error("Logout: Unexpected response: ", $r->status_line);
+        $self->error("Logout: Unexpected response: ", $r->status_line);
     }
 
     unlink($self->cookie_file);
@@ -478,7 +480,7 @@ sub doit_and_retry {
         if ($ok or not $self->use_cookie) {
             last;
         }
-        debug($msg);
+        $self->debug($msg);
         unlink($self->cookie_file);
         puts("Old cookie. Retry login.");
         $self->login();
@@ -486,7 +488,7 @@ sub doit_and_retry {
     }
 
     if (not $ok) {
-        error("try_it: Check username/password.");
+        $self->error("try_it: Check username/password.");
     }
 }
 
@@ -495,7 +497,7 @@ sub delete_it {
     my $self = shift;
     my ($date) = @_;
 
-    debug($date);
+    $self->debug($date);
 
     $self->user_agent->cookie_jar($self->cookie_jar);
 
@@ -510,22 +512,22 @@ sub delete_it {
         )
     );
 
-    debug($r->status_line);
+    $self->debug($r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
-        error("Delete: Unexpected response: ", $r->status_line);
+        $self->error("Delete: Unexpected response: ", $r->status_line);
     }
 
-    debug("Location: " . $r->header("Location"));
+    $self->debug("Location: " . $r->header("Location"));
 
     # Check the result. ERROR if the location ends with the date.
     # (Note that delete error != post error)
     if ($r->header("Location") =~ m(/$date$)) {                    # /)){
-        debug("returns 0 (ERROR).");
+        $self->debug("returns 0 (ERROR).");
         return 0;
     }
     else {
-        debug("returns 1 (OK).");
+        $self->debug("returns 1 (OK).");
         return 1;
     }
 }
@@ -534,7 +536,7 @@ sub create_it {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    debug("$year-$month-$day.");
+    $self->debug("$year-$month-$day.");
 
     $self->user_agent->cookie_jar($self->cookie_jar);
 
@@ -560,21 +562,21 @@ sub create_it {
         )
     );
 
-    debug($r->status_line);
+    $self->debug($r->status_line);
 
     if ((not $r->is_redirect()) and (not $r->is_success())) {
-        error("Create: Unexpected response: ", $r->status_line);
+        $self->error("Create: Unexpected response: ", $r->status_line);
     }
 
-    debug("Location: " . $r->header("Location"));
+    $self->debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
-        debug("returns 1 (OK).");
+        $self->debug("returns 1 (OK).");
         return 1;
     }
     else {
-        debug("returns 0 (ERROR).");
+        $self->debug("returns 0 (ERROR).");
 
         return 0;
     }
@@ -584,7 +586,7 @@ sub post_it {
     my $self = shift;
     my ($year, $month, $day, $title, $body, $imgfile) = @_;
 
-    debug("$year-$month-$day.");
+    $self->debug("$year-$month-$day.");
 
     $self->user_agent->cookie_jar($self->cookie_jar);
 
@@ -612,21 +614,21 @@ sub post_it {
         )
     );
 
-    debug($r->status_line);
+    $self->debug($r->status_line);
 
     if (not $r->is_redirect) {
-        error("Post: Unexpected response: ", $r->status_line);
+        $self->error("Post: Unexpected response: ", $r->status_line);
     }
 
-    debug("Location: " . $r->header("Location"));
+    $self->debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
     if ($r->header("Location") =~ m{/$year$month$day$}) {
-        debug("returns 1 (OK).");
+        $self->debug("returns 1 (OK).");
         return 1;
     }
     else {
-        debug("returns 0 (ERROR).");
+        $self->debug("returns 0 (ERROR).");
         return 0;
     }
 }
@@ -657,10 +659,10 @@ sub read_title_body {
     if ($self->filter_command) {
         $input = sprintf($self->filter_command." |", $file);
     }
-    debug("input: $input");
+    $self->debug("input: $input");
     my $FILE;
     if (not open($FILE, '<', $input)) {
-        error("$!:$input");
+        $self->error("$!:$input");
     }
     my $title = <$FILE>; # first line.
     chomp($title);
@@ -669,7 +671,7 @@ sub read_title_body {
 
     # Convert encodings.
     if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
-        debug(sprintf 'Convert from %s to %s.',
+        $self->debug(sprintf 'Convert from %s to %s.',
                 $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->client_encoding, $self->server_encoding);
         Encode::from_to($body, $self->client_encoding, $self->server_encoding);
@@ -687,15 +689,15 @@ sub find_image_file {
         my $imgfile = "$path$base.$ext";
         if (-e $imgfile) {
             if ($self->target_file) {
-                debug("-f option, always update: $imgfile");
+                $self->debug("-f option, always update: $imgfile");
                 return $imgfile;
             }
             elsif (-e($self->touch_file) and (-M($imgfile) > -M($self->touch_file))) {
-                debug("skip $imgfile (not updated).");
+                $self->debug("skip $imgfile (not updated).");
                 next;
             }
             else {
-                debug($imgfile);
+                $self->debug($imgfile);
                 return $imgfile;
             }
         }
@@ -710,7 +712,7 @@ sub replace_timestamp {
 
     # Read.
     my $FILE;
-    open($FILE, '<', $filename) or error("$!: $filename");
+    open($FILE, '<', $filename) or $self->error("$!: $filename");
     my $file = join('', <$FILE>);
     close($FILE);
 
@@ -720,8 +722,8 @@ sub replace_timestamp {
 
     # Write if replaced.
     if ($newfile ne $file) {
-        debug($filename);
-        open($FILE, '>', $filename) or error("$!: $filename");
+        $self->debug($filename);
+        open($FILE, '>', $filename) or $self->error("$!: $filename");
         print $FILE $newfile;
         close($FILE);
     }
@@ -732,17 +734,17 @@ sub load_diary_entry {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
-    debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
+    $self->debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
 
     $self->user_agent->cookie_jar($self->cookie_jar);
 
     my $r = $self->user_agent->simple_request(
         HTTP::Request::Common::GET(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day));
 
-    debug($r->status_line);
+    $self->debug($r->status_line);
 
     if (not $r->is_success()) {
-        error("Load: Unexpected response: ", $r->status_line);
+        $self->error("Load: Unexpected response: ", $r->status_line);
     }
 
     # Check entry exist.
@@ -753,7 +755,7 @@ sub load_diary_entry {
     my $resp_date = $1;
 
     if($resp_date ne "$year$month$day") {
-        error("Load: Not exist entry.");
+        $self->error("Load: Not exist entry.");
     }
 
     # Get title and body.
@@ -770,12 +772,12 @@ sub load_diary_entry {
 
     # Convert encodings.
     if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
-        debug(sprintf 'Convert from %s to %s.', $self->client_encoding, $self->server_encoding);
+        $self->debug(sprintf 'Convert from %s to %s.', $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->server_encoding, $self->client_encoding);
         Encode::from_to($body, $self->server_encoding, $self->client_encoding);
     }
 
-    debug("OK");
+    $self->debug("OK");
     return ($title, $body);
 }
 
@@ -796,7 +798,7 @@ sub get_entrypath {
     }
 
     # not found entry's path.
-    my $filename = cat_date($year, $month, $day).join('-', @$headlines).'.txt';
+    my $filename = $self->cat_date($year, $month, $day).join('-', @$headlines).'.txt';
     return File::Spec->catfile($self->txt_dir, $filename);
 }
 
@@ -820,12 +822,12 @@ sub save_diary_entry {
 
     my $OUT;
     if (not open($OUT, '>', $filename)) {
-        error("$!:$filename");
+        $self->error("$!:$filename");
     }
     print $OUT $title."\n";
     print $OUT $body;
     close($OUT);
-    debug("wrote $filename");
+    $self->debug("wrote $filename");
     return 1;
 }
 
@@ -855,7 +857,7 @@ sub get_wsse_header {
     my $self = shift;
     my ($user, $pass) = ($self->username, $self->password);
 
-    require_modules(qw(
+    $self->require_modules(qw(
         Digest::SHA1
         MIME::Base64
     ));
@@ -875,6 +877,317 @@ sub get_wsse_header {
         q(UsernameToken Username="%s", PasswordDigest="%s", Nonce="%s", Created="%s"),
                                 $user, $digest,  $encode_base64->($nonce, ''), $now
     );
+}
+
+
+# from HWWrapper::Functions
+
+sub warning {
+    my $self = shift;
+
+    # TODO stash debug value in $self
+    if ($HWWrapper::debug) {
+        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
+        $filename = File::Basename::basename($filename);
+        warn "warning: $subname()  at $filename line $line:", @_, "\n";
+    }
+    else {
+        warn "warning: ", @_, "\n";
+    }
+}
+
+sub error {
+    my $self = shift;
+    my @errmsg;
+
+    # TODO stash debug value in $self
+    if ($HWWrapper::debug) {
+        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
+        $filename = File::Basename::basename($filename);
+        @errmsg = ("error: $subname() at $filename line $line:", @_, "\n");
+    }
+    else {
+        @errmsg = ("error: ", @_, "\n");
+    }
+
+    unlink($self->cookie_file);    # from HW::error_exit()
+    die @errmsg;
+}
+
+sub debug {
+    my $self = shift;
+    my $subname = (caller 1)[3];
+    $self->{debug_fh}->print("debug: $subname(): ", @_, "\n");
+}
+
+sub require_modules {
+    my $self = shift;
+    my @failed;
+
+    for my $m (@_) {
+        eval "require $m";
+        if ($@) {
+            push @failed, $m;
+        }
+    }
+
+    if (@failed) {
+        my $failed = join ', ', @failed;
+        $self->error("you need to install $failed.");
+    }
+
+    $self->debug("required ".join(', ', @_));
+}
+
+# separate options into hww.pl's options and hw.pl's options.
+# (like git)
+sub split_opt {
+    my $self = shift;
+    my @hww_opt;
+    my $subcmd;
+    my @tmp_argv = @_;
+
+    while (defined(my $a = shift)) {
+        if ($a =~ /^-/) {
+            push @hww_opt, $a;
+        }
+        else {
+            $subcmd = $a;    # found command
+            last;
+        }
+    }
+
+    my @ret = (\@hww_opt, $subcmd, [@_]);
+    $self->debug(sprintf "%s -> (%s, %s, %s)\n",
+                    dumper(\@tmp_argv),
+                    dumper($ret[0]),
+                    dumper($ret[1]),
+                    dumper($ret[2]));
+
+    return @ret;
+}
+
+# TODO
+# - pipe
+# - runnning background
+#
+# FIXME UTF8以外の環境だとMalformed UTF-8 characterと出る
+#
+# NOTE:
+# pass "complete command line string".
+# DON'T pass incomplete string. e.g.: "right double quote missing
+sub shell_eval_str {
+    my $self = shift;
+    my $line = shift;
+    my @args;
+
+    if ($line =~ /\n/m) {
+        Carp::croak "give me the string line which does NOT contain newline!";
+    }
+
+    my $push_new_args = sub {
+        $self->debug("push new args!:[%s]", join ', ', @_);
+        push @args, [@_];
+    };
+    my $push_args = sub {
+        Carp::croak "push_args: receive empty args" unless @_;
+
+        if (@args) {
+            $self->debug("push args!:[%s]", join ', ', @_);
+            push @{ $args[-1] }, @_;
+        }
+        else {
+            $push_new_args->(@_);
+        }
+    };
+
+
+    while (length $line) {
+        next if $line =~ s/^ \s+//x;
+
+        if ($line =~ /^"/) {    # double quotes
+            my $evaluated = $self->get_quote_str($line, begin => q("), end => q("), eval => 1);
+            $line = $evaluated->{rest_str};
+            $push_args->($evaluated->{body});
+        }
+        elsif ($line =~ /^'/) {    # single quotes
+            my $got = $self->get_quote_str($line, begin => q('), end => q('));
+            $line = $got->{rest_str};
+            $push_args->($got->{body});    # push body
+        }
+        elsif ($line =~ s/^;//) {    # ;
+            $push_new_args->();
+        }
+        elsif ($line =~ s/^([^\s"';]+)//) {    # literal
+            # evaluate it.
+            $line = (sprintf q("%s"), $1).$line;
+        }
+        else {    # wtf?
+            $self->error("parse error");
+        }
+    }
+
+    return @args;
+}
+
+sub is_complete_str {
+    my $self = shift;
+    my $line = shift;
+
+    eval {
+        $self->shell_eval_str($line)
+    };
+
+    if ($@) {
+        if ($@ =~ /unexpected end of string while looking for/) {
+            return 0;
+        }
+        else {
+            $self->warning("failed to parse cmdline string: ".$@);
+        }
+    }
+    else {
+        return 1;
+    }
+}
+
+sub get_quote_str {
+    my $self = shift;
+    my $line = shift;
+
+    my %opt = (
+        eval => 0,
+        @_
+    );
+    unless (exists $opt{begin} && exists $opt{end}) {
+        Carp::croak "give me options 'begin' and 'end' at least!";
+    }
+
+    my ($lquote, $rquote) = @opt{qw(begin end)};
+    unless ($line =~ s/^$lquote//) {
+        Carp::croak "regex '^$lquote' does not matched to ".dumper($line);
+    }
+
+    my $shift_str = sub {
+        return undef if length $_[0] == 0;
+        my $c = substr $_[0], 0, 1;    # first char
+        $_[0] = substr $_[0], 1;       # rest
+        return $c;
+    };
+    my $body = '';
+    my $completed;
+
+
+    while (length $line) {
+        my $c = $shift_str->($line);
+
+        if ($c eq $rquote) {    # end of string
+            $completed = 1;
+            last;
+        }
+        elsif ($c eq "\\") {    # escape
+            if ($opt{eval}) {
+                my $ch = $shift_str->($line);
+                # unexpected end of string ...
+                last unless defined $ch;
+
+                $c = "\\".$ch;
+                $body .= eval sprintf q("%s"), $c;
+            }
+            else {
+                $body .= $c;
+            }
+        }
+        else {
+            $body .= $c;
+        }
+    }
+
+    unless ($completed) {
+        $self->error("unexpected end of string while looking for $rquote");
+    }
+
+    return {
+        body => $body,
+        rest_str => $line,
+    };
+}
+
+sub familiar_words {
+    my $self = shift;
+    my ($word, $words, $opt) = @_;
+
+    return () unless @$words;
+
+    $self->debug(sprintf 'word:[%s], candidates:[%s]', $word, dumper($words));
+
+    %$opt = (diff_strlen => 4, partial_match_len => 4, %$opt);
+
+    my @chars = split //, $word;
+    my $last_idx;
+    my @familiar;
+
+    # get words which contains same orders chars of $word.
+    for my $w (@$words) {
+        $last_idx = 0;
+        # push its word.
+        push @familiar, $w
+            # if $w contains all chars of $word.
+            # (and chars orders are the same)
+            if List::MoreUtils::all {
+                ($last_idx = index($w, $_, $last_idx)) != -1
+            } @chars;
+    }
+
+
+    if (length($word) >= $opt->{partial_match_len}) {
+        # get words which contain $word.
+        @familiar = grep {
+            index($_, $word) != -1
+        } @familiar;
+    }
+    else {
+        # different string length is lower than diff_strlen.
+        @familiar = grep {
+            abs(length($_) - length($word)) < $opt->{diff_strlen}
+        } @familiar;
+    }
+
+
+    return @familiar;
+}
+
+
+# TODO 日付関連のテスト
+
+# split 'date'.
+#
+# NOTE:
+# $self->get_entrydate() takes path,
+# and returns undef or hash reference.
+sub split_date {
+    my $self = shift;
+    my $date = shift;
+
+    if ($date =~ /\A(\d{4})-(\d{2})-(\d{2})(?:-.+)?(?:\.txt)?\Z/) {
+        return ($1, $2, $3);
+    }
+    else {
+        $self->error("$date: Illegal date format.");
+    }
+}
+
+# concat 'date'.
+sub cat_date {
+    my $self = shift;
+    my ($year, $month, $day, $headlines) = @_;
+
+    # concat ymd.
+    my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
+    # concat headlines
+    $datename .= defined $headlines ? '-'.join('-', @$headlines) : '';
+
+    return $datename;
 }
 
 

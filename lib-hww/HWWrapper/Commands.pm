@@ -231,15 +231,15 @@ sub help {
 
 
     unless (is_hww_command($cmd)) {
-        error("'$cmd' is not a hww-command. See perl hww.pl help");
+        $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 
     my $podpath = File::Spec->catdir($HWW_LIB, 'pod', "hww-$cmd.pod");
     unless (-f $podpath) {
-        error("we have not written the document of '$cmd' yet.");
+        $self->error("we have not written the document of '$cmd' yet.");
     }
 
-    debug("show pod '$podpath'");
+    $self->debug("show pod '$podpath'");
     pod2usage(-verbose => 2, -input => $podpath, -exitval => "NOEXIT");
 }
 
@@ -316,17 +316,17 @@ sub init {
 
 
     if (-e $txt_dir) {
-        warning("$txt_dir already exists.");
+        $self->warning("$txt_dir already exists.");
     }
     else {
         mkdir $txt_dir;
     }
 
     if (-e $config_file) {
-        warning("$config_file already exists.");
+        $self->warning("$config_file already exists.");
     }
     else {
-        my $CONF = FileHandle->new($config_file, 'w') or error("$config_file:$!");
+        my $CONF = FileHandle->new($config_file, 'w') or $self->error("$config_file:$!");
         $CONF->print(<<EOT);
 id:yourid
 txt_dir:$txt_dir
@@ -338,15 +338,15 @@ EOT
     }
 
     if (-e $cookie_file) {
-        warning("$config_file already exists.");
+        $self->warning("$config_file already exists.");
     }
     else {
         # make empty file
-        my $TOUCH = FileHandle->new($cookie_file, 'w') or error("$cookie_file:$!");
+        my $TOUCH = FileHandle->new($cookie_file, 'w') or $self->error("$cookie_file:$!");
         $TOUCH->close;
     }
 
-    debug("chmod 0600 $cookie_file");
+    $self->debug("chmod 0600 $cookie_file");
     chmod 0600, $cookie_file;
 }
 
@@ -357,7 +357,7 @@ sub release {
 
     if (@$args) {
         unless (-e $args->[0]) {
-            error($args->[0].": $!");
+            $self->error($args->[0].": $!");
         }
 
         if (-d $args->[0]) {
@@ -376,7 +376,7 @@ sub release {
     if ($self->target_file) {
         # Do not check timestamp.
         push(@files, $self->target_file);
-        debug("files: option -f: @files");
+        $self->debug("files: option -f: @files");
     }
     else {
         for ($self->get_entries($self->txt_dir)) {
@@ -384,7 +384,7 @@ sub release {
             next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
             push(@files, $_);
         }
-        debug(sprintf 'files: current dir (%s): %s', $self->txt_dir, join ' ', @files);
+        $self->debug(sprintf 'files: current dir (%s): %s', $self->txt_dir, join ' ', @files);
     }
 
     # Process it.
@@ -461,7 +461,7 @@ sub load {
 
 
     if ($all) {
-        require_modules(qw(XML::TreePP));
+        $self->require_modules(qw(XML::TreePP));
 
         if (@$args) {
             $self->txt_dir = shift(@$args);
@@ -476,7 +476,7 @@ sub load {
         $self->user_agent->cookie_jar($self->cookie_jar);
 
         my $export_url = sprintf '%s/%s/export', $self->hatena_url, $self->username;
-        debug("GET $export_url");
+        $self->debug("GET $export_url");
         my $r = $self->user_agent->simple_request(
             HTTP::Request::Common::GET($export_url)
         );
@@ -503,7 +503,7 @@ sub load {
         my %current_entries = $self->get_entries_hash();
 
         unless (exists $entries->{diary}) {
-            error("invalid xml data returned from ".$self->hatena_url)
+            $self->error("invalid xml data returned from ".$self->hatena_url)
         }
         # exists entries on hatena diary?
         if (! ref $entries->{diary} && $entries->{diary} eq '') {
@@ -512,9 +512,9 @@ sub load {
         }
         unless (ref $entries->{diary} eq 'HASH'
             && ref $entries->{diary}{day} eq 'ARRAY') {
-            error("invalid xml data returned from ".$self->hatena_url)
+            $self->error("invalid xml data returned from ".$self->hatena_url)
         }
-        debug(sprintf '%d entries received.', scalar @{ $entries->{diary}{day} });
+        $self->debug(sprintf '%d entries received.', scalar @{ $entries->{diary}{day} });
 
 
         for my $entry (@{ $entries->{diary}{day} }) {
@@ -523,7 +523,9 @@ sub load {
                 ($year, $month, $day) = ($1, $2, $3);
             }
             else {
-                error($entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)");
+                $self->error(
+                    $entry->{'-date'}." is invalid format. (format: YYYY-MM-DD)"
+                );
             }
 
             # XXX $year-$month-$dayは0詰めされた日付？
@@ -542,13 +544,13 @@ sub load {
 
     }
     elsif ($draft) {
-        require_modules(qw(XML::TreePP));
+        $self->require_modules(qw(XML::TreePP));
 
 
         my $draft_dir = shift(@$args);
         $self->arg_error unless defined $draft_dir;
         unless (-d $draft_dir) {
-            mkdir $draft_dir or error("can't mkdir $draft_dir:$!");
+            mkdir $draft_dir or $self->error("can't mkdir $draft_dir:$!");
         }
 
         # apply patch dynamically.
@@ -561,12 +563,12 @@ sub load {
 
                 my $OUT;
                 if (not open $OUT, ">", $filename) {
-                    error("$!:$filename");
+                    $self->error("$!:$filename");
                 }
                 print $OUT $title."\n";
                 print $OUT $body;
                 close $OUT;
-                debug("save_diary_draft: wrote $filename");
+                $self->debug("save_diary_draft: wrote $filename");
                 return 1;
             };
 
@@ -610,13 +612,13 @@ sub load {
         for (my $page_num = 1; ; $page_num++) {
             my $url = $draft_collection_url.($page_num == 1 ? '' : "?page=$page_num");
             # $self->user_agent->simple_request() can't handle authentication response.
-            debug("GET $url");
+            $self->debug("GET $url");
             my $r = $self->user_agent->request(
                 HTTP::Request::Common::GET($url, 'X-WSSE' => $self->get_wsse_header)
             );
 
             unless ($r->is_success) {
-                error("couldn't get drafts: ".$r->status_line);
+                $self->error("couldn't get drafts: ".$r->status_line);
             }
             puts("got $url");
 
@@ -638,7 +640,7 @@ sub load {
 
     }
     elsif (defined(my $ymd = shift @$args)) {
-        my ($year, $month, $day) = split_date($ymd);
+        my ($year, $month, $day) = $self->split_date($ymd);
 
         $self->login();
 
@@ -679,10 +681,10 @@ sub verify {
     my %entry;
     for my $file (@entry) {
         my $date = $self->get_entrydate($file);
-        dump($date);
-        my $ymd = cat_date($date->{year}, $date->{month}, $date->{day});
+        $self->dump($date);
+        my $ymd = $self->cat_date($date->{year}, $date->{month}, $date->{day});
         if (exists $entry{$ymd}) {
-            debug("$file is duplicated.");
+            $self->debug("$file is duplicated.");
             push @{ $entry{$ymd}{file} }, $file;
         }
         else {
@@ -724,7 +726,7 @@ sub status {
         $self->txt_dir = $dir;
         $self->touch_file = File::Spec->catfile($dir, 'touch.txt');
         unless (-f $self->touch_file) {
-            error($self->touch_file.": $!");
+            $self->error($self->touch_file.": $!");
         }
     }
 
@@ -762,10 +764,10 @@ sub apply_headline {
         my $filename = shift;
         $self->arg_error unless $filename;
 
-        my $FH = FileHandle->new($filename, 'r') or error("$filename:$!");
+        my $FH = FileHandle->new($filename, 'r') or $self->error("$filename:$!");
         my @headline = $self->find_headlines(do { local $/; <$FH> });
         $FH->close;
-        debug("found headline(s):".join(', ', @headline));
+        $self->debug("found headline(s):".join(', ', @headline));
 
         my $date = $self->get_entrydate($filename);
         return  unless defined $date;
@@ -781,7 +783,7 @@ sub apply_headline {
         unless (basename($filename) eq basename($new_filename)) {
             puts("rename $filename -> $new_filename");
             rename $filename, $new_filename
-                or error("$filename: Can't rename $filename $new_filename");
+                or $self->error("$filename: Can't rename $filename $new_filename");
         }
     };
 
@@ -798,7 +800,7 @@ sub apply_headline {
     }
     elsif (@$args) {
         unless (-f $args->[0]) {
-            error($args->[0].":$!");
+            $self->error($args->[0].":$!");
         }
         $apply->($args->[0]);
     }
@@ -817,17 +819,17 @@ sub revert_headline {
 
         my $date = $self->get_entrydate($filename);
         unless (defined $date) {
-            warning("$filename: not entry file");
+            $self->warning("$filename: not entry file");
             return;
         }
         # <year>-<month>-<day>.txt
-        my $new_filename = cat_date($date->{year}, $date->{month}, $date->{day});
+        my $new_filename = $self->cat_date($date->{year}, $date->{month}, $date->{day});
 
-        debug("check if $filename and $new_filename is same basename?");
+        $self->debug("check if $filename and $new_filename is same basename?");
         unless (basename($filename) eq basename($new_filename)) {
             puts("rename $filename -> $new_filename");
             rename $filename, File::Spec->catfile(dirname($filename), $new_filename)
-                or error("$filename: Can't rename $filename $new_filename");
+                or $self->error("$filename: Can't rename $filename $new_filename");
         }
     };
 
@@ -845,7 +847,7 @@ sub revert_headline {
     }
     elsif (@$args) {
         unless (-f $args->[0]) {
-            error($args->[0].":$!");
+            $self->error($args->[0].":$!");
         }
         $revert->($args->[0]);
 
@@ -860,13 +862,13 @@ sub touch {
     my ($self, $args) = @_;
 
     my $filename = File::Spec->catfile($self->txt_dir, 'touch.txt');
-    my $FH = FileHandle->new($filename, 'w') or error("$filename:$!");
+    my $FH = FileHandle->new($filename, 'w') or $self->error("$filename:$!");
     # NOTE: I assume that this format is compatible
     # between Date::Manip::UnixDate and POSIX::strftime.
     my $touch_fmt = '%Y%m%d%H%M%S';
 
     if (@$args) {
-        require_modules(qw(Date::Manip));
+        $self->require_modules(qw(Date::Manip));
         Date::Manip->import(qw(ParseDate UnixDate));
         # NOTE: this parser is not compatible with 'rake touch <string>'.
         $FH->print(UnixDate(ParseDate(shift @$args), $touch_fmt));
@@ -887,7 +889,7 @@ sub gen_html {
     my $missing_only = $opt->{'m|missing-only'};
 
     # prereq modules.
-    require_modules(qw(Text::Hatena));
+    $self->require_modules(qw(Text::Hatena));
 
     # both are directories, or both are files.
     my ($in, $out) = @$args;
@@ -903,7 +905,7 @@ sub gen_html {
         }
 
 
-        my $IN = FileHandle->new($in, 'r') or error("$in:$!");
+        my $IN = FileHandle->new($in, 'r') or $self->error("$in:$!");
 
         my @text = <$IN>;
         # cut title.
@@ -916,8 +918,8 @@ sub gen_html {
 
         puts("gen_html: $in -> $out");
 
-        my $OUT = FileHandle->new($out, 'w') or error("$out:$!");
-        $OUT->print($html) or error("can't write to $html");
+        my $OUT = FileHandle->new($out, 'w') or $self->error("$out:$!");
+        $OUT->print($html) or $self->error("can't write to $html");
         $OUT->close;
     };
 
@@ -978,7 +980,7 @@ sub update_index {
     }
 
 
-    require_modules(qw(
+    $self->require_modules(qw(
         HTML::TreeBuilder
         HTML::Template
         Time::Local
@@ -988,7 +990,7 @@ sub update_index {
         my ($html_dir, $index_tmpl) = @_;
 
         unless (-f $index_tmpl) {
-            error("$index_tmpl:$!");
+            $self->error("$index_tmpl:$!");
         }
 
 
@@ -1075,7 +1077,7 @@ sub update_index {
                 'summary' => $summary,
             };
 
-            # dump($entry[0]);
+            # $self->dump($entry[0]);
         }
         $template->param(entrylist => \@entry);
 
@@ -1084,7 +1086,7 @@ sub update_index {
             = (localtime $epoch)[5, 4, 3, 2, 1, 0];
         $year += 1900;
         $month++;
-        my $iso8601 = cat_date($year, $month, $day)
+        my $iso8601 = $self->cat_date($year, $month, $day)
                      .'T'
                      .sprintf('%02d:%02d:%02d', $hour, $min, $sec)
                      .'Z';
@@ -1098,12 +1100,12 @@ sub update_index {
 
         # Output
         my $index_html = File::Spec->catfile($html_dir, "index.html");
-        open my $OUT, '>', $index_html or error("$index_html:$!");
+        open my $OUT, '>', $index_html or $self->error("$index_html:$!");
         print $OUT $template->output;
         close $OUT;
         puts("wrote $index_html");
 
-        debug("generated $index_html...");
+        $self->debug("generated $index_html...");
     };
 
 
@@ -1115,7 +1117,7 @@ sub update_index {
     if (-f $path) {
         if (@$args) {
             my $dir = shift @$args;
-            error("$dir:$!") unless -d $dir;
+            $self->error("$dir:$!") unless -d $dir;
             $update_index_main->($dir, $path);
         }
         else {
@@ -1129,7 +1131,7 @@ sub update_index {
 
     }
     else {
-        warning("$path is neither file nor directory.");
+        $self->warning("$path is neither file nor directory.");
         STDERR->flush;
         $self->arg_error;
     }
@@ -1182,7 +1184,7 @@ sub diff {
 
 
     my $diff = sub {
-        my ($year, $month, $day) = split_date(shift);
+        my ($year, $month, $day) = $self->split_date(shift);
 
         # Login if necessary.
         $self->login();
@@ -1207,15 +1209,15 @@ sub diff {
     if (defined $file) {
         # check if $file is entry file
         unless (-f $file) {
-            error("$file: $!");
+            $self->error("$file: $!");
         }
         my $date = $self->get_entrydate($file);
         unless (defined $date) {
-            error("$file: not entry file");
+            $self->error("$file: not entry file");
         }
 
         $diff->(
-            cat_date($date->{year}, $date->{month}, $date->{day})
+            $self->cat_date($date->{year}, $date->{month}, $date->{day})
         );
     }
     elsif (@$args) {
@@ -1324,13 +1326,13 @@ sub diff {
                 my ($prev_word, $cur_text, $str_len) = @_;
                 my $completed = $cur_text =~ / $/;
 
-                unless (is_complete_str($cur_text)) {
+                unless ($self->is_complete_str($cur_text)) {
                     $dwarn->("[$cur_text] is not complete string. skip...");
                     return undef;
                 }
 
 
-                my @args = shell_eval_str($cur_text);
+                my @args = $self->shell_eval_str($cur_text);
                 if (@args == 0) {
                     return $comp_cmd->();
                 }
@@ -1394,13 +1396,13 @@ sub diff {
                 return $glob_files->();
             };
 
-            debug("initialized shell...");
+            $self->debug("initialized shell...");
             $initialized = 1;
         }
 
 
         local $HWWrapper::Hook::BuiltinFunc::exit = sub (;$) {
-            error("program exited with ".(@_ ? $_[0] : 0));
+            $self->error("program exited with ".(@_ ? $_[0] : 0));
             # trapped with eval, this won't die.
         };
 
@@ -1417,12 +1419,12 @@ sub diff {
             }
 
             # read lines until $line is complete
-            until (is_complete_str($line)) {
+            until ($self->is_complete_str($line)) {
                 if (length $line && substr($line, -1, 1) eq  "\\") {
                     chop $line;
                 }
 
-                debug("reading next line...[$line]");
+                $self->debug("reading next line...[$line]");
                 my $l = $term->readline("");
 
                 # EOF
@@ -1438,15 +1440,15 @@ sub diff {
         SHELL:
         while (defined(my $line = $readline->())) {
 
-            debug("eval...[$line]");
+            $self->debug("eval...[$line]");
             DISPATCH:
-            for my $shell_args (shell_eval_str($line)) {
-                debug(sprintf "process %s...", dumper($shell_args));
+            for my $shell_args ($self->shell_eval_str($line)) {
+                $self->debug(sprintf "process %s...", dumper($shell_args));
 
                 my ($cmd, @cmd_args) = @$shell_args;
 
                 if ($cmd eq 'shell') {
-                    warning("you have been already in the shell.");
+                    $self->warning("you have been already in the shell.");
                     last DISPATCH;
                 }
                 elsif (is_hww_command($cmd)) {
@@ -1462,7 +1464,7 @@ sub diff {
                 else {
                     # I can emulate 'correct' in zsh by using familiar_words().
                     # but that might be annoying if that's default.
-                    my @familiar = familiar_words(
+                    my @familiar = $self->familiar_words(
                         $cmd,
                         [
                             keys(%HWW_COMMAND),
@@ -1480,11 +1482,11 @@ sub diff {
                         puts("\t$_") for @familiar;
                     }
                     else {
-                        warning("$cmd: command not found");
+                        $self->warning("$cmd: command not found");
                     }
                 }
 
-                warning($@) if $@;
+                $self->warning($@) if $@;
             }
         }
 
@@ -1506,7 +1508,7 @@ sub truncate_cmd {
     my $truncate = sub {
         my $file = shift;
 
-        my $FH = FileHandle->new($file, 'r') or error("$file: $!");
+        my $FH = FileHandle->new($file, 'r') or $self->error("$file: $!");
         my ($title, @body) = <$FH>;
         $FH->close;
 
@@ -1521,11 +1523,11 @@ sub truncate_cmd {
         puts("$file: found waste blank lines...");
 
         # remove waste blank lines.
-        debug("truncate: [0..$#body] -> [$first..$last]");
+        $self->debug("truncate: [0..$#body] -> [$first..$last]");
         @body = @body[$first .. $last];
 
         # write result.
-        $FH = FileHandle->new($file, 'w') or error("$file: $!");
+        $FH = FileHandle->new($file, 'w') or $self->error("$file: $!");
         $FH->print($title);
         $FH->print($_) for @body;
         $FH->close;
@@ -1537,11 +1539,11 @@ sub truncate_cmd {
             $self->txt_dir = shift @$args;
         }
         unless (-d $self->txt_dir) {
-            mkdir $self->txt_dir or error($self->txt_dir.": $!");
+            mkdir $self->txt_dir or $self->error($self->txt_dir.": $!");
         }
 
         for my $entrypath ($self->get_entries($self->txt_dir)) {
-            debug($entrypath);
+            $self->debug($entrypath);
             $truncate->($entrypath);
         }
     }
@@ -1552,7 +1554,7 @@ sub truncate_cmd {
 
         my $file = shift @$args;
         unless (-f $file) {
-            error("$file: $!");
+            $self->error("$file: $!");
         }
 
         $truncate->($file);
@@ -1565,7 +1567,7 @@ sub editor {
     my $is_gui_prog = $opt->{'g|gui'};
 
     unless (exists $ENV{EDITOR}) {
-        error("set 'EDITOR' environment variable.");
+        $self->error("set 'EDITOR' environment variable.");
     }
     my $editor = $ENV{EDITOR};
     my ($year, $month, $day) = (localtime)[5, 4, 3];
@@ -1579,7 +1581,7 @@ sub editor {
     puts("opening editor...");
 
     if ($is_gui_prog) {
-        require_modules(qw(IPC::Run));
+        $self->require_modules(qw(IPC::Run));
 
         # prepare editor process.
         my $editor_proc = IPC::Run::harness(
@@ -1601,17 +1603,17 @@ sub editor {
                 # (wait 0 second)
                 $editor_proc->kill_kill(grace => 0);
 
-                debug("exiting with -1...");
+                $self->debug("exiting with -1...");
                 exit -1;
             };
         } 0 .. $#sig_to_trap;
 
         # spawn editor program.
-        debug("start [$editor $entrypath]...");
+        $self->debug("start [$editor $entrypath]...");
         $editor_proc->start;
-        debug("finish [$editor $entrypath]...");
+        $self->debug("finish [$editor $entrypath]...");
         $editor_proc->finish;
-        debug("done.");
+        $self->debug("done.");
     }
     else {
         system $editor, $entrypath;
