@@ -16,16 +16,16 @@ my $wrapper = HWWrapper->new(args => []);
 
 my @tests = (
     sub {
-        dies_ok { error() }, "error() dies ok";
+        dies_ok { $wrapper->error() }, "error() dies ok";
     },
     sub {
-        dies_ok { error("going to die!!") }, "error() dies ok";
+        dies_ok { $wrapper->error("going to die!!") }, "error() dies ok";
     },
     sub {
         lives_ok {
             # trap STDOUT and STDERR
             # (but can't stop warning() from dying)
-            output_from { warning("warn") }
+            output_from { $wrapper->warning("warn") }
         }, "warning() won't die";
     },
 

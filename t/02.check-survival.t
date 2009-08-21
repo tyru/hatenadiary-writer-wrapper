@@ -26,7 +26,7 @@ my @tests = (
     },
     sub {
         lives_ok {
-            dump("dumping...");
+            $wrapper->dump("dumping...");
         }, "dump() is exported correctly";
     },
 );
