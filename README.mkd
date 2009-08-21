@@ -1,5 +1,6 @@
 
-= Hatena Diary Writer Wrapper って何？
+Hatena Diary Writer Wrapper って何？
+============================================
 
 Hatena Diary Writerをラップしてさまざまな機能を加えたものです。
 略称は個人的にはどうでもいいですが
@@ -9,22 +10,24 @@ Hatena Diary Writerをラップしてさまざまな機能を加えたもので�
 - hww (スクリプト名hww.plから)
 
 とか呼んでいます。
-このドキュメントでは短いのでhwwで統一します。
+このドキュメントでは短いので*hww*で統一します。
 
 
-= Hatena Diary Writer(通称はてダラ) って何？
+
+Hatena Diary Writer(通称はてダラ) って何？
+============================================
 
 オリジナルのはてダラの配布元は、作者である結城浩さんのサイトですが、
-hwwは、そのはてダラを使い易くしようとRakefileを加えた
+*hww*は、そのはてダラを使い易くしようとRakefileを加えた
 こせきさん(id:koseki)のリポジトリからforkしたものです。
 
-- http://github.com/koseki/hatenadiary-writer/
+<http://github.com/koseki/hatenadiary-writer/>
 
 
 以下に結城浩さんによるはてダラの説明の引用を載せます。
 なおこの説明は次のURLでも読むことができます。
 
-- http://www.hyuki.com/techinfo/hatena_diary_writer.html
+<http://www.hyuki.com/techinfo/hatena_diary_writer.html>
 
 
 > はてなダイアリーは、Webブラウザから書き込みができ、手軽で便利な日記（ブログ）サービスです。
@@ -48,9 +51,10 @@ hwwは、そのはてダラを使い易くしようとRakefileを加えた
 
 
 
-= どんなことができるのか
+どんなことができるのか
+============================================
 
-hwwは、具体的には次のようなコマンドを持っています。(2009-08-17 現在)
+*hww*は、具体的には次のようなコマンドを持っています。(2009-08-17 現在)
 次のうちいくつかの操作ははてダラでも可能です。
 
 
@@ -60,6 +64,7 @@ hwwは、具体的には次のようなコマンドを持っています。(2009
   - chain commands with '--'
 - copyright
 - diff
+- editor
 - gen-html
   - generate htmls from entry files
 - help
