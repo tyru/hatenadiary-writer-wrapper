@@ -38,7 +38,6 @@ use HWWrapper::Functions;
 
 
 
-
 # NOTE:
 # settings will be overridden like the followings
 # - set default settings
@@ -49,27 +48,15 @@ use HWWrapper::Functions;
 #
 
 
+
+
+
 ### set default settings ###
 sub new {
     my $self = shift;
 
-    $self->{arg_opt}{HW} = {
-        t => \my $t,    # "trivial" flag.
-        'u=s' => \my $u,    # "username" option.
-        'p=s' => \my $p,    # "password" option.
-        'a=s' => \my $a,    # "agent" option.
-        'T=s' => \my $T,    # "timeout" option.
-        'g=s' => \my $g,    # "groupname" option.
-        'f=s' => \my $f,    # "file" option.
-        M => \my $M,    # "no timestamp" flag.
-        'n=s' => \my $n,    # "config file" option.
-        # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
-    };
-
 
     ### make default config - begin ###
-
-    my $hatena_url = 'http://d.hatena.ne.jp';
 
     my %ua_option = (
         agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
@@ -81,7 +68,7 @@ sub new {
         password => '',
         groupname => '',
         target_file => '',
-        hatena_url => URI->new($hatena_url),
+        hatena_url => URI->new('http://d.hatena.ne.jp'),
 
         %ua_option,
 
@@ -134,6 +121,27 @@ sub new {
     ### make default config - end ###
 
 
+    # TODO do this at base class.
+    #
+    # prepare arguments options.
+    my %arg_opt = (
+        t => 'trivial',    # "trivial" flag.
+        'u=s' => 'username',    # "username" option.
+        'p=s' => 'password',    # "password" option.
+        'a=s' => 'agent',    # "agent" option.
+        'T=s' => 'timeout',    # "timeout" option.
+        'g=s' => 'groupname',    # "groupname" option.
+        # 'f=s' => 'file',    # "file" option. XXX: maybe not needed.
+        M => 'no_timestamp',    # "no timestamp" flag.
+        'n=s' => 'config_file',    # "config file" option.
+        # S => \undef,    # "SSL" flag. This is always 1. Set 0 to login older hatena server.
+    );
+    $self->{arg_opt}{HW} = {map {
+        # arg option => config value
+        ($_ => \$self->{config}{ $arg_opt{$_} })
+    } keys %arg_opt};
+
+
     # Crypt::SSLeay check.
     eval {
         require Crypt::SSLeay;
@@ -148,44 +156,34 @@ sub new {
     $self->SUPER::new;
 }
 
+
+
 ### set arguments settings ###
 sub parse_opt {
     my $self = shift;
-    my $arg_opt = $self->{arg_opt}{HW};
-    my @argv = @_;
-
-    return unless @argv;
 
     # get options
-    $self->get_opt($self->{args}{options}, $arg_opt);
+    $self->get_opt(
+        $self->{args}{options},
+        $self->{arg_opt}{HW}
+    ) or do {
+        warning("arguments error");
+        sleep 1;
+        $self->dispatch('help');
+        exit -1;
+    };
 
-
-    my %args = (
-        t => 'trivial',
-        'u=s' => 'username',
-        'p=s' => 'password',
-        'g=s' => 'groupname',
-        'a=s' => 'agent',
-        'T=s' => 'timeout',
-        'f=s' => 'target_file',
-        M => 'no_timestamp',
-    );
-
-    while (my ($k, $method) = each %args) {
-        my $arg_value = ${ $arg_opt->{$k} };
-        if ($arg_value) {
-            debug("set args: $k => $arg_value");
-            $self->$method = $arg_value;
-        }
-    }
-
-    # Change $self->hatena_url to Hatena group URL if $arg_opt->{'g=s'} is defined.
-    if (${ $arg_opt->{'g=s'} }) {
+    # change the URL to hatena group's URL if '-g' option was given.
+    if (length $self->groupname) {
         my $tmp = $self->hatena_url;
-        $self->hatena_url = URI->new(sprintf 'http://%s.g.hatena.ne.jp', ${ $arg_opt->{'g=s'} });
+        $self->hatena_url = URI->new(
+            sprintf 'http://%s.g.hatena.ne.jp', $self->groupname
+        );
         debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
     }
 }
+
+
 
 ### set config file settings ###
 sub load_config {
@@ -212,6 +210,7 @@ sub load_config {
         error("Can't open $config_file.");
     }
 
+    # TODO make dispatch table
     while (<$CONF>) {
         chomp;
         if (/^\#/) {

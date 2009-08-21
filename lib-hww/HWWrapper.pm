@@ -163,7 +163,7 @@ sub parse_opt {
 
 
     # parse hww.pl's options.
-    $self->get_opt_only(
+    $self->get_opt_only(    # do get_opt_only() for HW(SUPER::parse_opt()).
         $options,
         $self->{arg_opt}{HWWrapper}
     ) or do {
@@ -250,7 +250,6 @@ sub dispatch {
 
 sub dispatch_with_args {
     my $self = shift;
-    my @argv = @_;
 
     unless (blessed($self)) {
         croak 'give me blessed $self.';
@@ -263,8 +262,8 @@ sub dispatch_with_args {
     # currently this calls HW::load_config() directly.
     $self->load_config;
 
-    # parse options in @_
-    my ($cmd, $cmd_args) = $self->parse_opt(@argv);
+    # parse options
+    my ($cmd, $cmd_args) = $self->parse_opt();
 
     # for memory
     # delete $self->{arg_opt};
