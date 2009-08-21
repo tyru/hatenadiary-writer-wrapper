@@ -23,6 +23,9 @@ use Pod::Usage;
 use List::MoreUtils qw(first_index last_index);
 
 
+# TODO
+# 一つのクラスに一つのコマンドに分ける
+# (速度については後で考慮)
 our %HWW_COMMAND = (
     help => {
         coderef => \&help,
@@ -134,6 +137,10 @@ our %HWW_COMMAND = (
             'm|missing-only' => {
                 desc => "generate html only missing entries",
             },
+            # TODO
+            # '--ignore-headline' => {
+            #     desc => "ignore the headline part of filename",
+            # },
         },
     },
     'update-index' => {
@@ -183,9 +190,12 @@ our %HWW_COMMAND = (
     # 'delete-tag' => 'delete_tag',
     # 'rename-tag' => 'rename_tag',
 
-    # TODO 現在の日記ファイルを作ってエディタで開くコマンド
     # TODO 設定(ファイルはconfig-hww.txt)を変えるコマンド
     # config => 'config',
+
+    # - ファイルが変更されたら、何らかの処理を実行できるコマンド
+    # (「ファイルが変更された」以外にも色んなイベントに対応できるようにする)
+    # watch => 'watch',
 );
 
 
@@ -702,6 +712,9 @@ sub verify {
 }
 
 # show information about entry files
+#
+# FIXME
+# - apply-headlineでリネームした場合もstatusコマンドで表示されてしまう
 sub status {
     my ($self, $args, $opt) = @_;
 
@@ -952,6 +965,12 @@ sub gen_html {
 # make html from template file by HTML::Template
 sub update_index {
     my ($self, $args, $opt) = @_;
+
+    # TODO
+    # - index.htmlだけでなく、いくつかのページを持ったindex.htmlを出力。
+    #   (index<連番>.htmlという形にするか、2ページ目以降はどこかのディレクトリに納めるかは、どうやって決める？)
+    # - 1ページ当たりのエントリ数(オプション)
+
 
     my $max_strlen;
     if (defined $opt->{'m|max-length=s'}) {
@@ -1239,6 +1258,9 @@ sub diff {
                     STDOUT->flush;
                 },
                 h => sub { $shell_cmd{'?'}->() },
+                # TODO
+                # login => sub {},
+                # logout => sub {},
             );
 
             # for debug.

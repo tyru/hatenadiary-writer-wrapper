@@ -316,6 +316,9 @@ sub familiar_words {
     return @familiar;
 }
 
+
+# TODO 日付関連のテスト
+
 # split 'date'.
 #
 # NOTE:
