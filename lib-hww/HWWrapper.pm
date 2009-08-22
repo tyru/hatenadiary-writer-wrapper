@@ -29,7 +29,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.7.8';
+our $VERSION = '1.7.9';
 
 use base qw(HW HWWrapper::Commands);
 
