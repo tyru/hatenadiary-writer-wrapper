@@ -12,6 +12,7 @@ use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper::Functions;
 use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 
+use Carp;
 use File::Basename qw(dirname basename);
 use Scalar::Util qw(blessed);
 use File::Temp qw(tempdir tempfile);
@@ -298,61 +299,83 @@ EOD
 
 # TODO
 # - write help pod
-# - ファイルを作成したらそう出力する
 sub init {
     my ($self, $args, $opt) = @_;
 
     my $read_config = $opt->{'c|config'};
 
-    my $txt_dir = "text";
-    my $config_file = "config.txt";
-    my $cookie_file = "cookie.txt";
-
-    my $dir = shift @$args;
-    if (defined $dir) {
-        $txt_dir = $dir;
-    }
-    elsif ($read_config) {
-        $txt_dir = $self->txt_dir;
-        $config_file = $self->config_file,
-        $cookie_file = $self->cookie_file;
-    }
-    my $touch_file = File::Spec->catfile($txt_dir, 'touch.txt');
-
-
-    if (-e $txt_dir) {
-        $self->warning("$txt_dir already exists.");
-    }
-    else {
-        mkdir $txt_dir;
-    }
-
-    if (-e $config_file) {
-        $self->warning("$config_file already exists.");
-    }
-    else {
-        my $CONF = FileHandle->new($config_file, 'w') or $self->error("$config_file:$!");
-        $CONF->print(<<EOT);
+    my %files = (
+        txt_dir => {
+            path => 'text',
+            type => 'dir',
+        },
+        config_file => {
+            path => 'config.txt',
+            type => 'file',
+        },
+        cookie_file => {
+            path => 'cookie.txt',
+            type => 'file',
+            data => '',
+        },
+    );
+    $files{config_file}{data} = <<EOT;
 id:yourid
-txt_dir:$txt_dir
-touch:$touch_file
+txt_dir:$files{txt_dir}{path}
+touch:@{[ File::Spec->catfile($files{txt_dir}{path}, 'touch.txt') ]}
 client_encoding:utf-8
 server_encoding:euc-jp
 EOT
-        $CONF->close;
+
+    my $dir = shift @$args;
+    if (defined $dir) {
+        $files{txt_dir} = $dir;
+    }
+    elsif ($read_config) {
+        $files{txt_dir}{path} = $self->txt_dir;
+        $files{config_file}{path} = $self->config_file,
+        $files{cookie_file}{path} = $self->cookie_file;
     }
 
-    if (-e $cookie_file) {
-        $self->warning("$config_file already exists.");
-    }
-    else {
-        # make empty file
-        my $TOUCH = FileHandle->new($cookie_file, 'w') or $self->error("$cookie_file:$!");
-        $TOUCH->close;
+
+    # create prereq files.
+    for my $v (values %files) {
+        if ($v->{type} eq 'dir') {
+            if (-d $v->{path}) {
+                $self->warning("directory $v->{path} already exists.");
+            }
+            else {
+                # create directory.
+                mkdir $v->{path} or $self->error("$v->{path}: $!");
+                puts("create $v->{path}.");
+            }
+        }
+        elsif ($v->{type} eq 'file') {
+            if (-f $v->{path}) {
+                $self->warning("file $v->{path} already exists.");
+            }
+            else {
+                # create file.
+                my $FH = FileHandle->new($v->{path}, 'w')
+                            or $self->error("$v->{path}: $!");
+                $FH->print($v->{data});
+                $FH->close;
+                puts("create $v->{path}.");
+            }
+        }
+        else {
+            croak "sorry internal error." .
+                  " please report this by e-mail or curse me.";
+        }
     }
 
-    $self->debug("chmod 0600 $cookie_file");
-    chmod 0600, $cookie_file;
+
+    puts("chmod 0600 $files{cookie_file}{path}");
+    chmod 0600, $files{cookie_file}{path}
+        or $self->error("chmod: $!");
+
+
+    puts("\nplease edit your id in $files{config_file}{path}.");
 }
 
 # upload entries to hatena diary
