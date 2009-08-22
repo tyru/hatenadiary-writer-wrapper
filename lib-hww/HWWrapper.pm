@@ -62,7 +62,7 @@ sub new {
 
 
     # set members
-    my $c = $self->{config} = {
+    $self->{config} = {
         # use cookie. (default)
         no_cookie => 0,
 
@@ -70,14 +70,14 @@ sub new {
         is_debug => 0,
     };
     $self->{arg_opt}{HWWrapper} = {
-        d => \$c->{is_debug},
-        debug => \$c->{is_debug},
+        d => \$self->{config}{is_debug},
+        debug => \$self->{config}{is_debug},
 
-        D => \$c->{is_debug_stderr},
-        'debug-stderr' => \$c->{is_debug_stderr},
+        D => \$self->{config}{is_debug_stderr},
+        'debug-stderr' => \$self->{config}{is_debug_stderr},
 
-        C => \$c->{no_cookie},
-        'no-cookie' => \$c->{no_cookie},
+        C => \$self->{config}{no_cookie},
+        'no-cookie' => \$self->{config}{no_cookie},
     };
     $self->{debug_fh} = IO::String->new;
 
@@ -135,16 +135,15 @@ sub parse_opt {
         croak "you did not passed 'args' option to HWWrapper->new().";
     }
 
-    my $options  = $self->{args}{options};
     my $cmd      = $self->{args}{command};
     my $cmd_args = $self->{args}{command_args};
 
-    return ($cmd, $cmd_args) unless @$options;
+    # return ($cmd, $cmd_args) unless @$options;
 
 
     # parse hww.pl's options.
     $self->get_opt_only(    # do get_opt_only() for HW(SUPER::parse_opt()).
-        $options,
+        $self->{args}{options},
         $self->{arg_opt}{HWWrapper}
     ) or do {
         $self->warning("arguments error");
@@ -169,11 +168,8 @@ sub parse_opt {
 
     $self->is_debug = 1 if $self->is_debug_stderr;
 
-
     # parse HW 's options.
-    if (@$options) {
-        $self->SUPER::parse_opt();
-    }
+    $self->SUPER::parse_opt();
 
 
     return ($cmd, $cmd_args);

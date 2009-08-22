@@ -886,7 +886,7 @@ sub warning {
     my $self = shift;
 
     # TODO stash debug value in $self
-    if ($HWWrapper::debug) {
+    if ($self->is_debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
         warn "warning: $subname()  at $filename line $line:", @_, "\n";
@@ -901,7 +901,7 @@ sub error {
     my @errmsg;
 
     # TODO stash debug value in $self
-    if ($HWWrapper::debug) {
+    if ($self->is_debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
         @errmsg = ("error: $subname() at $filename line $line:", @_, "\n");

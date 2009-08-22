@@ -56,13 +56,7 @@ sub new {
     my $self = shift;
 
 
-    ### make default config - begin ###
-
-    my %ua_option = (
-        agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
-        timeout => 180,
-    );
-
+    # make default config.
     my %config = (
         username => '',
         password => '',
@@ -70,7 +64,8 @@ sub new {
         target_file => '',
         hatena_url => URI->new('http://d.hatena.ne.jp'),
 
-        %ua_option,
+        agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
+        timeout => 180,
 
         no_timestamp => 0,
         enable_ssl => 1,    # NOTE: this value always 1.
@@ -110,49 +105,38 @@ sub new {
         enable_encode => eval('use Encode; 1'),
     );
 
-    # add $self->{config} to %config
-    %config = (
-        %config,
-        %{ $self->{config} },    # override
-    );
-    # stash config into myself
-    $self->{config} = \%config;
-
-    ### make default config - end ###
+    # add hw config to $self->{config}.
+    while (my ($k, $v) = each %config) {
+        $self->{config}{$k} = $v;
+    }
 
 
-    # TODO do this at base class.
-    #
     # prepare arguments options.
-    my %arg_opt = (
-        t => 'trivial',    # "trivial" flag.
-        trivial => 'trivial',
+    $self->{arg_opt}{HW} = {
+        t => \$self->{config}{trivial},    # "trivial" flag.
+        trivial => \$self->{config}{trivial},
 
-        'u=s' => 'username',    # "username" option.
-        'username=s' => 'username',
+        'u=s' => \$self->{config}{username},    # "username" option.
+        'username=s' => \$self->{config}{username},
 
-        'p=s' => 'password',    # "password" option.
-        'password=s' => 'password',
+        'p=s' => \$self->{config}{password},    # "password" option.
+        'password=s' => \$self->{config}{password},
 
-        'a=s' => 'agent',    # "agent" option.
-        'agent=s' => 'agent',
+        'a=s' => \$self->{config}{agent},    # "agent" option.
+        'agent=s' => \$self->{config}{agent},
 
-        'T=s' => 'timeout',    # "timeout" option.
-        'timeout=s' => 'timeout',
+        'T=s' => \$self->{config}{timeout},    # "timeout" option.
+        'timeout=s' => \$self->{config}{timeout},
 
-        'g=s' => 'groupname',    # "groupname" option.
-        'group=s' => 'groupname',
+        'g=s' => \$self->{config}{groupname},    # "groupname" option.
+        'group=s' => \$self->{config}{groupname},
 
-        M => 'no_timestamp',    # "no timestamp" flag.
-        'no-replace' => 'no_timestamp',
+        M => \$self->{config}{no_timestamp},    # "no timestamp" flag.
+        'no-replace' => \$self->{config}{no_timestamp},
 
-        'n=s' => 'config_file',    # "config file" option.
-        'config-hw=s' => 'config_file',
-    );
-    $self->{arg_opt}{HW} = {map {
-        # arg option => config value
-        ($_ => \$self->{config}{ $arg_opt{$_} })
-    } keys %arg_opt};
+        'n=s' => \$self->{config}{config_file},    # "config file" option.
+        'config-hw=s' => \$self->{config}{config_file},
+    };
 
 
     # Crypt::SSLeay check.
