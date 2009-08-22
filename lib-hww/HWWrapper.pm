@@ -27,6 +27,8 @@ package HWWrapper;
 # - new()で設定のデフォルト値をセットして
 # - load_config()で設定ファイルの値をセットして
 # - parse_opt()で引数の値をセット
+#
+# croakはモジュールの扱い方に問題があった場合にのみ使われる
 
 
 
@@ -202,6 +204,21 @@ sub parse_opt {
 
 
 
+sub validate_prereq_files {
+    my $self = shift;
+
+    for my $file (qw(touch_file cookie_file config_file txt_dir)) {
+        unless (-e $self->$file) {
+            $self->error(
+                $self->$file.": $!\n\n" .
+                "not found prereq files. please run 'perl hww.pl init'."
+            );
+        }
+    }
+}
+
+
+
 # dispatch command.
 # commands are defined in HWWrapper::Commands.
 sub dispatch {
@@ -262,6 +279,11 @@ sub dispatch_with_args {
 
     # split arguments.
     my ($opts, $cmd, $cmd_args) = $self->split_opt(@args);
+    $cmd = 'help' unless defined $cmd;
+
+    unless (is_hww_command($cmd)) {
+        $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
+    }
 
     # load config files.
     $self->load_config;
@@ -269,8 +291,13 @@ sub dispatch_with_args {
     # parse '$self->{args}{options}' (same as $opts).
     $self->parse_opt();
 
+    unless ($cmd =~ /^ (help | version | copyright | init) $/x) {
+        # check if prereq files exist.
+        $self->validate_prereq_files();
+    }
+
     # dispatch command.
-    $self->dispatch((defined $cmd ? $cmd : 'help'), $cmd_args);
+    $self->dispatch($cmd, $cmd_args);
 }
 
 

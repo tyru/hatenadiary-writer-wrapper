@@ -10,11 +10,13 @@ use File::Spec;
 use FindBin qw($Bin);
 use lib "$Bin/lib-hww";
 
+
 # use HWWrapper;    # for debug.
 eval { require HWWrapper };
 
 # TODO
-# die if 'require error'
+# die if 'require error'.
+# sometimes I get this message when 'syntax error'...
 if ($@) {
     die <<EOM;
 error: no prereq modules.
@@ -25,25 +27,9 @@ please see README.md for install.
 EOM
 }
 
-my $wrapper = HWWrapper->new;
-
-### sub ###
-sub usage () {
-    $wrapper->dispatch('help');
-    exit -1;
-}
-
-sub version () {
-    $wrapper->dispatch('version');
-    exit -1;
-}
 
 
-
-### main ###
-usage() unless @ARGV;
-$wrapper->dispatch_with_args(@ARGV);
-
+HWWrapper->new->dispatch_with_args(@ARGV);
 
 __END__
 
