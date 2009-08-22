@@ -179,6 +179,9 @@ our %HWW_COMMAND = (
             'g|gui' => {
                 desc => 'wait until gui program exits',
             },
+            'p|program=s' => {
+                desc => 'editor program to edit',
+            },
         }
     },
 
@@ -1566,17 +1569,43 @@ sub editor {
 
     my $is_gui_prog = $opt->{'g|gui'};
 
-    unless (exists $ENV{EDITOR}) {
-        $self->error("set 'EDITOR' environment variable.");
+    my $editor;
+    if ($opt->{'p|program=s'}) {    # --program
+        $editor = $opt->{'p|program=s'};
+
     }
-    my $editor = $ENV{EDITOR};
+    elsif (exists $ENV{EDITOR}) {
+        $editor = $ENV{EDITOR};
+    }
+    else {
+        $self->error(
+            "no editor program found."
+           ." please set env 'EDITOR' or give me editor path."
+        );
+    }
+
+    unless (-e $editor) {
+        # find in $PATH.
+        for my $path (File::Spec->path) {
+            my $editor_path = File::Spec->catfile($path, $editor);
+            if (-e $editor_path) {
+                $editor = $editor_path;
+                goto I_FOUND_IT;
+            }
+        }
+        # ...but not found.
+        $self->error("could not find '$editor'.");
+    }
+I_FOUND_IT:
+
+
     my ($year, $month, $day) = (localtime)[5, 4, 3];
     $year  += 1900;
     $month += 1;
     my $entrypath = $self->get_entrypath($year, $month, $day);
+    # save status of file test because $entrypath might be created after this.
     my $exist_entry = (-f $entrypath);
     my $mtime       = (-M $entrypath);
-
 
     puts("opening editor...");
 
