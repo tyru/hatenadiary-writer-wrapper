@@ -81,18 +81,6 @@ sub new {
     };
     $self->{debug_fh} = IO::String->new;
 
-    # split arguments
-    if (exists $self->{args}) {
-        my ($opts, $cmd, $cmd_args) = $self->split_opt(@{ $self->{args} });
-        $self->{args} = {
-            options => $opts,
-            command => $cmd,
-            command_args => $cmd_args,
-        };
-    }
-    else {
-        croak "currently, 'args' option is required!!";
-    }
 
     # initialize config of HW.
     $self->SUPER::new;
@@ -226,25 +214,24 @@ sub dispatch {
 
 sub dispatch_with_args {
     my $self = shift;
+    my @args = @_;
 
     unless (blessed($self)) {
         croak 'give me blessed $self.';
     }
-    unless (exists $self->{args}) {
-        croak 'you have not passed args option.';
-    }
 
 
-    # currently this calls HW::load_config() directly.
+    # split arguments.
+    my ($opts, $cmd, $cmd_args) = $self->split_opt(@args);
+
+    # load config files.
     $self->load_config;
 
-    # parse options
-    my ($cmd, $cmd_args) = $self->parse_opt();
+    # parse '$self->{args}{options}' (same as $opts).
+    $self->parse_opt();
 
-    # for memory
-    # delete $self->{arg_opt};
-
-    $self->dispatch(defined $cmd ? $cmd : 'help', $cmd_args);
+    # dispatch command.
+    $self->dispatch((defined $cmd ? $cmd : 'help'), $cmd_args);
 }
 
 

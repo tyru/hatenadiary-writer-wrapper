@@ -964,6 +964,9 @@ sub split_opt {
                     dumper($ret[1]),
                     dumper($ret[2]));
 
+    # set to $self->{args}{options, command, command_args}.
+    @{ $self->{args} }{qw(options command command_args)} = @ret;
+
     return @ret;
 }
 

@@ -25,7 +25,7 @@ please see README.md for install.
 EOM
 }
 
-my $wrapper = HWWrapper->new(args => \@ARGV);
+my $wrapper = HWWrapper->new;
 
 ### sub ###
 sub usage () {
@@ -42,7 +42,7 @@ sub version () {
 
 ### main ###
 usage() unless @ARGV;
-$wrapper->dispatch_with_args;
+$wrapper->dispatch_with_args(@ARGV);
 
 
 __END__
