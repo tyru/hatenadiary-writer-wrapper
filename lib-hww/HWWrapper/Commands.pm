@@ -296,7 +296,9 @@ Copyright (C) 2009 by tyru.
 EOD
 }
 
-# TODO write help pod
+# TODO
+# - write help pod
+# - ファイルを作成したらそう出力する
 sub init {
     my ($self, $args, $opt) = @_;
 
@@ -455,6 +457,9 @@ sub update {
 }
 
 # load entries from hatena diary
+#
+# TODO
+# - 引数がない時は今日のエントリを持ってくる
 sub load {
     my ($self, $args, $opt) = @_;
 
@@ -661,6 +666,10 @@ sub load {
 
 # verify misc information
 # NOTE: currently only checking duplicated entries.
+#
+# TODO
+# - 0詰めされてない日付のファイル名をチェック
+# - はてな記法のチェック
 sub verify {
     my ($self, $args, $opt) = @_;
 
@@ -717,6 +726,10 @@ sub verify {
 #
 # FIXME
 # - apply-headlineでリネームした場合もstatusコマンドで表示されてしまう
+#
+# TODO
+# - ログインしてるかしてないか表示
+# - 管理下でないファイル(フォーマットに則ってないファイル)も表示
 sub status {
     my ($self, $args, $opt) = @_;
 
@@ -884,6 +897,11 @@ sub touch {
 }
 
 # generate htmls from entry files
+#
+# XXX
+# - 恐らく見出しの有無に関わらず、ファイルを作ってしまう(-mオプションが効かない)
+#   - get_entrypath()してから、存在してるか調べる
+#   - gen-htmlに関わらず--missing-onlyオプションがあるコマンドはチェック
 sub gen_html {
     my ($self, $args, $opt) = @_;
 
@@ -1564,6 +1582,7 @@ sub truncate_cmd {
     }
 }
 
+# TODO write help
 sub editor {
     my ($self, $args, $opt) = @_;
 

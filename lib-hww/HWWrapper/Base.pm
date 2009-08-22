@@ -257,14 +257,8 @@ sub arg_error {
     STDERR->print($@);
     STDERR->flush;
 
-    # stop or sleep.
-    if ($self->is_debug) {
-        print "press enter to continue...";
-        <STDIN>;
-    }
-    else {
-        sleep 1;
-    }
+    # sleep for telling what happened.
+    sleep 1;
 
     # show help message!
     $self->dispatch('help', [$cmdname]);
