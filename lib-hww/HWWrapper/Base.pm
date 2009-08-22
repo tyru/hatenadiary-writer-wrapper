@@ -939,37 +939,6 @@ sub require_modules {
     $self->debug("required ".join(', ', @_));
 }
 
-# separate options into hww.pl's options and hw.pl's options.
-# (like git)
-sub split_opt {
-    my $self = shift;
-    my @hww_opt;
-    my $subcmd;
-    my @tmp_argv = @_;
-
-    while (defined(my $a = shift)) {
-        if ($a =~ /^-/) {
-            push @hww_opt, $a;
-        }
-        else {
-            $subcmd = $a;    # found command
-            last;
-        }
-    }
-
-    my @ret = (\@hww_opt, $subcmd, [@_]);
-    $self->debug(sprintf "%s -> (%s, %s, %s)\n",
-                    dumper(\@tmp_argv),
-                    dumper($ret[0]),
-                    dumper($ret[1]),
-                    dumper($ret[2]));
-
-    # set to $self->{args}{options, command, command_args}.
-    @{ $self->{args} }{qw(options command command_args)} = @ret;
-
-    return @ret;
-}
-
 # TODO
 # - pipe
 # - runnning background

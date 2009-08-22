@@ -50,8 +50,7 @@ use IO::String;
 
 
 
-### new() ###
-
+# bless you.
 sub new {
     my $pkg = shift;
     if (blessed $pkg) {
@@ -88,8 +87,9 @@ sub new {
 
 
 
-### load_config() ###
-
+# load hww config file(default to 'config-hww.txt') here.
+# loading hw config file(default to 'config.txt') will be done
+# at HW::load_config().
 sub load_config {
     my $self = shift;
 
@@ -112,8 +112,40 @@ sub load_config {
 
 
 
-### parse_opt() ###
+# separate options into hww.pl's options and hw.pl's options.
+# (like git)
+sub split_opt {
+    my $self = shift;
+    my @hww_opt;
+    my $subcmd;
+    my @tmp_argv = @_;
 
+    while (defined(my $a = shift)) {
+        if ($a =~ /^-/) {
+            push @hww_opt, $a;
+        }
+        else {
+            $subcmd = $a;    # found command
+            last;
+        }
+    }
+
+    my @ret = (\@hww_opt, $subcmd, [@_]);
+    $self->debug(sprintf "%s -> (%s, %s, %s)\n",
+                    dumper(\@tmp_argv),
+                    dumper($ret[0]),
+                    dumper($ret[1]),
+                    dumper($ret[2]));
+
+    # set to $self->{args}{options, command, command_args}.
+    @{ $self->{args} }{qw(options command command_args)} = @ret;
+
+    return @ret;
+}
+
+
+
+# parsing @ARGV which was received at dispatch_with_args().
 sub parse_opt {
     my $self = shift;
     unless (blessed $self) {
@@ -165,8 +197,8 @@ sub parse_opt {
 
 
 
-### dispatch() ###
-
+# dispatch command.
+# commands are defined in HWWrapper::Commands.
 sub dispatch {
     my $self = shift;
     my ($cmd, $args) = @_;
@@ -210,8 +242,10 @@ sub dispatch {
     $cmd_info->{coderef}->($self, $args, \%opt);
 }
 
-### dispatch_with_args() ###
 
+
+# starts from this sub.
+# but it's easy to build custom process about hww without using this.
 sub dispatch_with_args {
     my $self = shift;
     my @args = @_;
