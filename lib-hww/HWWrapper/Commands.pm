@@ -313,12 +313,8 @@ sub init {
             path => 'config.txt',
             type => 'file',
         },
-        cookie_file => {
-            path => 'cookie.txt',
-            type => 'file',
-            data => '',
-        },
     );
+    my $cookie_file = 'cookie.txt';
     $files{config_file}{data} = <<EOT;
 id:yourid
 txt_dir:$files{txt_dir}{path}
@@ -334,7 +330,7 @@ EOT
     elsif ($read_config) {
         $files{txt_dir}{path} = $self->txt_dir;
         $files{config_file}{path} = $self->config_file,
-        $files{cookie_file}{path} = $self->cookie_file;
+        $cookie_file = $self->cookie_file;
     }
 
 
@@ -370,9 +366,11 @@ EOT
     }
 
 
-    puts("chmod 0600 $files{cookie_file}{path}");
-    chmod 0600, $files{cookie_file}{path}
-        or $self->error("chmod: $!");
+    if (-f $cookie_file) {
+        puts("chmod 0600 $cookie_file");
+        chmod 0600, $cookie_file
+            or $self->error("chmod: $!");
+    }
 
 
     puts("\nplease edit your id in $files{config_file}{path}.");
