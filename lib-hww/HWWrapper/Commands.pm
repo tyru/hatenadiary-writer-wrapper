@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.1.16";
+our $VERSION = "1.1.17";
 
 # import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
