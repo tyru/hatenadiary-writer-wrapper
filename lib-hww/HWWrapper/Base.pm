@@ -13,6 +13,7 @@ use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper::Functions;
 
 
+use Carp;
 use POSIX ();
 use Getopt::Long ();
 use List::MoreUtils qw(uniq);
@@ -948,7 +949,7 @@ sub shell_eval_str {
     my @args;
 
     if ($line =~ /\n/m) {
-        Carp::croak "give me the string line which does NOT contain newline!";
+        croak "give me the string line which does NOT contain newline!";
     }
 
     my $push_new_args = sub {
@@ -956,7 +957,7 @@ sub shell_eval_str {
         push @args, [@_];
     };
     my $push_args = sub {
-        Carp::croak "push_args: receive empty args" unless @_;
+        croak "push_args: receive empty args" unless @_;
 
         if (@args) {
             $self->debug("push args!:[%s]", join ', ', @_);
@@ -1009,7 +1010,7 @@ sub is_complete_str {
             return 0;
         }
         else {
-            $self->warning("failed to parse cmdline string: ".$@);
+            $self->error("failed to parse cmdline string: ".$@);
         }
     }
     else {
@@ -1026,12 +1027,12 @@ sub get_quote_str {
         @_
     );
     unless (exists $opt{begin} && exists $opt{end}) {
-        Carp::croak "give me options 'begin' and 'end' at least!";
+        croak "give me options 'begin' and 'end' at least!";
     }
 
     my ($lquote, $rquote) = @opt{qw(begin end)};
     unless ($line =~ s/^$lquote//) {
-        Carp::croak "regex '^$lquote' does not matched to ".dumper($line);
+        croak "regex '^$lquote' does not matched to ".dumper($line);
     }
 
     my $shift_str = sub {
