@@ -1639,9 +1639,15 @@ sub editor {
 I_FOUND_IT:
 
 
-    my ($year, $month, $day) = (localtime)[5, 4, 3];
-    $year  += 1900;
-    $month += 1;
+    my ($year, $month, $day);
+    if (@$args) {
+        ($year, $month, $day) = $self->split_date($args->[0]);
+    }
+    else {
+        ($year, $month, $day) = (localtime)[5, 4, 3];
+        $year  += 1900;
+        $month += 1;
+    }
     my $entrypath = $self->get_entrypath($year, $month, $day);
     # save status of file test because $entrypath might be created after this.
     my $exist_entry = (-f $entrypath);
