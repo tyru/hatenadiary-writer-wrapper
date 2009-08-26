@@ -9,7 +9,7 @@ use Scalar::Util qw(blessed);
 use List::MoreUtils qw(uniq);
 
 use HWWrapper;
-my $wrapper = HWWrapper->new(args => \@ARGV);
+my $wrapper = HWWrapper->new;
 
 use HWWrapper::Functions;
 

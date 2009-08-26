@@ -2,8 +2,6 @@ use strict;
 use warnings;
 
 use Test::More;
-use Test::Exception;
-use Test::Output qw(output_from);
 # plan 'skip_all' => "HWWrapper::UtilSub depends on HW 's variables...";
 
 use File::Spec;
@@ -11,7 +9,7 @@ use File::Spec;
 use HWWrapper;
 use HWWrapper::Functions;
 
-my $wrapper = HWWrapper->new(args => []);
+my $wrapper = HWWrapper->new;
 
 
 my @tests = (

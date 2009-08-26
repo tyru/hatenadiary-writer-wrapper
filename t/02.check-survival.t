@@ -6,7 +6,7 @@ use Test::Exception;
 
 use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper;
-my $wrapper = HWWrapper->new(args => \@ARGV);
+my $wrapper = HWWrapper->new;
 
 
 use File::Spec;

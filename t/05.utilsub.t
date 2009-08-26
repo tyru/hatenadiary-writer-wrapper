@@ -11,7 +11,7 @@ use File::Spec;
 use HWWrapper;
 use HWWrapper::Functions;
 
-my $wrapper = HWWrapper->new(args => []);
+my $wrapper = HWWrapper->new;
 
 
 my @tests = (
