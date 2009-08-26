@@ -34,6 +34,9 @@ use LWP::UserAgent;
 
 
 
+# session id for posting.
+our $rkm;
+
 
 
 sub new {
@@ -394,9 +397,6 @@ sub login {
 
     $self->debug("\$cookie_jar = " . $self->cookie_jar->as_string);
 }
-
-# session id for posting.
-our $rkm;
 
 # get session id.
 sub get_rkm {
@@ -793,7 +793,7 @@ sub get_entrypath {
     }
 
     # not found entry's path.
-    my $filename = $self->cat_date($year, $month, $day).join('-', @$headlines).'.txt';
+    my $filename = $self->cat_date($year, $month, $day, @$headlines).'.txt';
     return File::Spec->catfile($self->txt_dir, $filename);
 }
 
@@ -1147,12 +1147,12 @@ sub split_date {
 # concat 'date'.
 sub cat_date {
     my $self = shift;
-    my ($year, $month, $day, $headlines) = @_;
+    my ($year, $month, $day, @headlines) = @_;
 
     # concat ymd.
     my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
     # concat headlines
-    $datename .= defined $headlines ? '-'.join('-', @$headlines) : '';
+    $datename .= @headlines ? '-'.join('-', @headlines) : '';
 
     return $datename;
 }

@@ -22,8 +22,7 @@ use List::MoreUtils qw(first_index last_index);
 
 
 # TODO
-# 一つのクラスに一つのコマンドに分ける
-# (速度については後で考慮)
+# 一つのクラスに一つのコマンドに分ける？
 our %HWW_COMMAND = (
     help => {
         coderef => \&help,
