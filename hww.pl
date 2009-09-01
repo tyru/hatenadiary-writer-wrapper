@@ -11,14 +11,13 @@ use FindBin qw($Bin);
 use lib "$Bin/lib-hww";
 
 
-# use HWWrapper;    # for debug.
 eval { require HWWrapper };
 
-# TODO
-# die if 'require error'.
-# sometimes I get this message when 'syntax error'...
-if ($@) {
+if ($@ =~ /^Can't locate (\S*)/) {
     die <<EOM;
+$@
+
+
 error: no prereq modules.
 
 you need to install some modules,
