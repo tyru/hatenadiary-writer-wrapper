@@ -1484,8 +1484,9 @@ sub diff {
             $self->debug("eval...[$line]");
             DISPATCH:
             for my $shell_args ($self->shell_eval_str($line)) {
-                $self->debug(sprintf "process %s...", dumper($shell_args));
+                next unless @$shell_args;
 
+                $self->debug(sprintf "process %s...", dumper($shell_args));
                 my ($cmd, @cmd_args) = @$shell_args;
 
                 if ($cmd eq 'shell') {
