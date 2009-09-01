@@ -994,6 +994,9 @@ sub shell_eval_str {
         }
     }
 
+    # for ';' at the end of $line.
+    pop @args unless @{ $args[-1] };
+
     return @args;
 }
 
