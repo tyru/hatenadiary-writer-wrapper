@@ -56,12 +56,19 @@ sub new {
 ### util subs (need $self) ###
 
 sub get_entrydate {
-    my $self = shift;
-    my $path = shift;
-    $path = basename($path);
+    my ($self, $path) = @_;
+    my @allowed_ext = qw(.html .txt .jpg .gif .png);
+    my ($base, $dir, $ext) = fileparse($path, @allowed_ext);
+
+    # not allowed ext
+    return undef if $ext eq '';
+
+    $path = $base . $ext;
+    # delete '.', join with '|'.
+    my $allowed_ext = join '|', map { substr $_, 1 } @allowed_ext;
 
     # $path might be html file.
-    if ($path =~ /\A(\d{4})-(\d{2})-(\d{2})(-[\w\W]+)?\.(html|txt)\Z/m) {
+    if ($path =~ /\A(\d{4})-(\d{2})-(\d{2}) (-[\w\W]+)? \.($allowed_ext)\Z/mx) {
         return {
             year  => $1,
             month => $2,
