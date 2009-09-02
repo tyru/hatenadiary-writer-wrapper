@@ -7,6 +7,7 @@ use Test::Output qw(output_from);
 # plan 'skip_all' => "HWWrapper::UtilSub depends on HW 's variables...";
 
 use File::Spec;
+use File::Basename;
 
 use HWWrapper;
 use HWWrapper::Functions;
@@ -30,11 +31,24 @@ my @tests = (
     },
 
     sub {
-        use File::Basename;
+        # don't test if not Unix.
+        return () if $^O eq 'MSWin32';
+
+        return sub {
+
+            ok(
+                defined($wrapper->get_entrydate("1990-08-16-path including \n and white space.txt")),
+                "path including whitespaces are allowed"
+            );
+        },
+    }->(),
+    sub {
         ok(
-            defined($wrapper->get_entrydate("1990-08-16-path including \n and white space.txt")),
+            defined($wrapper->get_entrydate("1990-08-16-path including white space.txt")),
             "path including whitespaces are allowed"
-        ); },
+        );
+    },
+
     sub {
         is $wrapper->find_headlines(<<EOB), 1;
 *headline*
