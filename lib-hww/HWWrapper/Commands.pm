@@ -517,7 +517,6 @@ sub load {
 
         my $xml_parser = XML::TreePP->new;
         my $entries = $xml_parser->parse($r->content);
-        my %current_entries = $self->get_entries_hash();
 
         unless (exists $entries->{diary}) {
             $self->error("invalid xml data returned from ".$self->hatena_url)
@@ -545,8 +544,7 @@ sub load {
                 );
             }
 
-            # XXX $year-$month-$dayは0詰めされた日付？
-            unless ($missing_only && exists $current_entries{"$year-$month-$day"}) {
+            if ($missing_only && ! -f $self->get_entrypath($year, $month, $day)) {
                 $self->save_diary_entry(
                     $year,
                     $month,
@@ -802,7 +800,7 @@ sub apply_headline {
             $date->{year},
             $date->{month},
             $date->{day},
-            \@headline,
+            [@headline],
         );
 
         unless (basename($filename) eq basename($new_filename)) {

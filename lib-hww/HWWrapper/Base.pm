@@ -110,17 +110,6 @@ sub get_entries {
     } glob "$dir/$fileglob"
 }
 
-sub get_entries_hash {
-    my $self = shift;
-    my @entries = $self->get_entries(@_);
-    my %hash;
-    for my $date (map { $self->get_entrydate($_) } @entries) {
-        my $ymd = join '-', @$date{qw(year month day)};
-        $hash{$ymd} = $date;
-    }
-    %hash;
-}
-
 sub get_updated_entries {
     my $self = shift;
 
@@ -787,14 +776,15 @@ sub load_diary_entry {
 # even if specified entry does not exist.
 sub get_entrypath {
     my $self = shift;
-    my ($year, $month, $day, $headlines) = @_;
-    $headlines = [] unless defined $headlines;
+    my ($year, $month, $day) = @_;
 
-    my $filename = $self->build_entrypath(@_).'.txt';
+    my $filename = $self->build_entrypath(@_);
     return $filename if -f $filename;
 
     # find entry in all entries... (FIXME very slow...)
     for my $path ($self->get_entries($self->txt_dir)) {
+        # ignore headline.
+        # if year, month, day are the same. return it.
         my $info = $self->get_entrydate($path);
         return $path
             if $info->{year} eq $year
