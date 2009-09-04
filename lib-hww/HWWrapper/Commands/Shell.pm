@@ -138,7 +138,7 @@ sub regist_command {
         # define built-in commands.
         %shell_cmd = (
             quit => sub { goto EXIT_LOOP },
-            q => sub { $shell_cmd{quit}->(@_) },
+            q => sub { $shell_cmd{quit}->(@_) },    # same as 'quit'.
             '?' => sub {
                 puts("shell built-in commands here:");
                 puts("  $_") for keys %shell_cmd;
@@ -146,10 +146,10 @@ sub regist_command {
                 puts("if you want to see the help of hww's commands, type 'help'.");
                 STDOUT->flush;
             },
-            h => sub { $shell_cmd{'?'}->() },
-            # TODO
-            # login => sub {},
-            # logout => sub {},
+            h => sub { $shell_cmd{'?'}->() },    # same as '?'
+
+            login => sub { $self->login },
+            logout => sub { $self->logout },
         );
 
 

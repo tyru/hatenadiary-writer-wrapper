@@ -274,7 +274,6 @@ sub mk_accessors {
 # Login.
 sub login {
     my $self = shift;
-    return if $self->user_agent;
 
     $self->user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
     $self->user_agent->env_proxy;
