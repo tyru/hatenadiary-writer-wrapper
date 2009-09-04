@@ -1,0 +1,33 @@
+
+=head1 NAME
+
+    hww-init - set up hww environment
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl init [COMMAND]
+
+
+=head1 DESCRIPTION
+
+this makes text directory and config file.
+and if cookie file exists, run 'chmod 600 <cookie file>'.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -c, --config
+
+if config file has already existed,
+makes each file or directyry as config file's value.
+
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

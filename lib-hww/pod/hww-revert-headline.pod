@@ -1,0 +1,31 @@
+
+=head1 NAME
+
+    hww-revert-headline - revert file's name to 'YYYY-MM-DD.txt' format
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl revert-headline [-a|--all] [--] <file>
+
+
+=head1 DESCRIPTION
+
+revert file's name to 'YYYY-MM-DD.txt' if that file's name is not matched.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+check and revert all filenames of entry files.
+
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

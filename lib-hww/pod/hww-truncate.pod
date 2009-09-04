@@ -1,0 +1,31 @@
+
+=head1 NAME
+
+    hww-truncate - truncate head or tail's blank lines of entry text.
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl truncate [-a|--all] [--] <filename>
+
+
+=head1 DESCRIPTION
+
+
+
+=head1 OPTIONS
+
+=over
+
+=item -a, --all
+
+truncate all entry files.
+
+
+=back
+
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

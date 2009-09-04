@@ -6,13 +6,13 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl apply-headline [-a | --all] [--] <file>
+    perl hww.pl apply-headline [-a|--all] [--] <file>
 
 
 =head1 DESCRIPTION
 
-rename filename of entry files if new/deleted headlines found.
-if you want to name the entry files, you don't need to use this.
+rename filenames of entry files if new/deleted headlines found.
+if you want to name entry files on yourself, you don't need to use this.
 
 
 =head1 OPTIONS

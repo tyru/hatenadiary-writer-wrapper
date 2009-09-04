@@ -1,0 +1,43 @@
+
+=head1 NAME
+
+    hww-editor - edit today's entry quickly
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl editor [COMMAND]
+
+
+=head1 DESCRIPTION
+
+open today's entry file with $EDITOR.
+if -p option is given, use that program.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -g, --gui
+
+wait for gui program.
+if you open the gui editor(e.g.:gvim) in terminal,
+you see the prompt when editor starts up.
+but if this option is given, the prompt won't appear
+until the editor ends.
+
+
+=item -p <editor name>, --program <editor name>
+
+<editor name> is either editor's name or full path.
+if given path does not exist, hww looks up the editor in PATH.
+
+
+=back
+
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

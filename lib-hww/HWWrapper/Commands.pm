@@ -21,8 +21,6 @@ use Pod::Usage;
 use List::MoreUtils qw(first_index last_index);
 
 
-# TODO
-# 一つのクラスに一つのコマンドに分ける？
 our %HWW_COMMAND = (
     help => {
         coderef => \&help,
@@ -259,7 +257,6 @@ Hatena Diary Writer Wrapper version v$HWWrapper::VERSION
 EOD
 }
 
-# TODO write help
 sub copyright {
     # hw
     print <<EOD;
@@ -296,8 +293,6 @@ Copyright (C) 2009 by tyru.
 EOD
 }
 
-# TODO
-# - write help pod
 sub init {
     my ($self, $args, $opt) = @_;
 
@@ -845,7 +840,6 @@ sub apply_headline {
     }
 }
 
-# TODO ヘルプ書く
 sub revert_headline {
     my ($self, $args, $opt) = @_;
 
@@ -1279,7 +1273,6 @@ sub diff {
     my $initialized;
 
 
-    # TODO write help
     sub shell {
         my ($self, $args) = @_;
 
@@ -1536,7 +1529,6 @@ sub diff {
     }
 }
 
-# TODO write help
 sub truncate_cmd {
     my ($self, $args) = @_;
 
@@ -1603,7 +1595,6 @@ sub truncate_cmd {
     }
 }
 
-# TODO write help
 sub editor {
     my ($self, $args, $opt) = @_;
 

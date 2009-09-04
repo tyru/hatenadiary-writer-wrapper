@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl gen-html [-i | --update-index] [-m | --missing-only] [--] [<directory> <directory> | <file> <file>]
+    perl hww.pl gen-html [-i|--update-index] [-m|--missing-only] [--] [<directory> <directory>|<file> <file>]
 
 
 

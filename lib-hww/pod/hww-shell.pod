@@ -1,0 +1,40 @@
+
+=head1 NAME
+
+    hww-shell - run commands like a shell
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl shell
+
+
+=head1 DESCRIPTION
+
+this command is useful if you type commands continuaslly
+or iritate typing long long name like 'update-index'.
+you can run all commands and some builtin commands in the shell.
+
+in addition, shell has some features like the following:
+
+=over
+
+=item readline
+
+=item completion
+
+=item string (escape sequence also works)
+
+=back
+
+
+
+=head1 OPTIONS
+
+No options.
+
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>
