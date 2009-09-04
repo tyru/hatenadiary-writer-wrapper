@@ -25,6 +25,9 @@ please see README.md for install.
 
 EOM
 }
+elsif ($@) {
+    die $@;
+}
 
 
 
