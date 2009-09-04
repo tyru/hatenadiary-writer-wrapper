@@ -60,13 +60,13 @@ my @tests = (
         is $wrapper->cat_date(2009, 1, 1), "2009-01-01";
     },
     sub {
-        is $wrapper->cat_date(2009, 1, 1, "foo_bar_baz"), "2009-01-01-foo_bar_baz";
+        is $wrapper->cat_date(2009, 1, 1, ["foo_bar_baz"]), "2009-01-01-foo_bar_baz";
     },
     sub {
-        is $wrapper->cat_date(2009, 1, 1, qw(foo bar)), "2009-01-01-foo-bar";
+        is $wrapper->cat_date(2009, 1, 1, [qw(foo bar)]), "2009-01-01-foo-bar";
     },
     sub {
-        is $wrapper->cat_date(2009, 1, 1, qw(foo bar baz)), "2009-01-01-foo-bar-baz";
+        is $wrapper->cat_date(2009, 1, 1, [qw(foo bar baz)]), "2009-01-01-foo-bar-baz";
     },
 );
 plan tests => scalar @tests;

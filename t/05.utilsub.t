@@ -80,6 +80,12 @@ body
 ** not headline
 EOB
     },
+    sub {
+        is $wrapper->find_headlines(<<EOB), 1;
+*headline_including_underscore*
+body
+EOB
+    },
 );
 plan tests => scalar @tests;
 
