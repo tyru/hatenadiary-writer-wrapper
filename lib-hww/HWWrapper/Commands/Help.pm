@@ -39,13 +39,8 @@ sub run {
         pod2usage(-verbose => 1, -input => $hww_pl_path, -exitval => "NOEXIT");
 
         puts("available commands:");
-        for my $command (sort glob File::Spec->catdir($HWW_LIB, 'pod', '*.pod')) {
-            if (exists $HWW_COMMAND{$command}{desc}) {
-                puts("  $command - $HWW_COMMAND{$command}{desc}");
-            }
-            else {
-                puts("  $command");
-            }
+        for my $command (sort keys %HWW_COMMAND) {
+            puts("  $command");
         }
         puts();
         puts("and if you want to know hww.pl's option, perldoc -F hww.pl");
@@ -54,11 +49,11 @@ sub run {
     }
 
 
-    unless (is_hww_command($cmd)) {    # FIXME
+    unless (is_hww_command($cmd)) {
         $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 
-    my $podpath = File::Spec->catdir($HWW_LIB, 'pod', "hww-$cmd.pod");
+    my $podpath = File::Spec->catdir($POD_DIR, "hww-$cmd.pod");
     unless (-f $podpath) {
         $self->error("we have not written the document of '$cmd' yet.");
     }

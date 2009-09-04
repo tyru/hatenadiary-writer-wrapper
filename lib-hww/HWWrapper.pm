@@ -240,8 +240,7 @@ sub dispatch {
             join(', ', map { dumper($_) } @_), $filename, $line);
 
     # require package if not loaded
-    my ($run, $cmd_info) = $self->init_command($cmd);
-    # my $cmd_info = $HWWrapper::Commands::HWW_COMMAND{$cmd};
+    my ($run, $cmd_info) = $self->regist_command($cmd);
 
     # get arguments value
     my %opt;

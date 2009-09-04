@@ -183,6 +183,9 @@ sub regist_command {
             return $glob_files->();
         };
 
+        $self->regist_all_command();
+
+
         $self->debug("initialized the shell...");
     }
 
