@@ -205,7 +205,7 @@ sub parse_opt {
 sub validate_prereq_files {
     my $self = shift;
 
-    for my $file (qw(cookie_file config_file txt_dir)) {
+    for my $file (qw(config_file txt_dir)) {
         unless (-e $self->$file) {
             $self->error(
                 $self->$file.": $!\n\n" .
