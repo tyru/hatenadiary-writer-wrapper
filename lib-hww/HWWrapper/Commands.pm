@@ -4,8 +4,6 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = "1.2.3";
-
 use base qw(Exporter);
 our @EXPORT = our @EXPORT_OK = qw(
     %HWW_COMMAND
