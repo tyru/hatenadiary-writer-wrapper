@@ -236,33 +236,8 @@ sub get_touchdate {
 }
 
 sub arg_error {
-    my $self = shift;
-    my $cmdname = shift;
-
-    unless (defined $cmdname) {
-        my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
-        $filename = basename($filename);
-        $self->debug("arg_error: called at $filename line $line");
-
-        $subname =~ s/.*:://;    # delete package's name
-        ($cmdname = $subname) =~ s/_/-/g;    # TODO search $subname in %HWWrapper::Commands::HWW_COMMAND
-    }
-
-    # print "error: " string to STDERR.
-    eval {
-        $self->error("$cmdname: arguments error. show ${cmdname}'s help...");
-    };
-    STDERR->print($@);
-    STDERR->flush;
-
-    # sleep for telling what happened.
-    sleep 1;
-
-    # show help message!
-    $self->dispatch('help', [$cmdname]);
-
-    unlink($self->cookie_file);    # delete cookie file when error occured.
-    exit -1;
+    my ($self) = @_;
+    $self->error("arguments error. see the help.");
 }
 
 sub cmd_not_found_error {

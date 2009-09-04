@@ -91,13 +91,14 @@ sub _regist {
     my ($self, $cmd) = @_;
 
     # command name -> package's name in which command is defined.
-    my $pkg = _cmd2pkg($cmd);
+    my $pkg = $self->cmd2pkg($cmd);
 
     # load it.
     eval "require $pkg";
     if ($@) {
         # not found!
         $self->debug($@);
+        # NOTE: $self must be HWWrapper's instance.
         $self->cmd_not_found_error($cmd);
     }
 
@@ -106,8 +107,8 @@ sub _regist {
     $pkg->regist_command();
 }
 
-sub _cmd2pkg {
-    my $cmd = shift;
+sub cmd2pkg {
+    my ($self, $cmd) = @_;
 
     # split with non-word character
     my @words = split /\W+/, $cmd;
@@ -115,6 +116,15 @@ sub _cmd2pkg {
     $cmd = "HWWrapper::Commands::" . join '', @words;
 
     return $cmd;
+}
+
+sub pkg2cmd {
+    my ($self, $pkg) = @_;
+
+    $pkg =~ s/^HWWrapper::Commands:://;
+    $pkg =~ s/[A-Z]/'-' . lc($1)/eg;
+
+    return $pkg;
 }
 
 
