@@ -77,19 +77,14 @@ EOT
     }
 
     # cookie file
-    touch($cookie_file) unless -f $cookie_file;
-
-    puts("chmod 0600 $cookie_file");
-    chmod 0600, $cookie_file
-        or $self->error($!);
+    if (-f $cookie_file) {
+        puts("chmod 0600 $cookie_file");
+        chmod 0600, $cookie_file
+            or $self->error($!);
+    }
 
 
     puts("\nplease edit your id in $config_file.");
-}
-
-sub touch {
-    my $FH = FileHandle->new(shift, 'w');
-    $FH->close if $FH;
 }
 
 
