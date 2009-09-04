@@ -104,7 +104,8 @@ sub _regist {
 
     # stash command info to %HWW_COMMAND.
     # $pkg knows what this will regist.
-    $pkg->regist_command();
+    $pkg->regist_command()
+        unless defined $HWW_COMMAND{$cmd};    # cache!!
 }
 
 sub cmd2pkg {
