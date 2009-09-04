@@ -46,9 +46,7 @@ use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper::Functions;
 
 
-use Carp;
-use File::Basename qw(basename);
-use Scalar::Util qw(blessed);
+use Carp qw(croak);
 use IO::String;
 
 
@@ -207,7 +205,7 @@ sub parse_opt {
 sub validate_prereq_files {
     my $self = shift;
 
-    for my $file (qw(touch_file config_file txt_dir)) {
+    for my $file (qw(cookie_file config_file txt_dir)) {
         unless (-e $self->$file) {
             $self->error(
                 $self->$file.": $!\n\n" .
@@ -234,9 +232,6 @@ sub dispatch {
     unless (defined $cmd) {
         $self->error("no command was given.");
     }
-    unless (is_hww_command($cmd)) {
-        $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
-    }
 
     # some debug messages.
     my ($filename, $line) = (caller)[1,2];
@@ -244,9 +239,12 @@ sub dispatch {
     $self->debug(sprintf '$self->dispatch(%s) at %s line %s',
             join(', ', map { dumper($_) } @_), $filename, $line);
 
+    # require package if not loaded
+    my ($run, $cmd_info) = $self->init_command($cmd);
+    # my $cmd_info = $HWWrapper::Commands::HWW_COMMAND{$cmd};
+
     # get arguments value
     my %opt;
-    my $cmd_info = $HWWrapper::Commands::HWW_COMMAND{$cmd};
     if (exists $cmd_info->{option}) {
         # prepare result options.
         %opt = map {
@@ -261,13 +259,14 @@ sub dispatch {
     }
 
     # dispatch
-    $cmd_info->{coderef}->($self, $args, \%opt);
+    $run->($self, $args, \%opt);
 }
 
 
 
 # starts from this sub.
 # but it's easy to build custom process about hww without using this.
+# (as module)
 sub dispatch_with_args {
     my $self = shift;
     my @args = @_;
@@ -281,12 +280,8 @@ sub dispatch_with_args {
     my ($opts, $cmd, $cmd_args) = $self->split_opt(@args);
     $cmd = 'help' unless defined $cmd;
 
-    unless (is_hww_command($cmd)) {
-        $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
-    }
-
     # load config files.
-    $self->load_config;
+    $self->load_config();
 
     # parse '$self->{args}{options}' (same as $opts).
     $self->parse_opt();

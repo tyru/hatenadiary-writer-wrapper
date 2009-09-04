@@ -9,16 +9,22 @@ our $VERSION = "1.3.0";
 # import builtin func's hooks
 use HWWrapper::Hook::BuiltinFunc;
 
+# import some util func
+use File::Basename qw(fileparse dirname basename);
+use Scalar::Util qw(blessed);
+
+
 
 use base qw(Exporter);
 
+# export all subroutines!!
 our @EXPORT = our @EXPORT_OK = do {
     no strict 'refs';
 
     my @codes = grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
-    # export all subroutines.
     (@codes, @HWWrapper::Hook::BuiltinFunc::EXPORT);
 };
+
 
 
 # do not export methods unnecessarily!
@@ -40,6 +46,7 @@ sub puts {
     print @_, "\n";
 }
 
+# FIXME
 sub is_hww_command {
     my $cmd = shift;
     exists $HWWrapper::Commands::HWW_COMMAND{$cmd};

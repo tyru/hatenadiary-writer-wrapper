@@ -267,6 +267,12 @@ sub arg_error {
     exit -1;
 }
 
+sub cmd_not_found_error {
+    my ($self, $cmd) = @_;
+    # TODO suggest familiar words.
+    $self->error("'$cmd' is not a hww command.");
+}
+
 sub mk_accessors {
     my $self = shift;
     my $pkg = caller;
@@ -781,15 +787,15 @@ sub get_entrypath {
     my $filename = $self->build_entrypath(@_);
     return $filename if -f $filename;
 
-    # find entry in all entries... (FIXME very slow...)
-    for my $path ($self->get_entries($self->txt_dir)) {
+    # find entry in all entries...
+    for my $path ($self->get_entries) {
         # ignore headline.
         # if year, month, day are the same. return it.
         my $info = $self->get_entrydate($path);
         return $path
-            if $info->{year} eq $year
-            && $info->{month} eq $month
-            && $info->{day} eq $day;
+            if $info->{year} == $year
+            && $info->{month} == $month
+            && $info->{day} == $day;
     }
 
     # not found entry's path.
