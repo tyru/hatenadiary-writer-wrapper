@@ -309,68 +309,51 @@ sub init {
 
     my $read_config = $opt->{'c|config'};
 
-    my %files = (
-        txt_dir => {
-            path => 'text',
-            type => 'dir',
-        },
-        config_file => {
-            path => 'config.txt',
-            type => 'file',
-        },
-    );
+    my $txt_dir = 'text';
+    my $config_file = 'config.txt';
     my $cookie_file = 'cookie.txt';
-    $files{config_file}{data} = <<EOT;
+
+    my $dir = shift @$args;
+    if (defined $dir) {
+        $txt_dir = $dir;
+    }
+    elsif ($read_config) {
+        $txt_dir = $self->txt_dir;
+        $config_file = $self->config_file,
+        $cookie_file = $self->cookie_file;
+    }
+
+    my $config_data = <<EOT;
 id:yourid
-txt_dir:$files{txt_dir}{path}
-touch:@{[ File::Spec->catfile($files{txt_dir}{path}, 'touch.txt') ]}
+txt_dir:$txt_dir
+touch:@{[ File::Spec->catfile($txt_dir, 'touch.txt') ]}
 client_encoding:utf-8
 server_encoding:euc-jp
 EOT
 
-    my $dir = shift @$args;
-    if (defined $dir) {
-        $files{txt_dir} = $dir;
-    }
-    elsif ($read_config) {
-        $files{txt_dir}{path} = $self->txt_dir;
-        $files{config_file}{path} = $self->config_file,
-        $cookie_file = $self->cookie_file;
-    }
 
-
-    # create prereq files.
-    for my $v (values %files) {
-        if ($v->{type} eq 'dir') {
-            if (-d $v->{path}) {
-                $self->warning("directory $v->{path} already exists.");
-            }
-            else {
-                # create directory.
-                mkdir $v->{path} or $self->error("$v->{path}: $!");
-                puts("create $v->{path}.");
-            }
-        }
-        elsif ($v->{type} eq 'file') {
-            if (-f $v->{path}) {
-                $self->warning("file $v->{path} already exists.");
-            }
-            else {
-                # create file.
-                my $FH = FileHandle->new($v->{path}, 'w')
-                            or $self->error("$v->{path}: $!");
-                $FH->print($v->{data});
-                $FH->close;
-                puts("create $v->{path}.");
-            }
-        }
-        else {
-            croak "sorry internal error." .
-                  " please report this by e-mail or curse me.";
-        }
+    # text dir
+    if (-d $txt_dir) {
+        puts("directory $txt_dir already exists.");
+    }
+    else {
+        mkdir $txt_dir or $self->error("$txt_dir: $!");
+        puts("mkdir $txt_dir.");
     }
 
+    # config file
+    if (-f $config_file) {
+        puts("file $config_file already exists.");
+    }
+    else {
+        my $FH = FileHandle->new($config_file, 'w')
+                    or $self->error("$config_file: $!");
+        $FH->print($config_data);
+        $FH->close;
+        puts("create $config_data.");
+    }
 
+    # cookie file
     if (-f $cookie_file) {
         puts("chmod 0600 $cookie_file");
         chmod 0600, $cookie_file
@@ -378,7 +361,7 @@ EOT
     }
 
 
-    puts("\nplease edit your id in $files{config_file}{path}.");
+    puts("\nplease edit your id in $config_file.");
 }
 
 # upload entries to hatena diary
