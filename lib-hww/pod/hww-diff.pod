@@ -1,0 +1,38 @@
+
+=head1 NAME
+
+    hww-diff - show diff between local text and remote text
+
+
+=head1 SYNOPSIS
+
+    perl hww.pl diff [-d <directory>|--dir <directory>] [-f <file>|--file <file>]
+
+
+=head1 DESCRIPTION
+
+show diff between local text and remote(hatena diary)'s text.
+currently diff format is default only.
+
+
+=head1 OPTIONS
+
+=over
+
+=item -d, --dir
+
+set entry file's directory.
+
+
+=item -f, --file
+
+set entry file.
+if this option is given, show diff of only that file.
+
+
+=back
+
+
+=head1 AUTHOR
+
+tyru <tyru.exe@gmail.com>

@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-    hww-truncate - truncate head or tail's blank lines of entry text.
+    hww-truncate - truncate head or tail's blank lines of entry text
 
 
 =head1 SYNOPSIS
