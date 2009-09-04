@@ -798,7 +798,7 @@ sub apply_headline {
         return  unless defined $date;
 
         # <year>-<month>-<day>-<headlines>.txt
-        my $new_filename = $self->get_entrypath(
+        my $new_filename = $self->build_entrypath(
             $date->{year},
             $date->{month},
             $date->{day},

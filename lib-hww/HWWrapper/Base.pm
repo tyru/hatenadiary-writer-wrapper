@@ -790,7 +790,10 @@ sub get_entrypath {
     my ($year, $month, $day, $headlines) = @_;
     $headlines = [] unless defined $headlines;
 
-    # find entry.
+    my $filename = $self->build_entrypath(@_).'.txt';
+    return $filename if -f $filename;
+
+    # find entry in all entries... (FIXME very slow...)
     for my $path ($self->get_entries($self->txt_dir)) {
         my $info = $self->get_entrydate($path);
         return $path
@@ -800,8 +803,14 @@ sub get_entrypath {
     }
 
     # not found entry's path.
-    my $filename = $self->cat_date($year, $month, $day, @$headlines).'.txt';
-    return File::Spec->catfile($self->txt_dir, $filename);
+    return $filename
+}
+
+sub build_entrypath {
+    my $self = shift;
+    File::Spec->catfile(
+        $self->txt_dir, $self->cat_date(@_) . '.txt'
+    );
 }
 
 sub save_diary_entry {
@@ -1154,12 +1163,14 @@ sub split_date {
 # concat 'date'.
 sub cat_date {
     my $self = shift;
-    my ($year, $month, $day, @headlines) = @_;
+    my ($year, $month, $day, $headlines) = @_;
 
     # concat ymd.
     my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
     # concat headlines
-    $datename .= @headlines ? '-'.join('-', @headlines) : '';
+    if ($headlines && @$headlines) {
+        $datename .= '-'.join('-', @$headlines);
+    }
 
     return $datename;
 }
