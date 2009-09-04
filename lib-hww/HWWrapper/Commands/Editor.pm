@@ -82,39 +82,7 @@ FOUND:
     puts("opening editor...");
 
     if ($is_gui_prog) {
-        $self->require_modules(qw(IPC::Run));
-
-        # prepare editor process.
-        my $editor_proc = IPC::Run::harness(
-            [$editor, $entrypath], \my $in, \my $out, \my $err
-        );
-
-        # install signal handlers.
-        my @sig_to_trap = qw(INT);
-        local @SIG{@sig_to_trap} = map {
-            my $signame = $sig_to_trap[$_];
-            STDERR->autoflush(1);
-
-            sub {
-                STDERR->print(
-                   "caught SIG$signame, "
-                   ."sending SIGKILL to editor process...\n"
-                );
-                # kill the process immediatelly.
-                # (wait 0 second)
-                $editor_proc->kill_kill(grace => 0);
-
-                $self->debug("exiting with -1...");
-                exit -1;
-            };
-        } 0 .. $#sig_to_trap;
-
-        # spawn editor program.
-        $self->debug("start [$editor $entrypath]...");
-        $editor_proc->start;
-        $self->debug("finish [$editor $entrypath]...");
-        $editor_proc->finish;
-        $self->debug("done.");
+        run_gui_prog($self, $editor, $entrypath);
     }
     else {
         system $editor, $entrypath;
@@ -140,5 +108,43 @@ FOUND:
     }
 }
 
+
+sub run_gui_prog {
+    my ($self, $editor, $entrypath) = @_;
+
+    $self->require_modules(qw(IPC::Run));
+
+    # prepare editor process.
+    my $editor_proc = IPC::Run::harness(
+        [$editor, $entrypath], \my $in, \my $out, \my $err
+    );
+
+    # install signal handlers.
+    my @sig_to_trap = qw(INT);
+    local @SIG{@sig_to_trap} = map {
+        my $signame = $sig_to_trap[$_];
+        STDERR->autoflush(1);
+
+        sub {
+            STDERR->print(
+                "caught SIG$signame, "
+                ."sending SIGKILL to editor process...\n"
+            );
+            # kill the process immediatelly.
+            # (wait 0 second)
+            $editor_proc->kill_kill(grace => 0);
+
+            $self->debug("exiting with -1...");
+            exit -1;
+        };
+    } 0 .. $#sig_to_trap;
+
+    # spawn editor program.
+    $self->debug("start [$editor $entrypath]...");
+    $editor_proc->start;
+    $self->debug("finish [$editor $entrypath]...");
+    $editor_proc->finish;
+    $self->debug("done.");
+}
 
 1;

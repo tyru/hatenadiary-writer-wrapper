@@ -58,37 +58,11 @@ sub run {
     }
 
 
-    my $gen_html = sub {
-        my ($in, $out) = @_;
-        unless (defined $self->get_entrydate($in)) {
-            return;
-        }
-
-
-        my $IN = FileHandle->new($in, 'r') or $self->error("$in:$!");
-
-        my @text = <$IN>;
-        # cut title.
-        shift @text;
-        # cut blank lines in order not to generate blank section.
-        shift @text while ($text[0] =~ /^\s*$/);
-
-        my $html = Text::Hatena->parse(join "\n", @text);
-        $IN->close;
-
-        puts("gen_html: $in -> $out");
-
-        my $OUT = FileHandle->new($out, 'w') or $self->error("$out:$!");
-        $OUT->print($html) or $self->error("can't write to $html");
-        $OUT->close;
-    };
-
     if (-d $in && (-d $out || ! -e $out)) {
         unless (-e $out) {
             mkdir $out;
         }
 
-        warn "get from $in";
         for my $infile ($self->get_entries($in)) {
             my $outfile = File::Spec->catfile($out, basename($infile));
             # *.txt -> *.html
@@ -98,7 +72,7 @@ sub run {
             next if $missing_only && -f $outfile;
 
             # generate html.
-            $gen_html->($infile, $outfile);
+            gen_html($self, $infile, $outfile);
         }
 
         # call update-index.
@@ -111,7 +85,7 @@ sub run {
 
     }
     elsif (-f $in && (-f $out || ! -e $out)) {
-        $gen_html->($in, $out);
+        gen_html($self, $in, $out);
 
         if ($make_index) {
             $self->dispatch('update-index' => [dirname($out)]);
@@ -122,6 +96,32 @@ sub run {
         # arguments error. show help.
         $self->arg_error;
     }
+}
+
+sub gen_html {
+    my ($self, $in, $out) = @_;
+
+    unless (defined $self->get_entrydate($in)) {
+        return;
+    }
+
+
+    my $IN = FileHandle->new($in, 'r') or $self->error("$in:$!");
+
+    my @text = <$IN>;
+    # cut title.
+    shift @text;
+    # cut blank lines in order not to generate blank section.
+    shift @text while ($text[0] =~ /^\s*$/);
+
+    my $html = Text::Hatena->parse(join "\n", @text);
+    $IN->close;
+
+    puts("gen_html: $in -> $out");
+
+    my $OUT = FileHandle->new($out, 'w') or $self->error("$out:$!");
+    $OUT->print($html) or $self->error("can't write to $html");
+    $OUT->close;
 }
 
 

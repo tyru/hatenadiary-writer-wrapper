@@ -31,33 +31,6 @@ sub run {
     my ($self, $args, $opt) = @_;
 
 
-    my $apply = sub {
-        my $filename = shift;
-        $self->arg_error unless $filename;
-
-        my $FH = FileHandle->new($filename, 'r') or $self->error("$filename:$!");
-        my @headline = $self->find_headlines(do { local $/; <$FH> });
-        $FH->close;
-        $self->debug("found headline(s):".join(', ', @headline));
-
-        my $date = $self->get_entrydate($filename);
-        return  unless defined $date;
-
-        # <year>-<month>-<day>-<headlines>.txt
-        my $new_filename = $self->build_entrypath(
-            $date->{year},
-            $date->{month},
-            $date->{day},
-            [@headline],
-        );
-
-        unless (basename($filename) eq basename($new_filename)) {
-            puts("rename $filename -> $new_filename");
-            rename $filename, $new_filename
-                or $self->error("$filename: Can't rename $filename $new_filename");
-        }
-    };
-
     if ($opt->{'a|all'}) {
         my $dir = @$args ? $args->[0] : $self->txt_dir;
         my @entry = $self->get_entries($dir);
@@ -66,17 +39,46 @@ sub run {
             return;
         }
         for (@entry) {
-            $apply->($_);
+            apply($self, $_);
         }
     }
     elsif (@$args) {
         unless (-f $args->[0]) {
             $self->error($args->[0].":$!");
         }
-        $apply->($args->[0]);
+        apply($self, $args->[0]);
     }
     else {
         $self->arg_error;
+    }
+}
+
+
+sub apply {
+    my ($self, $filename) = @_;
+
+    $self->arg_error unless $filename;
+
+    my $FH = FileHandle->new($filename, 'r') or $self->error("$filename:$!");
+    my @headline = $self->find_headlines(do { local $/; <$FH> });
+    $FH->close;
+    $self->debug("found headline(s):".join(', ', @headline));
+
+    my $date = $self->get_entrydate($filename);
+    return  unless defined $date;
+
+    # <year>-<month>-<day>-<headlines>.txt
+    my $new_filename = $self->build_entrypath(
+        $date->{year},
+        $date->{month},
+        $date->{day},
+        [@headline],
+    );
+
+    unless (basename($filename) eq basename($new_filename)) {
+        puts("rename $filename -> $new_filename");
+        rename $filename, $new_filename
+            or $self->error("$filename: Can't rename $filename $new_filename");
     }
 }
 

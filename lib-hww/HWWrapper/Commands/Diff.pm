@@ -45,28 +45,6 @@ sub run {
     }
 
 
-    my $diff = sub {
-        my ($year, $month, $day) = $self->split_date(shift);
-
-        # Login if necessary.
-        $self->login();
-
-        puts("Diff $year-$month-$day.");
-        my ($title,  $body) = $self->load_diary_entry($year, $month, $day);
-        $self->logout();
-
-        my $src = $title."\n".$body;
-
-        my $tmpdir = tempdir(CLEANUP => 1);
-        my($fh, $tmpfilename) = tempfile('diff_XXXXXX', DIR => $tmpdir);
-        print $fh $src;
-        close $fh;
-
-        my $filename = $self->get_entrypath($year, $month, $day);
-        system "diff", $tmpfilename, $filename;
-    };
-
-
     if (defined $file) {
         # check if $file is entry file
         unless (-f $file) {
@@ -77,18 +55,47 @@ sub run {
             $self->error("$file: not entry file");
         }
 
-        $diff->(
+        diff(
+            $self,
             $self->cat_date($date->{year}, $date->{month}, $date->{day})
         );
     }
     elsif (@$args) {
-        $diff->($args->[0]);
+        diff($self, $args->[0]);
     }
     else {
+        my $processed;
         for (map { basename($_) } $self->get_updated_entries()) {
-            $diff->($_);
+            diff($self, $_);
+            $processed = 1;
+        }
+        unless ($processed) {
+            puts("no files updated.");
         }
     }
+}
+
+
+sub diff {
+    my ($self, $date) = @_;
+    my ($year, $month, $day) = $self->split_date($date);
+
+    # Login if necessary.
+    $self->login();
+
+    puts("Diff $year-$month-$day.");
+    my ($title,  $body) = $self->load_diary_entry($year, $month, $day);
+    $self->logout();
+
+    my $src = $title."\n".$body;
+
+    my $tmpdir = tempdir(CLEANUP => 1);
+    my($fh, $tmpfilename) = tempfile('diff_XXXXXX', DIR => $tmpdir);
+    print $fh $src;
+    close $fh;
+
+    my $filename = $self->get_entrypath($year, $month, $day);
+    system "diff", $tmpfilename, $filename;
 }
 
 
