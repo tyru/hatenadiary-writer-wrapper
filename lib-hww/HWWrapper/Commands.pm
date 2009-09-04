@@ -10,7 +10,6 @@ our $VERSION = "1.1.21";
 use HWWrapper::Hook::BuiltinFunc;
 
 use HWWrapper::Functions;
-use HWWrapper::Constants qw($BASE_DIR $HWW_LIB);
 
 use Carp;
 use File::Basename qw(dirname basename);
@@ -202,6 +201,12 @@ our %HWW_COMMAND = (
     # (「ファイルが変更された」以外にも色んなイベントに対応できるようにする)
     # watch => 'watch',
 );
+
+our $BASE_DIR = File::Spec->rel2abs(
+    File::Spec->catdir(dirname(__FILE__), '..', '..')
+);
+
+our $HWW_LIB = File::Spec->catfile($BASE_DIR, "lib-hww");
 
 
 
