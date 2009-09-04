@@ -32,9 +32,11 @@ our %HWW_COMMAND = (
     },
     copyright => {
         coderef => \&copyright,
+        desc => 'copyright',
     },
     init => {
         coderef => \&init,
+        desc => 'set up hww environment',
         option => {
             'c|config' => {
                 desc => "apply config's settings",
@@ -109,6 +111,7 @@ our %HWW_COMMAND = (
     },
     'revert-headline' => {
         coderef => \&revert_headline,
+        desc => "revert file's name to 'YYYY-MM-DD.txt' format",
         option => {
             'a|all' => {
                 desc => "check and rename all files",
@@ -153,6 +156,7 @@ our %HWW_COMMAND = (
     },
     diff => {
         coderef => \&diff,
+        desc => 'show diff between local text and remote text',
         option => {
             'd|dir=s' => {
                 desc => "diff all entries in that directory",
@@ -167,12 +171,15 @@ our %HWW_COMMAND = (
     },
     shell => {
         coderef => \&shell,
+        desc => 'run commands like a shell',
     },
     truncate => {
         coderef => \&truncate_cmd,
+        desc => "truncate head or tail's blank lines of entry text",
     },
     editor => {
         coderef => \&editor,
+        desc => "edit today's entry quickly",
         option => {
             'g|gui' => {
                 desc => 'wait until gui program exits',
@@ -180,7 +187,7 @@ our %HWW_COMMAND = (
             'p|program=s' => {
                 desc => 'editor program to edit',
             },
-        }
+        },
     },
 
     # TODO commands to manipulate tags.
@@ -206,7 +213,6 @@ sub help {
     my $cmd = shift @$args;
 
     # TODO
-    # - hww.plのオプションを見られるようにする (shellコマンドの為に)
     # - --list-command (主にzsh補完用)
     # - -P, --no-pager (ページャで起動)
     # - Pod::Manでヘルプを出力し、utf8オプションを有効にし、日本語を出力できるようにする。
@@ -1236,8 +1242,7 @@ sub diff {
         close $fh;
 
         my $filename = $self->get_entrypath($year, $month, $day);
-        my $cmd = "diff $tmpfilename $filename";
-        system $cmd;
+        system "diff", $tmpfilename, $filename;
     };
 
 
