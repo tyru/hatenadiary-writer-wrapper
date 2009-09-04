@@ -72,6 +72,8 @@ sub new {
 
         is_debug_stderr => 0,
         is_debug => 0,
+
+        editor => $ENV{EDITOR},
     };
     $self->{arg_opt}{HWWrapper} = {
         d => \$self->{config}{is_debug},
@@ -98,6 +100,10 @@ sub new {
 sub load_config {
     my $self = shift;
 
+    # read config.txt.
+    $self->SUPER::load_config;
+
+
     my $config_file = 'config-hww.txt';
     $self->get_opt_only($self->{args}{options}, {
         'N=s' => \$config_file,
@@ -105,14 +111,39 @@ sub load_config {
     }) or $self->error("arguments error");
 
     if (-f $config_file) {
-        # TODO
-    }
-    else {
+        $self->__load_config($config_file);
+    } else {
         $self->debug("$config_file is not found. skip to load config...");
     }
+}
 
+sub __load_config {
+    my ($self, $config) = @_;
 
-    $self->SUPER::load_config;
+    my $FH = FileHandle->new($config)
+                or $self->error("$config: $!");
+
+    while (<$FH>) {
+        next if /^#/ or /^\s*$/;
+        chomp;
+
+        if (/^ ([^:]+) : (.*) $/x) {    # match!
+            my ($k, $v) = ($1, $2);
+            if (exists $self->{config}{$k}) {
+                # lvalue method. same as $self->{config}{$k} = $v
+                $self->$k = $v;
+            }
+            else {
+                $self->error("$k: no such key config value");
+            }
+        }
+        else {
+            $self->error(sprintf "%s: %d: invalid format",
+                            $config, $FH->input_line_number);
+        }
+    }
+
+    $FH->close;
 }
 
 

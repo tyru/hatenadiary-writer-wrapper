@@ -40,8 +40,9 @@ sub run {
         $editor = $opt->{'p|program=s'};
 
     }
-    elsif (exists $ENV{EDITOR}) {
-        $editor = $ENV{EDITOR};
+    elsif (defined $self->editor) {
+        # default value is $ENV{EDITOR}.
+        $editor = $self->editor;
     }
     else {
         $self->error(

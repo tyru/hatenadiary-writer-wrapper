@@ -202,12 +202,9 @@ sub load_config {
 
     $self->debug("Loading config file ($config_file).");
 
-    my $CONF;
-    if (not open($CONF, '<', $config_file)) {
-        $self->error("Can't open $config_file.");
-    }
+    my $CONF = FileHandle->new($config_file, 'r')
+                or $self->error("Can't open $config_file.");
 
-    # TODO make dispatch table
     while (<$CONF>) {
         chomp;
         if (/^\#/) {
@@ -257,10 +254,12 @@ sub load_config {
             $self->debug("touch:".$self->touch_file);
         }
         else {
-            $self->error("Unknown command '$_' in $config_file.");
+            $self->error(sprintf "%s: %d: invalid format",
+                        $config_file, $CONF->input_line_number);
         }
     }
-    close($CONF);
+
+    $CONF->close;
 }
 
 1;
