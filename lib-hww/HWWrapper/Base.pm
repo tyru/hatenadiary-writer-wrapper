@@ -704,6 +704,8 @@ sub load_diary_entry {
     my $self = shift;
     my ($year, $month, $day) = @_;
 
+    puts("Load $year-$month-$day.");
+
     $self->debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
 
     $self->user_agent->cookie_jar($self->cookie_jar);
@@ -747,7 +749,8 @@ sub load_diary_entry {
         Encode::from_to($body, $self->server_encoding, $self->client_encoding);
     }
 
-    $self->debug("OK");
+    puts("Load OK.");
+
     return ($title, $body);
 }
 
