@@ -282,9 +282,10 @@ sub dispatch {
 
 
     # if $cmd is alias, get real command.
-    # TODO use shell_eval_str()
     if (exists $self->{config}{alias}{$cmd}) {
-        $cmd = $self->{config}{alias}{$cmd};
+        # expand alias.
+        my ($e) = $self->shell_eval_str($self->{config}{alias}{$cmd});
+        ($cmd, @$args) = @$e;
     }
 
     # some debug messages.

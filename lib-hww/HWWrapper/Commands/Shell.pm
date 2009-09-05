@@ -152,8 +152,23 @@ sub regist_command {
             logout => sub { $self->logout },
 
             alias => sub {
-                print dumper([@_]);
-                print dumper($self->{config}{alias});
+                if (@_) {
+                    my ($alias, $orig) = @_;
+
+                    if (defined $orig) {
+                        # delete its alias.
+                        delete $self->{config}{alias}{$alias};
+                    } else {
+                        # alias it.
+                        $self->{config}{alias}{$alias} = $orig;
+                    }
+                }
+                else {
+                    # show all aliases.
+                    for my $k (keys %{ $self->{config}{alias} }) {
+                        puts(sprintf '"%s" = "%s"', $k, $self->{config}{alias}{$k});
+                    }
+                }
             },
         );
 
