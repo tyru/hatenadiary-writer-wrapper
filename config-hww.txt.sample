@@ -5,19 +5,19 @@
 
 # フルパスかコマンド名で「editor」コマンドに使うエディタ指定
 # デフォルトは$EDITOR
-editor:gvim
+editor: gvim
 
 # aliasなど一部の設定には'.'が使用可能
-alias.gh:gen-html
-alias.ui:update-index
-alias.sh:shell
-alias.ed:editor
-alias.ve:verify
-alias.ah:apply-headline
-alias.rh:revert-headline
+alias.gh: gen-html
+alias.ui: update-index
+alias.sh: shell
+alias.ed: editor
+alias.ve: verify
+alias.ah: apply-headline
+alias.rh: revert-headline
 
 
 
 # debug 1でデバッグメッセージオン
 # debug 0でオフ
-alias.debug:config is_debug
+alias.debug: config is_debug
