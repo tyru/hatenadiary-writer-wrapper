@@ -59,10 +59,10 @@ server_encoding:euc-jp
 EOT
 
     if ($del_config) {
-        unlink $config_file
-            or $self->warning("$config_file: $!");;
-        unlink $cookie_file
-            or $self->warning("$cookie_file: $!");;
+        for ($config_file, $cookie_file) {
+            next unless -f;
+            unlink $_ or $self->warning("$_: $!")
+        }
     }
 
 
@@ -76,6 +76,7 @@ EOT
     }
 
     # config file
+    my $made_config_file;
     if (-f $config_file) {
         puts("file $config_file already exists.");
     }
@@ -84,7 +85,9 @@ EOT
                     or $self->error("$config_file: $!");
         $FH->print($config_data);
         $FH->close;
+
         puts("create $config_file.");
+        $made_config_file = 1;
     }
 
     # cookie file
@@ -95,7 +98,9 @@ EOT
     }
 
 
-    puts("\nplease edit your id in $config_file.");
+    if ($made_config_file) {
+        puts("\nplease edit your id in $config_file.");
+    }
 }
 
 
