@@ -4,7 +4,6 @@ use warnings;
 use Test::More;
 use Test::Exception;
 
-use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper;
 my $wrapper = HWWrapper->new;
 
@@ -23,11 +22,6 @@ my @tests = (
     },
     sub {
         dies_ok { $wrapper->error("error!") };
-    },
-    sub {
-        lives_ok {
-            $wrapper->dump("dumping...");
-        }, "dump() is exported correctly";
     },
 );
 plan tests => scalar @tests;
