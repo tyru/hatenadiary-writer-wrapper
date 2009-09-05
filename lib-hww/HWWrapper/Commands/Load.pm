@@ -95,7 +95,7 @@ sub run_all {
     );
 
     unless ($r->is_success) {
-        die "couldn't get entries:".$r->status_line;
+        $self->error("couldn't get entries:".$r->status_line);
     }
     puts("got $export_url");
 
