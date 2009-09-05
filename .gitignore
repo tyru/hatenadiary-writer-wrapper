@@ -1,7 +1,7 @@
 *~
 .project
 cookie.txt
-config.txt
+config*.txt
 text
 Build
 Build.bat
