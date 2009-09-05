@@ -281,12 +281,8 @@ sub dispatch {
     }
 
 
-    # if $cmd is alias, get real command.
-    if (exists $self->{config}{alias}{$cmd}) {
-        # expand alias.
-        my ($e) = $self->shell_eval_str($self->{config}{alias}{$cmd});
-        ($cmd, @$args) = @$e;
-    }
+    # if $cmd is alias, get real args.
+    ($cmd, @$args) = ($self->expand_alias($cmd), @$args);
 
     # some debug messages.
     my ($filename, $line) = (caller)[1,2];

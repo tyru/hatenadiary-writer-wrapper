@@ -927,9 +927,11 @@ sub require_modules {
 # pass "complete command line string".
 # DON'T pass incomplete string. e.g.: "right double quote missing
 sub shell_eval_str {
-    my $self = shift;
-    my $line = shift;
+    my ($self, $line) = @_;
     my @args;
+
+    return () unless defined $line;
+
 
     if ($line =~ /\n/m) {
         croak "give me the string line which does NOT contain newline!";
@@ -991,8 +993,7 @@ sub is_complete_str {
     if ($@) {
         if ($@ =~ /unexpected end of string while looking for/) {
             return 0;
-        }
-        else {
+        } else {
             $self->error("failed to parse cmdline string: ".$@);
         }
     }
@@ -1153,6 +1154,20 @@ sub is_command {
     && exists $HWWrapper::Commands::HWW_COMMAND{
         $self->{config}{alias}{$cmd}
     };
+}
+
+
+# if $cmd is alias, expand it to some args.
+sub expand_alias {
+    my ($self, $cmd) = @_;
+
+    if (exists $self->{config}{alias}{$cmd}) {
+        my ($e) = $self->shell_eval_str($self->{config}{alias}{$cmd});
+        return @$e;
+    }
+    else {
+        return ($cmd);
+    }
 }
 
 

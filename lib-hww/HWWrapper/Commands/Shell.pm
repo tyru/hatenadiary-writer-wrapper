@@ -83,6 +83,8 @@ sub regist_command {
 
                 $self->debug(sprintf "process %s...", dumper($shell_args));
                 my ($cmd, @cmd_args) = @$shell_args;
+                ($cmd, @cmd_args) = ($self->expand_alias($cmd), @cmd_args);
+
 
                 if ($cmd eq 'shell') {
                     $self->warning("you have been already in the shell.");
@@ -106,6 +108,7 @@ sub regist_command {
                         [
                             keys(%HWW_COMMAND),
                             keys(%shell_cmd),
+                            keys(%{ $self->{config}{alias} })
                         ],
                         {
                             diff_strlen => 4,
