@@ -85,6 +85,10 @@ sub run {
 
     }
     elsif (-f $in && (-f $out || ! -e $out)) {
+        unless (defined $self->get_entrydate($in)) {
+            $self->error("$in is not entry text.");
+        }
+
         gen_html($self, $in, $out);
 
         if ($make_index) {
@@ -101,25 +105,22 @@ sub run {
 sub gen_html {
     my ($self, $in, $out) = @_;
 
-    unless (defined $self->get_entrydate($in)) {
-        return;
-    }
 
-
-    my $IN = FileHandle->new($in, 'r') or $self->error("$in:$!");
-
+    # read entry text.
+    my $IN = FileHandle->new($in) or $self->error("$in: $!");
     my @text = <$IN>;
+    $IN->close;
+
     # cut title.
     shift @text;
     # cut blank lines in order not to generate blank section.
     shift @text while ($text[0] =~ /^\s*$/);
 
-    my $html = Text::Hatena->parse(join "\n", @text);
-    $IN->close;
-
     puts("gen_html: $in -> $out");
+    my $html = Text::Hatena->parse(join "\n", @text);
 
-    my $OUT = FileHandle->new($out, 'w') or $self->error("$out:$!");
+    # write result.
+    my $OUT = FileHandle->new($out, 'w') or $self->error("$out: $!");
     $OUT->print($html) or $self->error("can't write to $html");
     $OUT->close;
 }
