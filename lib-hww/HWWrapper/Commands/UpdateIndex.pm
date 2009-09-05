@@ -16,7 +16,7 @@ use HWWrapper::Functions;
 
 sub regist_command {
     $HWW_COMMAND{'update-index'} = {
-        coderef => \&update_index,
+        coderef => \&run,
         desc => 'make html from template file by HTML::Template',
         option => {
             'm|max-length=s' => {

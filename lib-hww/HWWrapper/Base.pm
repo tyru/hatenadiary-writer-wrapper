@@ -940,14 +940,14 @@ sub shell_eval_str {
     }
 
     my $push_new_args = sub {
-        $self->debug("push new args!:[%s]", join ', ', @_);
+        $self->debug(sprintf "push new args!:[%s]", join ', ', @_);
         push @args, [@_];
     };
     my $push_args = sub {
         croak "push_args: receive empty args" unless @_;
 
         if (@args) {
-            $self->debug("push args!:[%s]", join ', ', @_);
+            $self->debug(sprintf "push args!:[%s]", join ', ', @_);
             push @{ $args[-1] }, @_;
         }
         else {
@@ -1144,6 +1144,21 @@ sub cat_date {
     }
 
     return $datename;
+}
+
+
+
+sub is_command {
+    my ($self, $cmd) = @_;
+
+    # is command.
+    exists $HWWrapper::Commands::HWW_COMMAND{$cmd}
+        or
+    # is alias and alias's command exists.
+    exists $self->{config}{alias}{$cmd}
+    && exists $HWWrapper::Commands::HWW_COMMAND{
+        $self->{config}{alias}{$cmd}
+    };
 }
 
 

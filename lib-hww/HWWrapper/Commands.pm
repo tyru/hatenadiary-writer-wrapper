@@ -75,6 +75,10 @@ sub regist_command {
 
     $self->_regist($cmd);
 
+    unless (defined $HWW_COMMAND{$cmd}{coderef}) {
+        $self->error("assertion failure");
+    }
+
     # this must return coderef, command info.
     return ($HWW_COMMAND{$cmd}{coderef}, $HWW_COMMAND{$cmd});
 }

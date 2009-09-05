@@ -12,9 +12,6 @@ package HWWrapper;
 #   - 日付関係のテスト
 #   - 引数(@ARGV)のテスト
 #
-# - config-hww.txtにHWWrapperの設定を書く
-#   - フォーマットは拡張子によって決まる。ymlだったらYAML。txtだったらconfig.txtと同じような形式。(YAML::XSとYAMLは互換性がないらしい。XSを使うのはWindowsにとって厳しいのでYAMLモジュールを使う)
-#   - $EDITORの設定
 #   - hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
 #   - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く設定 (zshのcorrectみたいに)
 #   - パスワードを入力中、端末に表示するかしないか
@@ -74,6 +71,7 @@ sub new {
         is_debug => 0,
 
         editor => $ENV{EDITOR},
+        alias => {},
     };
     $self->{arg_opt}{HWWrapper} = {
         d => \$self->{config}{is_debug},
@@ -128,13 +126,32 @@ sub __load_config {
         chomp;
 
         if (/^ ([^:]+) : (.*) $/x) {    # match!
+            if (strcount($1, '.') > 1) {
+                $self->error("too many dots: allowed only one dot.");
+            }
+
             my ($k, $v) = ($1, $2);
-            if (exists $self->{config}{$k}) {
-                # lvalue method. same as $self->{config}{$k} = $v
-                $self->$k = $v;
+
+            my $kk;
+            ($k, $kk) = split /\./, $k;
+
+            unless (exists $self->{config}{$k}) {
+                $self->error("$k: no such key config value");
+            }
+
+            if (defined $kk) {
+                unless (ref $self->{config}{$k} eq 'HASH') {
+                    # die if not hash
+                    $self->error("$k.$kk: invalid type");
+                }
+                $self->{config}{$k}{$kk} = $v;
             }
             else {
-                $self->error("$k: no such key config value");
+                unless (not ref $self->{config}{$k}) {
+                    # die if not scalar
+                    $self->error("$k: invalid type");
+                }
+                $self->{config}{$k} = $v;
             }
         }
         else {
@@ -255,13 +272,19 @@ sub dispatch {
     my ($cmd, $args) = @_;
     $args = [] unless defined $args;
 
+    # detect some errors.
     unless (blessed $self) {
         croak 'give me blessed $self.';
     }
-
-    # detect some errors.
     unless (defined $cmd) {
         $self->error("no command was given.");
+    }
+
+
+    # if $cmd is alias, get real command.
+    # TODO use shell_eval_str()
+    if (exists $self->{config}{alias}{$cmd}) {
+        $cmd = $self->{config}{alias}{$cmd};
     }
 
     # some debug messages.

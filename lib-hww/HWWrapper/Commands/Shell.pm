@@ -88,14 +88,14 @@ sub regist_command {
                     $self->warning("you have been already in the shell.");
                     last DISPATCH;
                 }
-                elsif (is_hww_command($cmd)) {
+                elsif ($self->is_command($cmd)) {
                     eval {
                         $self->dispatch($cmd => \@cmd_args);
                     };
                 }
                 elsif (exists $shell_cmd{$cmd}) {
                     eval {
-                        $shell_cmd{$cmd}->(\@cmd_args);
+                        $shell_cmd{$cmd}->(@cmd_args);
                     };
                 }
                 else {
@@ -150,6 +150,11 @@ sub regist_command {
 
             login => sub { $self->login },
             logout => sub { $self->logout },
+
+            alias => sub {
+                print dumper([@_]);
+                print dumper($self->{config}{alias});
+            },
         );
 
 
@@ -261,7 +266,7 @@ sub regist_command {
                 return $comp_cmd->();
             }
             # complete command
-            elsif (is_hww_command($last_args->[0])) {
+            elsif ($self->is_command($last_args->[0])) {
                 return $last_args->[0]
                     if $prev_word eq $last_args->[0] && ! $completed;
 

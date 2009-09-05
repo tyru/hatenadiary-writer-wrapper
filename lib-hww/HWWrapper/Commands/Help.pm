@@ -49,7 +49,7 @@ sub run {
     }
 
 
-    unless (is_hww_command($cmd)) {
+    unless ($self->is_command($cmd)) {
         $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
 

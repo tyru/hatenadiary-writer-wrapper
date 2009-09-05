@@ -44,10 +44,17 @@ sub puts {
     print @_, "\n";
 }
 
-# FIXME
-sub is_hww_command {
-    my $cmd = shift;
-    exists $HWWrapper::Commands::HWW_COMMAND{$cmd};
+sub strcount {
+    my ($str, $substr) = @_;
+    my $count = 0;
+    my $pos = 0;
+
+    until ((my $tmp = index($str, $substr, $pos)) == -1) {
+        $pos = $tmp + 1;    # next pos
+        $count++;
+    }
+
+    return $count;
 }
 
 
