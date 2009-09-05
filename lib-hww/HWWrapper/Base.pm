@@ -885,6 +885,12 @@ sub error {
 
 sub debug {
     my $self = shift;
+
+    # XXX this makes warnings when debug_fh is STDOUT or STDERR?
+    return
+        if ! $self->{debug_fh}->isa('IO::String')
+        && ! $self->is_debug;
+
     my $subname = (caller 1)[3];
     $self->{debug_fh}->print("debug: $subname(): ", @_, "\n");
 }
