@@ -138,6 +138,7 @@ sub __load_config {
             }
 
             if (defined $kk) {
+                # $1 contains dot.
                 unless (ref $self->{config}{$k} eq 'HASH') {
                     # die if not hash
                     $self->error("$k.$kk: invalid type");
@@ -145,6 +146,7 @@ sub __load_config {
                 $self->{config}{$k}{$kk} = $v;
             }
             else {
+                # $1 does not contain dot.
                 unless (not ref $self->{config}{$k}) {
                     # die if not scalar
                     $self->error("$k: invalid type");

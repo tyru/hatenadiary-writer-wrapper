@@ -237,6 +237,7 @@ sub regist_command {
         # split '|' in options.
         my $get_options = sub {
             map {
+                s/=.$//;
                 /\|/ ? (split /\|/) : $_
             } keys %{ $_[0] };
         };
