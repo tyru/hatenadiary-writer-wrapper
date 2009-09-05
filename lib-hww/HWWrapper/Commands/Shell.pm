@@ -11,6 +11,8 @@ use HWWrapper::Commands qw(%HWW_COMMAND);
 # export sub who does not take $self.
 use HWWrapper::Functions;
 
+use Term::ReadLine;
+
 
 
 

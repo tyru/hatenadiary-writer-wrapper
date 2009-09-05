@@ -12,12 +12,10 @@ use HWWrapper::Functions;
 use Carp;
 use POSIX ();
 use Getopt::Long ();
-use List::MoreUtils qw(uniq);
-use File::Basename qw(basename);
+use List::MoreUtils qw(uniq all);
 use Digest::MD5 qw(md5_base64);
 use IO::Prompt qw(prompt);
 use HTTP::Request::Common ();
-use List::MoreUtils ();
 
 # require OO modules.
 # (derived modules don't need to require these modules)
@@ -483,7 +481,7 @@ sub delete_it {
 
     # Check the result. ERROR if the location ends with the date.
     # (Note that delete error != post error)
-    if ($r->header("Location") =~ m(/$date$)) {                    # /)){
+    if ($r->header("Location") =~ m{/$date$}) {
         $self->debug("returns 0 (ERROR).");
         return 0;
     }
@@ -1077,7 +1075,7 @@ sub familiar_words {
         push @familiar, $w
             # if $w contains all chars of $word.
             # (and chars orders are the same)
-            if List::MoreUtils::all {
+            if all {
                 ($last_idx = index($w, $_, $last_idx)) != -1
             } @chars;
     }

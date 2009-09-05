@@ -15,8 +15,7 @@ our @EXPORT = our @EXPORT_OK = qw(
 use HWWrapper::Functions;
 
 use Carp;
-use File::Basename qw(dirname basename);
-use Term::ReadLine;
+use File::Spec;
 
 
 # our %HWW_COMMAND = (
