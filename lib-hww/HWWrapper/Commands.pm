@@ -102,8 +102,7 @@ sub _regist {
     if ($@) {
         # not found!
         $self->debug($@);
-        # NOTE: $self must be HWWrapper's instance.
-        $self->cmd_not_found_error($cmd);
+        $self->error("'$cmd' is not a hww command.");
     }
 
     # stash command info to %HWW_COMMAND.

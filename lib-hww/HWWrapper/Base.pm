@@ -240,12 +240,6 @@ sub arg_error {
     $self->error("arguments error. see the help.");
 }
 
-sub cmd_not_found_error {
-    my ($self, $cmd) = @_;
-    # TODO suggest familiar words.
-    $self->error("'$cmd' is not a hww command.");
-}
-
 sub mk_accessors {
     my $self = shift;
     my $pkg = caller;
@@ -540,7 +534,7 @@ sub create_it {
     $self->debug("Location: " . $r->header("Location"));
 
     # Check the result. OK if the location ends with the date.
-    if ($r->header("Location") =~ m(/$year$month$day$)) {          # /)){
+    if ($r->header("Location") =~ m{/$year$month$day$}) {
         $self->debug("returns 1 (OK).");
         return 1;
     }
@@ -605,17 +599,14 @@ sub post_it {
 # Get "YYYYMMDDhhmmss" for now.
 sub get_timestamp {
     my $self = shift;
-    my (@week) = qw(Sun Mon Tue Wed Thu Fri Sat);
-    my ($sec, $min, $hour, $day, $mon, $year, $weekday) = localtime(time);
+
+    my ($sec, $min, $hour, $day, $mon, $year) = localtime;
     $year += 1900;
     $mon++;
-    $mon = "0$mon" if $mon < 10;
-    $day = "0$day" if $day < 10;
-    $hour = "0$hour" if $hour < 10;
-    $min = "0$min" if $min < 10;
-    $sec = "0$sec" if $sec < 10;
-    $weekday = $week[$weekday];
-    return "$year$mon$day$hour$min$sec";
+
+    sprintf
+        '%04d%02d%02d%02d%02d%02d',
+        $year, $mon, $day, $hour, $min, $sec;
 }
 
 # Read title and body.
@@ -788,28 +779,31 @@ sub save_diary_entry {
     my $self = shift;
     my ($year, $month, $day, $title, $body);
     my $filename;
+
     if (ref $_[0] eq 'HASH') {
         # New way of passing arguments.
         # this can take 'headlines' option additionally.
         my %opt = %{ shift() };
-        ($year,$month,$day,$title,$body) = @opt{qw(year month day title body)};
-        $filename = $self->get_entrypath($year, $month, $day, exists $opt{headlines} ? $opt{headlines} : undef);
+        ($year, $month, $day, $title, $body) = @opt{qw(year month day title body)};
+        $filename = $self->get_entrypath(
+            $year, $month, $day,
+            exists $opt{headlines} ? $opt{headlines} : undef
+        );
     }
     else {
         # Original way of passing arguments.
-        ($year,$month,$day,$title,$body) = @_;
+        ($year, $month, $day, $title, $body) = @_;
         $filename = $self->get_entrypath($year, $month, $day);
     }
 
+    my $OUT = FileHandle->new($filename, 'w')
+                or $self->error("$!:$filename");
+    $OUT->print($title."\n");
+    $OUT->print($body);
+    $OUT->close;
 
-    my $OUT;
-    if (not open($OUT, '>', $filename)) {
-        $self->error("$!:$filename");
-    }
-    print $OUT $title."\n";
-    print $OUT $body;
-    close($OUT);
-    $self->debug("wrote $filename");
+    puts("wrote $filename");
+
     return 1;
 }
 

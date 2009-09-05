@@ -73,7 +73,7 @@ EOT
                     or $self->error("$config_file: $!");
         $FH->print($config_data);
         $FH->close;
-        puts("create $config_data.");
+        puts("create $config_file.");
     }
 
     # cookie file

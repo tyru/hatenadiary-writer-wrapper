@@ -32,7 +32,6 @@ sub regist_command {
 
 sub run {
     my ($self, $args, $opt) = @_;
-
     my $is_gui_prog = $opt->{'g|gui'};
 
     my $editor;
@@ -52,18 +51,18 @@ sub run {
     }
 
     unless (-e $editor) {
+        my $e;
         # find in $PATH.
         for my $path (File::Spec->path) {
             my $editor_path = File::Spec->catfile($path, $editor);
             if (-e $editor_path) {
-                $editor = $editor_path;
-                goto FOUND;
+                $e = $editor_path;
+                last;
             }
         }
-        # ...but not found.
-        $self->error("could not find '$editor'.");
+        $self->error("could not find '$editor'.") unless defined $e;
+        $editor = $e;
     }
-FOUND:
 
 
     my ($year, $month, $day);
