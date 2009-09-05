@@ -11,7 +11,7 @@ use HWWrapper::Functions;
 use Carp;
 use POSIX ();
 use Getopt::Long ();
-use List::MoreUtils qw(uniq all);
+use List::MoreUtils qw();
 use Digest::MD5 qw(md5_base64);
 use IO::Prompt qw(prompt);
 use HTTP::Request::Common ();
@@ -240,7 +240,7 @@ sub mk_accessors {
     my $pkg = caller;
     $self->debug("make accessor to $pkg: ".dumper([@_]));
 
-    for my $method (uniq @_) {
+    for my $method (@_) {
         unless (exists $self->{config}{$method}) {
             $self->error("internal error, sorry.: \$self->{config}{$method} does NOT exist!!");
         }
@@ -886,7 +886,6 @@ sub error {
 sub debug {
     my $self = shift;
 
-    # XXX this makes warnings when debug_fh is STDOUT or STDERR?
     return
         if ! $self->{debug_fh}->isa('IO::String')
         && ! $self->is_debug;
@@ -1081,7 +1080,7 @@ sub familiar_words {
         push @familiar, $w
             # if $w contains all chars of $word.
             # (and chars orders are the same)
-            if all {
+            if List::MoreUtils::all {
                 ($last_idx = index($w, $_, $last_idx)) != -1
             } @chars;
     }
@@ -1111,8 +1110,7 @@ sub familiar_words {
 # $self->get_entrydate() takes path,
 # and returns undef or hash reference.
 sub split_date {
-    my $self = shift;
-    my $date = shift;
+    my ($self, $date) = @_;
 
     if ($date =~ /\A(\d{4})-(\d{2})-(\d{2})(?:-.+)?(?:\.txt)?\Z/) {
         return ($1, $2, $3);

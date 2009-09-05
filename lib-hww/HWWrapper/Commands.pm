@@ -1,5 +1,9 @@
 package HWWrapper::Commands;
 
+# class for methods and data for commands.
+#
+#
+
 use strict;
 use warnings;
 use utf8;
@@ -17,20 +21,6 @@ use HWWrapper::Functions;
 use Carp;
 use File::Spec;
 
-
-# our %HWW_COMMAND = (
-#     # TODO commands to manipulate tags.
-#     # 'add-tag' => 'add_tag',
-#     # 'delete-tag' => 'delete_tag',
-#     # 'rename-tag' => 'rename_tag',
-# 
-#     # TODO 設定(ファイルはconfig-hww.txt)を変えるコマンド
-#     # config => 'config',
-# 
-#     # - ファイルが変更されたら、何らかの処理を実行できるコマンド
-#     # (「ファイルが変更された」以外にも色んなイベントに対応できるようにする)
-#     # watch => 'watch',
-# );
 
 
 our %HWW_COMMAND = map {
