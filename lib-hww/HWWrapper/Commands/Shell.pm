@@ -151,22 +151,56 @@ sub regist_command {
             login => sub { $self->login },
             logout => sub { $self->logout },
 
+            # make/delete/show aliases.
             alias => sub {
                 if (@_) {
-                    my ($alias, $orig) = @_;
+                    my ($name, $value) = @_;
 
-                    if (defined $orig) {
+                    if (defined $value) {
                         # delete its alias.
-                        delete $self->{config}{alias}{$alias};
+                        delete $self->{config}{alias}{$name};
                     } else {
                         # alias it.
-                        $self->{config}{alias}{$alias} = $orig;
+                        $self->{config}{alias}{$name} = $value;
                     }
                 }
                 else {
                     # show all aliases.
-                    for my $k (keys %{ $self->{config}{alias} }) {
+                    for my $k (sort keys %{ $self->{config}{alias} }) {
                         puts(sprintf '"%s" = "%s"', $k, $self->{config}{alias}{$k});
+                    }
+                }
+            },
+
+            # modify $self->{config} value.
+            config => sub {
+                if (@_) {
+                    my ($name, $value) = @_;
+
+                    unless (exists $self->{config}{$name}) {
+                        $self->warning("'$name' is not config name.");
+                        return;
+                    }
+
+                    if (defined $value) {
+                        if (ref $self->$name) {
+                            $self->warning("cannot modify '$name' value.");
+                        }
+                        else {
+                            # set.
+                            $self->$name = $value;
+                        }
+                    }
+                    else {
+                        puts(sprintf '"%s" = %s',
+                            $name, dumper($self->$name));
+                    }
+                }
+                else {
+                    for my $name (sort keys %{ $self->{config} }) {
+                        next if ref $self->$name;
+                        puts(sprintf '"%s" = %s',
+                            $name, dumper($self->$name));
                     }
                 }
             },
@@ -176,7 +210,7 @@ sub regist_command {
         $term = Term::ReadLine->new;
 
         # define completion function!
-        $term->Attribs->{completion_function} = gen_compl_func($self);;
+        $term->Attribs->{completion_function} = gen_compl_func($self);
 
         # initialize all command's info.
         $self->regist_all_command();

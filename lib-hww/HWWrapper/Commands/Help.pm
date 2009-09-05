@@ -26,15 +26,22 @@ sub regist_command {
 
 
 sub run {
-    my ($self, $args) = @_;
+    my ($self, $args, $opt) = @_;
     my $cmd = shift @$args;
 
     # TODO
-    # - --list-command (主にzsh補完用)
     # - -P, --no-pager (ページャで起動)
     # - Pod::Manでヘルプを出力し、utf8オプションを有効にし、日本語を出力できるようにする。
+    if ($opt->{'--list-command'}) {
+        # --list-command
+        for my $command (sort keys %HWW_COMMAND) {
+            puts($command);
+        }
 
-    unless (defined $cmd) {
+        return;
+    }
+    elsif (not defined $cmd) {
+        # show all commands and usage.
         my $hww_pl_path = File::Spec->catfile($BASE_DIR, 'hww.pl');
         pod2usage(-verbose => 1, -input => $hww_pl_path, -exitval => "NOEXIT");
 
@@ -47,11 +54,13 @@ sub run {
 
         return;
     }
-
-
-    unless ($self->is_command($cmd)) {
+    elsif (not $self->is_command($cmd)) {
+        # $cmd is not command, error.
         $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }
+
+
+    # show help pod.
 
     my $podpath = File::Spec->catdir($POD_DIR, "hww-$cmd.pod");
     unless (-f $podpath) {

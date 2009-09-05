@@ -867,7 +867,6 @@ sub get_wsse_header {
 sub warning {
     my $self = shift;
 
-    # TODO stash debug value in $self
     if ($self->is_debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
@@ -882,7 +881,6 @@ sub error {
     my $self = shift;
     my @errmsg;
 
-    # TODO stash debug value in $self
     if ($self->is_debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
@@ -892,7 +890,6 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
-    unlink($self->cookie_file);    # from HW::error_exit()
     die @errmsg;
 }
 
@@ -922,7 +919,6 @@ sub require_modules {
 }
 
 # TODO
-# - pipe
 # - runnning background
 #
 # FIXME UTF8以外の環境だとMalformed UTF-8 characterと出る
@@ -1111,8 +1107,6 @@ sub familiar_words {
     return @familiar;
 }
 
-
-# TODO 日付関連のテスト
 
 # split 'date'.
 #
