@@ -67,7 +67,9 @@ sub new {
         is_debug => 0,
 
         editor => $ENV{EDITOR},
-        alias => {},
+        alias => {
+            update => 'release -t',
+        },
     };
     $self->{arg_opt}{HWWrapper} = {
         d => \$self->{config}{is_debug},
