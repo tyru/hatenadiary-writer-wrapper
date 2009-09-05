@@ -213,7 +213,7 @@ sub regist_command {
         $term->Attribs->{completion_function} = gen_compl_func($self);
 
         # initialize all command's info.
-        HWWrapper::Commands->regist_all_command();
+        $self->regist_all_command();
 
 
         $self->debug("initialized the shell...");

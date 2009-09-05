@@ -51,7 +51,6 @@ our %HWW_COMMAND = map {
     status
     touch
     truncate
-    update
     update-index
     verify
     version

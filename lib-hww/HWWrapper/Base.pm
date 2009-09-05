@@ -4,7 +4,6 @@ use strict;
 use warnings;
 use utf8;
 
-use HWWrapper::Commands;
 # import all util commands!!
 use HWWrapper::Functions;
 

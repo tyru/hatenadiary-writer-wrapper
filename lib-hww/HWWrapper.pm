@@ -33,7 +33,7 @@ use utf8;
 
 our $VERSION = '1.9.0';
 
-use base qw(HW);
+use base qw(HW HWWrapper::Commands);
 
 # import all util commands!!
 use HWWrapper::Functions;
@@ -287,13 +287,15 @@ sub dispatch {
     ($cmd, @$args) = ($self->expand_alias($cmd), @$args);
 
     # some debug messages.
-    my ($filename, $line) = (caller)[1,2];
-    $filename = basename($filename);
-    $self->debug(sprintf '$self->dispatch(%s) at %s line %s',
-            join(', ', map { dumper($_) } @_), $filename, $line);
+    if ($self->is_debug) {
+        my ($filename, $line) = (caller)[1,2];
+        $filename = basename($filename);
+        $self->debug(sprintf '$self->dispatch(%s) at %s line %s',
+                join(', ', map { dumper($_) } @_), $filename, $line);
+    }
 
     # require package if not loaded
-    my ($run, $cmd_info) = HWWrapper::Commands->regist_command($cmd);
+    my ($run, $cmd_info) = $self->regist_command($cmd);
 
     # get arguments value
     my %opt;
