@@ -880,6 +880,7 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
+    unlink $self->cookie_file;
     die @errmsg;
 }
 
