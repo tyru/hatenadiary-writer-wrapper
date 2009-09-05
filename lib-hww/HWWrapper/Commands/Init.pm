@@ -22,6 +22,9 @@ sub regist_command {
             'c|config' => {
                 desc => "apply config's settings",
             },
+            'd|delete' => {
+                desc => "delete config file and cookie file, and make new ones",
+            },
         },
     };
 }
@@ -31,6 +34,7 @@ sub run {
     my ($self, $args, $opt) = @_;
 
     my $read_config = $opt->{'c|config'};
+    my $del_config  = $opt->{'d|delete'};
 
     my $txt_dir = 'text';
     my $config_file = 'config.txt';
@@ -53,6 +57,13 @@ touch:@{[ File::Spec->catfile($txt_dir, 'touch.txt') ]}
 client_encoding:utf-8
 server_encoding:euc-jp
 EOT
+
+    if ($del_config) {
+        unlink $config_file
+            or $self->warning("$config_file: $!");;
+        unlink $cookie_file
+            or $self->warning("$cookie_file: $!");;
+    }
 
 
     # text dir
