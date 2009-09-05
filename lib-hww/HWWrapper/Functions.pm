@@ -4,9 +4,6 @@ use strict;
 use warnings;
 use utf8;
 
-# import builtin func's hooks
-use HWWrapper::Hook::BuiltinFunc;
-
 # import some util func
 use File::Basename qw(fileparse dirname basename);
 use Scalar::Util qw(blessed);
@@ -19,8 +16,7 @@ use base qw(Exporter);
 our @EXPORT = our @EXPORT_OK = do {
     no strict 'refs';
 
-    my @codes = grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
-    (@codes, @HWWrapper::Hook::BuiltinFunc::EXPORT);
+    grep { *$_{CODE} } keys %{__PACKAGE__.'::'};
 };
 
 

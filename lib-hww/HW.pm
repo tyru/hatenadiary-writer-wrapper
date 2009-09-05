@@ -30,9 +30,6 @@ our $VERSION = "1.7.8";
 
 use base qw(HWWrapper::Base);
 
-# import builtin func's hooks
-use HWWrapper::Hook::BuiltinFunc;
-
 # import all util commands!!
 use HWWrapper::Functions;
 

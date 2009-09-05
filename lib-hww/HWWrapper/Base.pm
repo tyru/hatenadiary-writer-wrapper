@@ -4,9 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-# import builtin func's hooks
-use HWWrapper::Hook::BuiltinFunc;
-
+use HWWrapper::Commands;
 # import all util commands!!
 use HWWrapper::Functions;
 

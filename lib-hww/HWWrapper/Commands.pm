@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(Exporter);
+use base qw(Exporter HWWrapper::Base);
 our @EXPORT = our @EXPORT_OK = qw(
     %HWW_COMMAND
     $BASE_DIR
@@ -12,8 +12,6 @@ our @EXPORT = our @EXPORT_OK = qw(
     $POD_DIR
 );
 
-# import builtin func's hooks
-use HWWrapper::Hook::BuiltinFunc;
 use HWWrapper::Functions;
 
 use Carp;

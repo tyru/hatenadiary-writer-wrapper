@@ -37,11 +37,6 @@ sub regist_command {
         }
 
 
-        local $HWWrapper::Hook::BuiltinFunc::exit = sub (;$) {
-            $self->error("program exited with ".(@_ ? $_[0] : 0));
-            # trapped with eval, this won't die.
-        };
-
         my $readline; $readline = sub {
             my $line = $term->readline("> ");
             # EOF for the first time
@@ -216,7 +211,7 @@ sub regist_command {
         $term->Attribs->{completion_function} = gen_compl_func($self);
 
         # initialize all command's info.
-        $self->regist_all_command();
+        HWWrapper::Commands->regist_all_command();
 
 
         $self->debug("initialized the shell...");

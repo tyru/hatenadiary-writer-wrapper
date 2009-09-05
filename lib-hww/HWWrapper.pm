@@ -16,8 +16,6 @@ package HWWrapper;
 #   - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く設定 (zshのcorrectみたいに)
 #   - パスワードを入力中、端末に表示するかしないか
 #   - 補完関数の細かな挙動 (隠しファイルを補完するかなど)
-#
-# - $self->{config}のそれぞれのキーについて、設定ファイルで変更可能にする
 
 
 # NOTE
@@ -35,10 +33,8 @@ use utf8;
 
 our $VERSION = '1.9.0';
 
-use base qw(HW HWWrapper::Commands);
+use base qw(HW);
 
-# import builtin func's hooks
-use HWWrapper::Hook::BuiltinFunc;
 # import all util commands!!
 use HWWrapper::Functions;
 
@@ -124,6 +120,8 @@ sub __load_config {
     while (<$FH>) {
         next if /^#/ or /^\s*$/;
         chomp;
+
+        $self->debug($FH->input_line_number.': '.$_);
 
         if (/^ ([^:]+) : (.*) $/x) {    # match!
             if (strcount($1, '.') > 1) {
@@ -291,7 +289,7 @@ sub dispatch {
             join(', ', map { dumper($_) } @_), $filename, $line);
 
     # require package if not loaded
-    my ($run, $cmd_info) = $self->regist_command($cmd);
+    my ($run, $cmd_info) = HWWrapper::Commands->regist_command($cmd);
 
     # get arguments value
     my %opt;
