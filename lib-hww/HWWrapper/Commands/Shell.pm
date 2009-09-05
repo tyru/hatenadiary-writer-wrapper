@@ -88,14 +88,14 @@ sub regist_command {
                     $self->warning("you have been already in the shell.");
                     last DISPATCH;
                 }
-                elsif ($self->is_command($cmd)) {
-                    eval {
-                        $self->dispatch($cmd => \@cmd_args);
-                    };
-                }
                 elsif (exists $shell_cmd{$cmd}) {
                     eval {
                         $shell_cmd{$cmd}->(@cmd_args);
+                    };
+                }
+                elsif ($self->is_command($cmd)) {
+                    eval {
+                        $self->dispatch($cmd => \@cmd_args);
                     };
                 }
                 else {
