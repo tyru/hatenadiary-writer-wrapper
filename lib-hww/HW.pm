@@ -197,50 +197,46 @@ sub load_config {
                 or $self->error("Can't open $config_file.");
 
     while (<$CONF>) {
+        next if /^#/ or /^\s*$/;
         chomp;
-        if (/^\#/) {
-            # skip comment.
-        }
-        elsif (/^$/) {
-            # skip blank line.
-        }
-        elsif (/^id:([^:]+)$/) {
+
+        if (/^id: \s* ([^:]+)$/x) {
             $self->username = $1;
             $self->debug("id:".$self->username);
         }
-        elsif (/^g:([^:]+)$/) {
+        elsif (/^g: \s* ([^:]+)$/x) {
             $self->groupname = $1;
             $self->debug("g:".$self->groupname);
         }
-        elsif (/^password:(.*)$/) {
+        elsif (/^password: \s* (.*)$/x) {
             $self->password = $1;
             $self->debug("password:********");
         }
-        elsif (/^cookie:(.*)$/) {
+        elsif (/^cookie: \s* (.*)$/x) {
             $self->cookie_file = glob($1);
             $self->debug("cookie:".$self->cookie_file);
         }
-        elsif (/^proxy:(.*)$/) {
+        elsif (/^proxy: \s* (.*)$/x) {
             $self->http_proxy = $1;
             $self->debug("proxy:".$self->http_proxy);
         }
-        elsif (/^client_encoding:(.*)$/) {
+        elsif (/^client_encoding: \s* (.*)$/x) {
             $self->client_encoding = $1;
             $self->debug("client_encoding:".$self->client_encoding);
         }
-        elsif (/^server_encoding:(.*)$/) {
+        elsif (/^server_encoding: \s* (.*)$/x) {
             $self->server_encoding = $1;
             $self->debug("server_encoding:".$self->server_encoding);
         }
-        elsif (/^filter:(.*)$/) {
+        elsif (/^filter: \s* (.*)$/x) {
             $self->filter_command = $1;
             $self->debug("filter:".$self->filter_command);
         }
-        elsif (/^txt_dir:(.*)$/) {
+        elsif (/^txt_dir: \s* (.*)$/x) {
             $self->txt_dir = glob($1);
             $self->debug("txt_dir:".$self->txt_dir);
         }
-        elsif (/^touch:(.*)$/) {
+        elsif (/^touch: \s* (.*)$/x) {
             $self->touch_file = glob($1);
             $self->debug("touch:".$self->touch_file);
         }
