@@ -68,12 +68,31 @@ sub new {
 
         config_hww_file => 'config-hww.txt',
 
+        # hw compatible settings.
+        # this value is not used.
+        # but HWWrapper::load_config() look at this.
+        hw => {},
+
         editor => $ENV{EDITOR},
         alias => {
             update => 'release -t',
         },
         no_load_config_hww => 0,
     };
+    # from HW::load_config().
+    $self->{hw_comp_config} = {
+        id => 'username',
+        g => 'groupname',
+        password => 'password',
+        cookie => 'cookie_file',
+        proxy => 'http_proxy',
+        client_encoding => 'client_encoding',
+        server_encoding => 'server_encoding',
+        filter => 'filter_command',
+        txt_dir => 'txt_dir',
+        touch => 'touch_file',
+    };
+
     my %arg_opt = (
         d => \$self->{config}{is_debug},
         debug => \$self->{config}{is_debug},
@@ -156,7 +175,16 @@ sub __load_config {
                     # die if not hash
                     $self->error("$k.$kk: invalid type");
                 }
-                $self->{config}{$k}{$kk} = $v;
+
+                if ($k eq 'hw') {
+                    # hw compatible settings.
+                    unless (exists $self->{hw_comp_config}{$kk}) {
+                        $self->error("$k: no such key config value");
+                    }
+                    $self->{config}{ $self->{hw_comp_config}{$kk} } = $v;
+                } else {
+                    $self->{config}{$k}{$kk} = $v;
+                }
             }
             else {
                 # $1 does not contain dot.
