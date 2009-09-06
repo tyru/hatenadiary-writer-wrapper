@@ -66,6 +66,8 @@ sub new {
         is_debug_stderr => 0,
         is_debug => 0,
 
+        config_hww_file => 'config-hww.txt',
+
         editor => $ENV{EDITOR},
         alias => {
             update => 'release -t',
@@ -80,6 +82,9 @@ sub new {
 
         C => \$self->{config}{no_cookie},
         'no-cookie' => \$self->{config}{no_cookie},
+
+        'N=s' => \$self->{config}{config_hww_file},
+        'config-hww=s' => \$self->{config}{config_hww_file},
     };
     $self->{debug_fh} = IO::String->new;
 
@@ -99,17 +104,10 @@ sub load_config {
     # read config.txt.
     $self->SUPER::load_config;
 
-
-    my $config_file = 'config-hww.txt';
-    $self->get_opt_only($self->{args}{options}, {
-        'N=s' => \$config_file,
-        'config-hww=s' => \$config_file,
-    }) or $self->error("arguments error");
-
-    if (-f $config_file) {
-        $self->__load_config($config_file);
+    if (-f $self->config_hww_file) {
+        $self->__load_config($self->config_hww_file);
     } else {
-        $self->debug("$config_file is not found. skip to load config...");
+        $self->debug($self->config_hww_file." is not found. skip to load config...");
     }
 }
 
@@ -334,11 +332,11 @@ sub dispatch_with_args {
     my ($opts, $cmd, $cmd_args) = $self->split_opt(@args);
     $cmd = 'help' unless defined $cmd;
 
-    # load config files.
-    $self->load_config();
-
     # parse '$self->{args}{options}' (same as $opts).
     $self->parse_opt();
+
+    # load config files.
+    $self->load_config();
 
     unless ($cmd =~ /^ (help | version | copyright | init) $/x) {
         # check if prereq files exist.

@@ -157,7 +157,7 @@ sub parse_opt {
     my $self = shift;
 
     # get options
-    $self->get_opt(
+    $self->get_opt_only(
         $self->{args}{options},
         $self->{arg_opt}{HW}
     ) or do {
@@ -183,14 +183,7 @@ sub parse_opt {
 sub load_config {
     my $self = shift;
 
-    # default
     my $config_file = $self->config_file;
-    # process only '-n' option in @ARGV.
-    $self->get_opt_only($self->{args}{options}, {
-        'n=s' => \$config_file,
-        'config-hw=s' => \$config_file,
-    }) or $self->error("arguments error");
-
     unless (-f $config_file) {
         $self->debug("$config_file was not found. skip to load config...");
         return;
