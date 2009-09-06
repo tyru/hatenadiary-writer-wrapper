@@ -108,19 +108,20 @@ sub new {
 sub load_config {
     my $self = shift;
 
-    # read config.txt.
-    $self->SUPER::load_config;
-
     if ($self->no_load_config_hww) {
         $self->debug("'--no-load-hww' was given...skip");
         return;
     }
-
-    if (-f $self->config_hww_file) {
-        $self->__load_config($self->config_hww_file);
-    } else {
-        $self->debug($self->config_hww_file." is not found. skip to load config...");
+    else {
+        if (-f $self->config_hww_file) {
+            $self->__load_config($self->config_hww_file);
+        } else {
+            $self->debug($self->config_hww_file." is not found. skip to load config...");
+        }
     }
+
+    # read config.txt.
+    $self->SUPER::load_config;
 }
 
 sub __load_config {
