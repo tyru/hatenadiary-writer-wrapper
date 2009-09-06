@@ -9,6 +9,26 @@ hw.touch: text/touch.txt
 hw.client_encoding: utf-8
 hw.server_encoding: euc-jp
 
+# 上の設定は下と同じ
+# username: tyru
+# txt_dir: text
+# touch_file: text/touch.txt
+# client_encoding: utf-8
+# server_encoding: euc-jp
+
+### 意味は同じだが互換性のために作った設定とそれに対応するもの
+# hw.id              => username
+# hw.password        => password
+# hw.g               => groupname
+# hw.proxy           => http_proxy
+# hw.client_encoding => client_encoding
+# hw.server_encoding => server_encoding
+# hw.filter          => filter_command
+# hw.txt_dir         => txt_dir
+# hw.touch           => touch_file
+# hw.cookie          => cookie_file
+
+
 # (必要ないので)config.txtは読み込まない
 no_load_config_hw: 1
 
