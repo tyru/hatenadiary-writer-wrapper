@@ -164,11 +164,13 @@ sub get_touchdate {
         local @ARGV = @$argv;
         my $result = $parser->getoptions(%$opt);
 
-        $self->debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
-        $self->debug("true value options:");
-        for (grep { ${ $opt->{$_} } } keys %$opt) {
-            $self->debug(sprintf "  [%s]:[%s]",
-                            $_, ${ $opt->{$_} });
+        if ($self->is_debug) {
+            $self->debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
+            $self->debug("true value options:");
+            for (grep { ${ $opt->{$_} } } keys %$opt) {
+                $self->debug(sprintf "  [%s]:[%s]",
+                                $_, ${ $opt->{$_} });
+            }
         }
 
         # update arguments. delete all processed options.

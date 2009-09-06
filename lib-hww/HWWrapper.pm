@@ -72,6 +72,7 @@ sub new {
         alias => {
             update => 'release -t',
         },
+        no_load_config_hww => 0,
     };
     $self->{arg_opt}{HWWrapper} = {
         d => \$self->{config}{is_debug},
@@ -85,6 +86,8 @@ sub new {
 
         'N=s' => \$self->{config}{config_hww_file},
         'config-hww=s' => \$self->{config}{config_hww_file},
+
+        'no-load-hww' => \$self->{config}{no_load_config_hww},
     };
     $self->{debug_fh} = IO::String->new;
 
@@ -103,6 +106,11 @@ sub load_config {
 
     # read config.txt.
     $self->SUPER::load_config;
+
+    if ($self->no_load_config_hww) {
+        $self->debug("'--no-load-hww' was given...skip");
+        return;
+    }
 
     if (-f $self->config_hww_file) {
         $self->__load_config($self->config_hww_file);
@@ -317,8 +325,6 @@ sub dispatch {
 
 
 # starts from this sub.
-# but it's easy to build custom process about hww without using this.
-# (as module)
 sub dispatch_with_args {
     my $self = shift;
     my @args = @_;

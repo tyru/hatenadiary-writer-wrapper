@@ -100,6 +100,8 @@ sub new {
         hatena_sslregister_url => 'https://www.hatena.ne.jp/login',
 
         enable_encode => eval('use Encode; 1'),
+
+        no_load_config_hw => 0,
     );
 
     # add hw config to $self->{config}.
@@ -133,6 +135,8 @@ sub new {
 
         'n=s' => \$self->{config}{config_file},    # "config file" option.
         'config-hw=s' => \$self->{config}{config_file},
+
+        'no-load-hw' => \$self->{config}{no_load_config_hw},
     };
 
 
@@ -182,6 +186,11 @@ sub parse_opt {
 ### set config file settings ###
 sub load_config {
     my $self = shift;
+
+    if ($self->no_load_config_hw) {
+        $self->debug("'--no-load-hw' was given...skip");
+        return;
+    }
 
     my $config_file = $self->config_file;
     unless (-f $config_file) {
