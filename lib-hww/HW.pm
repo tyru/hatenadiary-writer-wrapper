@@ -111,7 +111,7 @@ sub new {
 
 
     # prepare arguments options.
-    $self->{arg_opt}{HW} = {
+    my %arg_opt = (
         t => \$self->{config}{trivial},    # "trivial" flag.
         trivial => \$self->{config}{trivial},
 
@@ -137,7 +137,10 @@ sub new {
         'config-hw=s' => \$self->{config}{config_file},
 
         'no-load-hw' => \$self->{config}{no_load_config_hw},
-    };
+    );
+    while (my ($k, $v) = each %arg_opt) {
+        $self->{arg_opt}{$k} = $v;
+    }
 
 
     # Crypt::SSLeay check.
@@ -159,17 +162,6 @@ sub new {
 ### set arguments settings ###
 sub parse_opt {
     my $self = shift;
-
-    # get options
-    $self->get_opt_only(
-        $self->{args}{options},
-        $self->{arg_opt}{HW}
-    ) or do {
-        $self->warning("arguments error");
-        sleep 1;
-        $self->dispatch('help');
-        exit -1;
-    };
 
     # change the URL to hatena group's URL if '-g' option was given.
     if (length $self->groupname) {

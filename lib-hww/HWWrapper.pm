@@ -74,7 +74,7 @@ sub new {
         },
         no_load_config_hww => 0,
     };
-    $self->{arg_opt}{HWWrapper} = {
+    my %arg_opt = (
         d => \$self->{config}{is_debug},
         debug => \$self->{config}{is_debug},
 
@@ -88,7 +88,11 @@ sub new {
         'config-hww=s' => \$self->{config}{config_hww_file},
 
         'no-load-hww' => \$self->{config}{no_load_config_hww},
-    };
+    );
+    while (my ($k, $v) = each %arg_opt) {
+        $self->{arg_opt}{$k} = $v;
+    }
+
     $self->{debug_fh} = IO::String->new;
 
 
@@ -219,13 +223,13 @@ sub parse_opt {
     my $cmd      = $self->{args}{command};
     my $cmd_args = $self->{args}{command_args};
 
-    # return ($cmd, $cmd_args) unless @$options;
+    # return ($cmd, $cmd_args) unless @{ $self->{args}{options} };
 
 
-    # parse hww.pl's options.
-    $self->get_opt_only(    # do get_opt_only() for HW(SUPER::parse_opt()).
+    # get hww.pl and hw.pl options.
+    $self->get_opt(
         $self->{args}{options},
-        $self->{arg_opt}{HWWrapper}
+        $self->{arg_opt}
     ) or do {
         $self->warning("arguments error");
         sleep 1;
