@@ -41,6 +41,7 @@ use HWWrapper::Functions;
 
 use Carp qw(croak);
 use IO::String;
+use Fcntl qw(:mode);
 
 
 
@@ -294,12 +295,23 @@ sub parse_opt {
 sub validate_prereq_files {
     my $self = shift;
 
+    # these files must exist.
     for my $file (qw(config_file txt_dir)) {
         unless (-e $self->$file) {
             $self->error(
                 $self->$file.": $!\n\n" .
                 "not found prereq files. please run 'perl hww.pl init'."
             );
+        }
+    }
+
+    # check permissions.
+    for my $file (qw(cookie_file config_file config_hww_file)) {
+        next unless -f $self->$file;
+        my $mode = (stat $self->$file)[2];
+        if (($mode & S_IRWXG) || ($mode & S_IRWXO)) {
+            my $fmt = "permission %o is too open. please run 'init' command.";
+            $self->warning(sprintf $fmt, S_IMODE($mode));
         }
     }
 }

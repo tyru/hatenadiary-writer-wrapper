@@ -38,6 +38,7 @@ sub run {
 
     my $txt_dir = 'text';
     my $config_file = 'config.txt';
+    my $hww_config_file = 'config-hww.txt';
     my $cookie_file = 'cookie.txt';
 
     my $dir = shift @$args;
@@ -46,7 +47,8 @@ sub run {
     }
     elsif ($read_config) {
         $txt_dir = $self->txt_dir;
-        $config_file = $self->config_file,
+        $config_file = $self->config_file;
+        $hww_config_file = $self->config_hww_file;
         $cookie_file = $self->cookie_file;
     }
 
@@ -75,7 +77,7 @@ EOT
         puts("mkdir $txt_dir.");
     }
 
-    # config file
+    # hw config file
     my $made_config_file;
     if (-f $config_file) {
         puts("file $config_file already exists.");
@@ -88,6 +90,14 @@ EOT
 
         puts("create $config_file.");
         $made_config_file = 1;
+    }
+
+    # hww config file
+    if (-f $hww_config_file) {
+        # make this private
+        # because it may contain username and password.
+        puts("chmod 0600 $hww_config_file");
+        chmod 0600, $hww_config_file;
     }
 
     # cookie file
