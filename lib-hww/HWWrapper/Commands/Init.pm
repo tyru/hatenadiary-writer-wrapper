@@ -73,7 +73,7 @@ EOT
         puts("directory $txt_dir already exists.");
     }
     else {
-        mkdir $txt_dir or $self->error("$txt_dir: $!");
+        mkdir $txt_dir or $self->warning("$txt_dir: $!");
         puts("mkdir $txt_dir.");
     }
 
@@ -83,28 +83,33 @@ EOT
         puts("file $config_file already exists.");
     }
     else {
-        my $FH = FileHandle->new($config_file, 'w')
-                    or $self->error("$config_file: $!");
-        $FH->print($config_data);
-        $FH->close;
+        my $FH = FileHandle->new($config_file, 'w');
+        if (defined $FH) {
+            $FH->print($config_data);
+            $FH->close;
+        }
+        else {
+            $self->warning("$config_file: $!");
+        }
 
         puts("create $config_file.");
         $made_config_file = 1;
     }
+    puts("chmod 0600 $config_file");
+    chmod 0600, $config_file or $self->warning($!);
 
     # hww config file
     if (-f $hww_config_file) {
         # make this private
         # because it may contain username and password.
         puts("chmod 0600 $hww_config_file");
-        chmod 0600, $hww_config_file;
+        chmod 0600, $hww_config_file or $self->warning($!);
     }
 
     # cookie file
     if (-f $cookie_file) {
         puts("chmod 0600 $cookie_file");
-        chmod 0600, $cookie_file
-            or $self->error($!);
+        chmod 0600, $cookie_file or $self->warning($!);
     }
 
 
