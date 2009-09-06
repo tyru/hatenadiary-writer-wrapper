@@ -166,68 +166,10 @@ sub get_touchdate {
 
         if ($self->is_debug) {
             $self->debug(sprintf '%s -> %s', dumper($argv), dumper([@ARGV]));
-            $self->debug("true value options:");
-            for (grep { ${ $opt->{$_} } } keys %$opt) {
-                $self->debug(sprintf "  [%s]:[%s]",
-                                $_, ${ $opt->{$_} });
-            }
         }
 
         # update arguments. delete all processed options.
         @$argv = @ARGV;
-        return $result;
-    }
-
-    # $self->get_opt_only(
-    #     \@ARGV,    # in this arguments
-    #     { a => \my $a, ... },    # get only these options
-    # );
-    # if ($a) { print "option '-a' was given!!\n" }
-    #
-    # Usage: $self->get_opt_only([...], {...})
-    sub get_opt_only {
-        my $self = shift;
-        my ($argv, $proc_opt) = @_;
-
-        return 1 unless @$argv;
-        $self->debug("get options only: ".dumper([keys %$proc_opt]));
-
-        # cache
-        $self->{arg_opt}{all_opt_cache} ||= [
-            map {
-                keys %$_
-            } ($self->{arg_opt}{HWWrapper}, $self->{arg_opt}{HW})
-        ];
-        my $all_opt = $self->{arg_opt}{all_opt_cache};
-
-        # get options
-        my $dummy_result = {map { $_ => \my $o } @$all_opt};
-        my $result = $self->get_opt($argv, $dummy_result);
-
-        # restore all results except $proc_opt
-        # NOTE: parsing only $proc_opt in $argv is bad.
-        # because it's difficult to parse $argv 'exactly'.
-        # so let get_opt() parse it.
-        for my $opt (keys %$dummy_result) {
-            # option was not given
-            next unless defined ${ $dummy_result->{$opt} };
-
-            if (exists $proc_opt->{$opt}) {
-                # apply values
-                ${ $proc_opt->{$opt} } = ${ $dummy_result->{$opt} };
-            }
-            else {
-                # don't apply value and restore it to $argv
-                $self->debug("restore to args: $opt => ${ $dummy_result->{$opt} }");
-                if ($opt =~ s/^((.+)=s)$/$2/) {
-                    unshift @$argv, "-$2" => ${ $dummy_result->{$1} };
-                }
-                else {
-                    unshift @$argv, "-$opt";
-                }
-            }
-        }
-
         return $result;
     }
 }

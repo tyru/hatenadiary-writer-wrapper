@@ -223,7 +223,7 @@ sub parse_opt {
     my $cmd      = $self->{args}{command};
     my $cmd_args = $self->{args}{command_args};
 
-    # return ($cmd, $cmd_args) unless @{ $self->{args}{options} };
+    return ($cmd, $cmd_args) unless @{ $self->{args}{options} };
 
 
     # get hww.pl and hw.pl options.
@@ -253,9 +253,9 @@ sub parse_opt {
 
     $self->is_debug = 1 if $self->is_debug_stderr;
 
-    # parse HW 's options.
-    $self->SUPER::parse_opt();
 
+    # change hw option settings like above.
+    $self->SUPER::parse_opt();
 
     return ($cmd, $cmd_args);
 }
