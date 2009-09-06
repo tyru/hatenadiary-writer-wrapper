@@ -2,12 +2,24 @@
 ### また空白行は無視する
 
 
+# config.txtに書いていた設定
+hw.id: tyru
+hw.txt_dir: text
+hw.touch: text/touch.txt
+hw.client_encoding: utf-8
+hw.server_encoding: euc-jp
+
+# (必要ないので)config.txtは読み込まない
+no_load_config_hw: 1
+
+
+# password: ********
 
 # フルパスかコマンド名で「editor」コマンドに使うエディタ指定
 # デフォルトは$EDITOR
 editor: gvim
 
-# aliasなど一部の設定には'.'が使用可能
+# aliasやhwなど一部の設定には'.'が使用可能
 alias.gh: gen-html
 alias.ui: update-index
 alias.sh: shell
@@ -15,8 +27,6 @@ alias.ed: editor
 alias.ve: verify
 alias.ah: apply-headline
 alias.rh: revert-headline
-
-
 
 # debug 1でデバッグメッセージオン
 # debug 0でオフ
