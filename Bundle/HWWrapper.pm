@@ -1,7 +1,5 @@
 package Bundle::HWWrapper;
 
-our $VERSION = '0.0.5';
-
 
 1;
 __END__
@@ -18,6 +16,7 @@ perl -MCPAN -e 'install Bundle::HWWrapper'
 
 =head1 CONTENTS
 
+Config::Pit
 Crypt::SSLeay
 Date::Manip
 Digest::SHA1
