@@ -29,8 +29,6 @@ use LWP::UserAgent;
 
 
 
-# session id for posting.
-our $rkm;
 
 
 
@@ -196,7 +194,6 @@ sub arg_error {
 # Note that $hashref must NOT be temporary hash reference.
 sub mk_accessors {
     my ($self, $methods, $hashref, $opt) = @_;
-    $self->debug("make these accessors to HWWrapper::Base: ".dumper([@_]));
 
     $opt = {} unless defined $opt;
     %$opt = (
@@ -354,12 +351,20 @@ sub login {
     puts("Login OK.");
 }
 
-# get session id.
-sub get_rkm {
+{
+    # session id for posting.
+    my $rkm;
+
+    # get session id.
     # NOTE: no $self
-    my ($version, $key, $val) = @_;
-    if ($key eq 'rk') {
-        $rkm = md5_base64($val);
+    sub get_rkm {
+        if (@_) {
+            my ($version, $key, $val) = @_;
+            if ($key eq 'rk') {
+                $rkm = md5_base64($val);
+            }
+        }
+        return $rkm;
     }
 }
 
@@ -468,7 +473,7 @@ sub delete_it {
             Content => [
                 mode => "delete",
                 date => $date,
-                rkm => $rkm,
+                rkm => get_rkm(),
             ]
         )
     );
@@ -511,7 +516,7 @@ sub create_it {
                 month => $month,
                 day => $day,
                 trivial => $self->trivial,
-                rkm => $rkm,
+                rkm => get_rkm(),
 
                 # Important:
                 # If (entry does exists) { append empty string (i.e. nop) }
@@ -562,7 +567,7 @@ sub post_it {
                 day => $day,
                 title => $title,
                 trivial => $self->trivial,
-                rkm => $rkm,
+                rkm => get_rkm(),
 
                 # Important:
                 # This entry must already exist.
