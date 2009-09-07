@@ -142,7 +142,6 @@ sub __load_config {
             }
 
             my ($k, $v) = ($1, $2);
-
             my $kk;
             ($k, $kk) = split /\./, $k;
 

@@ -42,7 +42,18 @@ sub new {
     # $self->$method
     # is lvalue method and identical to
     # $self->{config}{$method}
-    $self->mk_accessors(keys %{ $self->{config} });
+    #
+    # $self->mk_accessors(keys %{ $self->{config} });
+    $self->mk_accessors(
+        [keys %{ $self->{config} }],
+        $self->{config},
+        {lvalue => 1}
+    );
+    $self->mk_accessors(
+        [keys %{ $self->{config_file_immutable_ac} }],
+        $self->{config_file_immutable_ac},
+        {lvalue => 1}
+    );
 
     return $self;
 }
@@ -181,18 +192,30 @@ sub arg_error {
     $self->error("arguments error. see the help.");
 }
 
+# @_: [methods, ...], {this value's lvalue accessor}, {options}
+# Note that $hashref must NOT be temporary hash reference.
 sub mk_accessors {
-    my $self = shift;
-    my $pkg = caller;
-    $self->debug("make accessor to $pkg: ".dumper([@_]));
+    my ($self, $methods, $hashref, $opt) = @_;
+    $self->debug("make these accessors to HWWrapper::Base: ".dumper([@_]));
 
-    for my $method (@_) {
-        unless (exists $self->{config}{$method}) {
-            $self->error("internal error, sorry.: \$self->{config}{$method} does NOT exist!!");
+    $opt = {} unless defined $opt;
+    %$opt = (
+        lvalue => 0,
+        %$opt
+    );
+
+    for my $method (@$methods) {
+        unless (exists $hashref->{$method}) {
+            $self->error("internal error, sorry.: \$hashref->{$method} does NOT exist!!");
         }
 
-        my $subname = $pkg."::".$method;
-        my $coderef = sub : lvalue { shift->{config}{$method} };
+        my $subname = "HWWrapper::Base::$method";
+        my $coderef;
+        if ($opt->{lvalue}) {
+            $coderef = sub : lvalue { $hashref->{$method} };
+        } else {
+            $coderef = sub { $hashref->{$method} };
+        }
 
         no strict 'refs';
         if (defined &{$subname}) {

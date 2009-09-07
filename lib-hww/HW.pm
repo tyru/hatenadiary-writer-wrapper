@@ -58,16 +58,12 @@ sub new {
         username => '',
         password => '',
         groupname => '',
-        target_file => '',
-        hatena_url => URI->new('http://d.hatena.ne.jp'),
 
         agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
         timeout => 180,
 
         no_timestamp => 0,
         enable_ssl => 1,    # NOTE: this value always 1.
-
-        trivial => 0,
 
         touch_file => 'touch.txt',
         cookie_file => 'cookie.txt',
@@ -93,9 +89,6 @@ sub new {
         # see the URLs at the top of the front comment lines.
         delete_title => 'delete',
 
-        cookie_jar => undef,
-        user_agent => undef,
-
         # login url.
         hatena_sslregister_url => 'https://www.hatena.ne.jp/login',
 
@@ -108,6 +101,17 @@ sub new {
     while (my ($k, $v) = each %config) {
         $self->{config}{$k} = $v;
     }
+
+    # move this values from $self->{config}.
+    # because avoid to be set in config file.
+    # (HWWrapper::load_config() only sees $self->{config})
+    $self->{config_file_immutable_ac} = {
+        hatena_url => URI->new('http://d.hatena.ne.jp'),
+        cookie_jar => undef,
+        user_agent => undef,
+        target_file => '',
+        trivial => 0,
+    };
 
 
     # prepare arguments options.
