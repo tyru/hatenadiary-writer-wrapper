@@ -33,7 +33,7 @@ use utf8;
 
 our $VERSION = '1.9.0';
 
-use base qw(HW HWWrapper::Commands);
+use base qw(HW);
 
 # import all util commands!!
 use HWWrapper::Functions;
@@ -346,7 +346,10 @@ sub dispatch {
     }
 
     # require package if not loaded
-    my ($run, $cmd_info) = $self->regist_command($cmd);
+    my $cmd_info = HWWrapper::Commands->get_command($cmd);
+    unless (defined $cmd_info) {
+        $self->error("'$cmd' is not a hww command.");
+    }
 
     # get arguments value
     my %opt;
@@ -364,7 +367,7 @@ sub dispatch {
     }
 
     # dispatch
-    $run->($self, $args, \%opt);
+    $cmd_info->{coderef}->($self, $args, \%opt);
 }
 
 

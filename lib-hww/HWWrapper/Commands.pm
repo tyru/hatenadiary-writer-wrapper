@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(Exporter HWWrapper::Base);
+use base qw(Exporter);
 our @EXPORT = our @EXPORT_OK = qw(
     %HWW_COMMAND
     $BASE_DIR
@@ -56,27 +56,40 @@ our $POD_DIR = File::Spec->catfile($HWW_LIB, 'pod');
 
 
 
-sub regist_command {
+sub get_command {
     my ($self, $cmd) = @_;
 
-    $self->_regist($cmd);
-
-    unless (defined $HWW_COMMAND{$cmd}{coderef}) {
-        $self->error("assertion failure");
+    # regist if $cmd is not found.
+    unless ($self->loaded($cmd)) {
+        $self->regist_command($cmd) || return undef;
     }
 
-    # this must return coderef, command info.
-    return ($HWW_COMMAND{$cmd}{coderef}, $HWW_COMMAND{$cmd});
+    return $HWW_COMMAND{$cmd};
 }
 
 sub regist_all_command {
     my ($self) = @_;
 
     for (keys %HWW_COMMAND) {
-        $self->_regist($_);
+        $self->regist_command($_) || return 0;
     }
+    return 1;
 }
 
+sub regist_command {
+    my ($self, $cmd) = @_;
+    return 1 if $self->loaded($cmd);
+
+    # failed to regist
+    $self->_regist($cmd) || return 0;
+    unless (exists $HWW_COMMAND{$cmd} && exists $HWW_COMMAND{$cmd}{coderef}) {
+        return 0;
+    }
+
+    return 1;
+}
+
+# regist if not loaded.
 sub _regist {
     my ($self, $cmd) = @_;
 
@@ -87,14 +100,21 @@ sub _regist {
     eval "require $pkg";
     if ($@) {
         # not found!
-        $self->debug($@);
-        $self->error("'$cmd' is not a hww command.");
+        return 0;
     }
 
     # stash command info to %HWW_COMMAND.
     # $pkg knows what this will regist.
-    $pkg->regist_command()
-        unless defined $HWW_COMMAND{$cmd};    # cache!!
+    $pkg->regist_command();
+
+    return $self->loaded($cmd);
+}
+
+sub loaded {
+    my ($self, $cmd) = @_;
+
+    exists $HWW_COMMAND{$cmd} &&
+    exists $HWW_COMMAND{$cmd}{coderef};
 }
 
 sub cmd2pkg {
@@ -118,7 +138,5 @@ sub pkg2cmd {
 }
 
 
-
-### hww commands ###
 
 1;

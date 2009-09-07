@@ -6,6 +6,7 @@ use utf8;
 
 # import all util commands!!
 use HWWrapper::Functions;
+use HWWrapper::Commands;
 
 
 use Carp;
@@ -1085,11 +1086,11 @@ sub is_command {
     my ($self, $cmd) = @_;
 
     # is command.
-    exists $HWWrapper::Commands::HWW_COMMAND{$cmd}
+    exists $HWW_COMMAND{$cmd}
         or
     # is alias and alias's command exists.
     exists $self->{config}{alias}{$cmd}
-    && exists $HWWrapper::Commands::HWW_COMMAND{
+    && exists $HWW_COMMAND{
         $self->{config}{alias}{$cmd}
     };
 }
