@@ -212,7 +212,12 @@ sub login {
         force => 0,
         @_
     );
-    local $self->no_cookie = $opt{force} ? 1 : $self->no_cookie;
+    local $self->{config}{no_cookie} = $opt{force} ? 1 : $self->{config}{no_cookie};
+    if ($opt{force}) {
+        $self->user_agent = undef;
+        $self->username = '';
+        $self->password = '';
+    }
 
     if (defined $self->user_agent) {
         $self->debug("already logged in.");
@@ -341,7 +346,7 @@ sub logout {
         force => 0,
         @_
     );
-    local $self->no_cookie = $opt{force} ? 1 : $self->no_cookie;
+    local $self->{config}{no_cookie} = $opt{force} ? 1 : $self->{config}{no_cookie};
 
     unless (defined $self->user_agent) {
         $self->debug("already logged out.");

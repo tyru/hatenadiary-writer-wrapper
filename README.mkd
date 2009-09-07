@@ -17,39 +17,53 @@ Hatena Diary Writer Wrapper って何？
 どんなことができるのか
 ============================================
 
-*hww*は、具体的には次のようなコマンドを持っています。(2009-08-17 現在)
-次のうちいくつかの操作ははてダラでも可能です。
+*hww*は、具体的には次のようなコマンドを持っています。(2009-09-07 現在)
+詳しくはヘルプを見てください。(日本語ヘルプ作成中)
 
 
 - apply-headline
-  - rename if modified headlines
+  - 日記ファイルからタグを探しだして、タグをファイル名に付けたフォーマットに変える。直すにはrevert-headlineを使う。
 - chain
-  - chain commands with '--'
+  - コマンドを繋げられます。ただ、これをするぐらいならshellコマンドの中でコマンドを「;」に続けて打てば
 - copyright
+  - Copyrightを表示します。
 - diff
+  - はてなダイアリーとの差分を表示します
 - editor
+  - 好きなエディタで特定の日付を開く。日付が引数で指定されなければ今日の日付が開かれる。エディタはconfig-hww.txtで設定可能。デフォルトは$EDITOR(もしあれば)。
 - gen-html
-  - generate htmls from entry files
+  - 日記ファイルからHTMLを作成します。要Text::Hatena。
 - help
-  - display help information about hww
-init
+  - ヘルプを表示します。引数にコマンド名を与えればそれのコマンドを表示。現在日本語ヘルプ作成中です。
+- init
+  - いくつかの必要なファイルを作ります。まず最初にこれを起動してください。
 - load
-  - load entries from hatena diary
+  - はてなダイアリーから特定の、あるいは全ての日記ファイルを持ってきます。
 - release
-  - upload entries to hatena diary
+  - 日記をアップロードします。
 - revert-headline
+  - apply-headlineでを元に戻します。
 - shell
-- status - show information about entry files
+  - 全てのコマンドを起動できます。また補完も効きます(現在作業中)。cygwinのようなスクリプトの起動に時間がかかる環境でも有効かもしれません。
+- status
+  - 更新された日記ファイルを表示します。表示されたファイルがreleaseコマンドあるいはupdateコマンドでアップロードされます。
 - touch
-  - update 'touch.txt'
+  - touch.txtを更新します。これをすることでstatusにファイルが表示されなくなり、日記のアップロードもされなくなります。またアップロードしたい場合は、その日記ファイルを更新するか、releaseコマンドの引数に指定してください。これはhw.plの-fオプションにあたります。
 - truncate
+  - 日記ファイルの前後の空白を取り除きます。
 - update
-  - upload entries to hatena diary as trivial
+  - release -tオプションと同じです。
 - update-index
-  - make html from template file by HTML::Template
+  - gen-htmlで作成したHTMLのディレクトリとテンプレートファイルからindex.htmlを作成します。
 - verify
-  - verify misc information
+  - 現在の状態が間違っていないか確認します。現在は日記の重複を探しだすだけです。
 - version
-  - display version information about hww
+  - バージョンを表示
 
 
+いくつかのコマンドには追加モジュールが必要です。
+Bundle/HWWrapper.pmにまとめてあるので、コマンドラインから
+
+    $ cpan Bundle::HWWrapper
+
+とすればインストールできるはずです。

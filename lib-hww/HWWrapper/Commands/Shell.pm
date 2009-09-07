@@ -144,8 +144,20 @@ sub regist_command {
             },
             h => sub { $shell_cmd{'?'}->() },    # same as '?'
 
-            login => sub { $self->login },
-            logout => sub { $self->logout },
+            login => sub {
+                my $force = 0;
+                $self->get_opt([@_], {
+                    'f|force' => \$force,
+                });
+                $self->login(force => $force);
+            },
+            logout => sub {
+                my $force = 0;
+                $self->get_opt([@_], {
+                    'f|force' => \$force,
+                });
+                $self->logout(force => $force);
+            },
 
             # make/delete/show aliases.
             alias => sub {
