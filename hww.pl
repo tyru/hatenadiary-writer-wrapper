@@ -31,7 +31,7 @@ elsif ($@) {
 
 
 
-HWWrapper->new->dispatch_with_args(@ARGV);
+HWWrapper->new->run(@ARGV);
 
 __END__
 

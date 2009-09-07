@@ -239,7 +239,7 @@ sub split_opt {
 
 
 
-# parsing @ARGV which was received at dispatch_with_args().
+# parsing @ARGV which was received at run().
 sub parse_opt {
     my $self = shift;
     unless (blessed $self) {
@@ -372,7 +372,7 @@ sub dispatch {
 
 
 # starts from this sub.
-sub dispatch_with_args {
+sub run {
     my $self = shift;
     my @args = @_;
 
