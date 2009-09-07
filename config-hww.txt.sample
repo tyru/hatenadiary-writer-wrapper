@@ -1,50 +1,59 @@
-### コメントは先頭に#がある行のみ
-### また空白行は無視する
+### 先頭に#がある行や空白行は無視されます。
+### また「:」と値の間にいくつも空白を置いても無視されます
 
 
-# config.txtに書いていた設定
-hw.id: tyru
-hw.txt_dir: text
-hw.touch: text/touch.txt
-hw.client_encoding: utf-8
-hw.server_encoding: euc-jp
+### config.txtに書いていた設定は、頭に「hw」をくっつければ動きます。
+# hw.id: tyru
+# hw.txt_dir: text
+# hw.touch: text/touch.txt
+# hw.client_encoding: utf-8
+# hw.server_encoding: euc-jp
 
-# 上の設定は下と同じ
-# username: tyru
-# txt_dir: text
-# touch_file: text/touch.txt
-# client_encoding: utf-8
-# server_encoding: euc-jp
+### 上の設定は下と同じ
+#username: tyru
+txt_dir: text
+touch_file: text/touch.txt
+client_encoding: utf-8
+server_encoding: euc-jp
 
 ### 意味は同じだが互換性のために作った設定とそれに対応するもの
-# hw.id              => username
-# hw.password        => password
-# hw.g               => groupname
-# hw.proxy           => http_proxy
-# hw.client_encoding => client_encoding
-# hw.server_encoding => server_encoding
-# hw.filter          => filter_command
-# hw.txt_dir         => txt_dir
-# hw.touch           => touch_file
-# hw.cookie          => cookie_file
+### hw.id              => username
+### hw.password        => password
+### hw.g               => groupname
+### hw.proxy           => http_proxy
+### hw.client_encoding => client_encoding
+### hw.server_encoding => server_encoding
+### hw.filter          => filter_command
+### hw.txt_dir         => txt_dir
+### hw.touch           => touch_file
+### hw.cookie          => cookie_file
 
 
-# (必要ないので)config.txtは読み込まない
+### Config::Pitを使ってユーザ名とパスワードを~/.pitから取得
+### (pit_domainの値はデフォルトなのでこの場合指定しなくてもいい)
+#load_from_pit: 1
+#pit_domain: hatena.ne.jp
+
+#username: tyru
+#password: ********
+
+
+### (必要ないので)config.txtは読み込まない
 no_load_config_hw: 1
 
-# クッキーを使う。
-# これをしないといちいちコマンドを打つ度にログイン/ログアウトし直すようになる。
-# (tips: うまくログインできなかったら、'init --delete'を実行するか手動でcookie.txtを削除するとうまくいく(たぶん))
+
+### クッキーを使う。
+### これをしないといちいちコマンドを打つ度にログイン/ログアウトし直すようになる。
+### (tips: うまくログインできなかったら、'init --delete'を実行するか手動でcookie.txtを削除するとうまくいく(たぶん))
 use_cookie: 1
 
 
-# password: ********
+### フルパスかコマンド名で「editor」コマンドに使うエディタ指定
+### デフォルトは$EDITOR
+#editor: gvim
 
-# フルパスかコマンド名で「editor」コマンドに使うエディタ指定
-# デフォルトは$EDITOR
-editor: gvim
 
-# aliasやhwなど一部の設定には'.'が使用可能
+### aliasやhwなど一部の設定には'.'が使用可能
 alias.gh: gen-html
 alias.ui: update-index
 alias.sh: shell
@@ -52,7 +61,3 @@ alias.ed: editor
 alias.ve: verify
 alias.ah: apply-headline
 alias.rh: revert-headline
-
-# debug 1でデバッグメッセージオン
-# debug 0でオフ
-alias.debug: config is_debug
