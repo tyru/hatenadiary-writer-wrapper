@@ -81,6 +81,8 @@ sub new {
         no_load_config_hww => 0,
         login_retry_num => 2,
         delete_cookie_if_error => 0,
+        load_from_pit => 0,
+        pit_domain => 'hatena.ne.jp',
     };
 
     # login_retry_count
@@ -253,8 +255,6 @@ sub parse_opt {
     my $cmd      = $self->{args}{command};
     my $cmd_args = $self->{args}{command_args};
 
-    return ($cmd, $cmd_args) unless @{ $self->{args}{options} };
-
 
     # get hww.pl and hw.pl options.
     $self->get_opt(
@@ -280,8 +280,22 @@ sub parse_opt {
     else {
         $self->{debug_fh} = FileHandle->new(File::Spec->devnull, 'w') or $self->error("Can't open null device.");
     }
-
     $self->is_debug = 1 if $self->is_debug_stderr;
+
+    # load_from_pit, pit_domain
+    if ($self->load_from_pit) {
+        $self->require_modules('Config::Pit');
+        my $config = Config::Pit::pit_get($self->pit_domain, 'require' => {
+            username => 'your username on hatena',
+            password => 'your password on hatena',
+        });
+        puts();
+        if (! exists $config->{username} || ! exists $config->{password}) {
+            $self->error("can't get username and password from Config::Pit.");
+        }
+        $self->username = $config->{username};
+        $self->password = $config->{password};
+    }
 
 
     # change hw option settings like above.
