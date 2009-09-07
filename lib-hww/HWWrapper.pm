@@ -333,9 +333,13 @@ sub dispatch {
         $self->error("no command was given.");
     }
 
-
     # if $cmd is alias, get real args.
     ($cmd, @$args) = ($self->expand_alias($cmd), @$args);
+
+    unless ($self->is_command($cmd)) {
+        $self->error("'$cmd' is not a hww command.");
+    }
+
 
     # some debug messages.
     if ($self->is_debug) {
@@ -348,6 +352,7 @@ sub dispatch {
     # require package if not loaded
     my $cmd_info = HWWrapper::Commands->get_command($cmd);
     unless (defined $cmd_info) {
+        $self->debug($@);
         $self->error("'$cmd' is not a hww command.");
     }
 

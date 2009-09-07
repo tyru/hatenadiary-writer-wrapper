@@ -49,7 +49,7 @@ sub run {
 
         return;
     }
-    elsif (not $self->is_command($cmd)) {
+    elsif (! $self->is_command($cmd) && ! $self->is_alias($cmd)) {
         # $cmd is not command, error.
         $self->error("'$cmd' is not a hww-command. See perl hww.pl help");
     }

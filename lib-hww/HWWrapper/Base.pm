@@ -12,7 +12,8 @@ use HWWrapper::Commands;
 use Carp;
 use POSIX ();
 use Getopt::Long ();
-use List::MoreUtils qw();
+use List::Util ();
+use List::MoreUtils ();
 use Digest::MD5 qw(md5_base64);
 use IO::Prompt qw(prompt);
 use HTTP::Request::Common ();
@@ -1129,17 +1130,31 @@ sub cat_date {
 
 sub is_command {
     my ($self, $cmd) = @_;
-
-    # is command.
     exists $HWW_COMMAND{$cmd}
-        or
-    # is alias and alias's command exists.
+}
+
+sub is_alias {
+    my ($self, $cmd) = @_;
     exists $self->{config}{alias}{$cmd}
-    && exists $HWW_COMMAND{
-        $self->{config}{alias}{$cmd}
+}
+
+sub exist_alias {
+    my ($self, $cmd) = @_;
+
+    $self->is_alias($cmd)
+        and
+    exists $HWW_COMMAND{
+        List::Utils::first {
+            $self->expand_alias($self->{config}{alias}{$cmd})
+        }
     };
 }
 
+
+sub regist_alias {
+    my ($self, $from, $to) = @_;
+    $self->{config}{alias}{$from} = $to;
+}
 
 # if $cmd is alias, expand it to some args.
 sub expand_alias {
@@ -1147,7 +1162,7 @@ sub expand_alias {
 
     if (exists $self->{config}{alias}{$cmd}) {
         my ($e) = $self->shell_eval_str($self->{config}{alias}{$cmd});
-        return @$e;
+        return defined $e ? @$e : ();
     }
     else {
         return ($cmd);

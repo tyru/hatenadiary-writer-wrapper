@@ -235,17 +235,19 @@ sub regist_command {
         my ($self) = @_;
 
 
-        # for debug.
+        ### for debug ###
         my $dwarn = sub {
             return unless $self->is_debug;
             warn @_, "\n";
             sleep 1;
         };
 
-        # complete all commands.
-        my $comp_cmd = sub { keys %HWW_COMMAND };
+        ### complete all commands ###
+        my $comp_cmd = sub {
+            keys(%HWW_COMMAND), keys(%shell_cmd)
+        };
 
-        # split '|' in options.
+        ### split '|' in options ###
         my $get_options = sub {
             map {
                 s/=.$//;
@@ -253,7 +255,7 @@ sub regist_command {
             } keys %{ $_[0] };
         };
 
-        # find commands in $all_options.
+        ### find commands in $all_options ###
         # e.g.:
         # $incomp_cmd: di
         # $all_options: { diff => { ... }, help => { ...}, ... }
@@ -269,6 +271,14 @@ sub regist_command {
             } $get_options->($all_options);
         };
 
+        ### directory's separator ###
+        my %sep = (
+            MSWin32 => qr{\\ | /}x,
+            MacOS => ':',
+        );
+        my $sep = exists $sep{$^O} ? $sep{$^O} : '/';
+
+        ### complete files ###
         my $glob_files = sub {
             my %opt = @_;
             $opt{file} = '*' unless exists $opt{file};
@@ -282,13 +292,25 @@ sub regist_command {
                 glob $opt{file};
             }
         };
+        my $comp_files = sub {
+            my ($completed, $last_args) = @_;
 
-        # directory's separator.
-        my %sep = (
-            MSWin32 => qr{\\ | /}x,
-            MacOS => ':',
-        );
-        my $sep = exists $sep{$^O} ? $sep{$^O} : '/';
+            if ($completed) {
+                return $glob_files->();
+            }
+            elsif ($last_args->[-1] =~ m{^ (.*) $sep $}x) {    # ending with $sep
+                # complete directory's files
+                return $glob_files->(dir => $1);
+            } else {
+                # complete incomplete files
+                return $glob_files->(file => $last_args->[-1].'*');
+            }
+        };
+
+        ### complete config ###
+        my $comp_config = sub {
+            keys %{ $self->{config} };
+        };
 
 
 
@@ -296,6 +318,7 @@ sub regist_command {
         return sub {
             my ($prev_word, $cur_text, $str_len) = @_;
             my $completed = $cur_text =~ / $/;
+            my @match;
 
             unless ($self->is_complete_str($cur_text)) {
                 $dwarn->("[$cur_text] is not complete string. skip...");
@@ -303,37 +326,47 @@ sub regist_command {
             }
 
 
+            # separate $cur_text to array.
             my @args = $self->shell_eval_str($cur_text);
             if (@args == 0) {
                 return $comp_cmd->();
             }
 
-            my $last_args = $args[-1];
-            if (@$last_args == 0) {
+            # last argument splitted with ';'.
+            my @last_args = @{ $args[-1] };
+            if (@last_args == 0) {
                 return $comp_cmd->();
             }
-            $dwarn->(join '', map { "[$_]" } @$last_args);
+            $dwarn->(join '', map { "[$_]" } @last_args);
 
 
-            if ($last_args->[0] eq 'help') {
-                # stop completion
-                # unless num of args is 1, or num of args is 2 and not completed
-                return $glob_files->()
-                    unless @$last_args == 1 || (@$last_args == 2 && ! $completed);
-                # if arg 1 'help' is not completed, return it
-                return $last_args->[0]
-                    if $prev_word eq 'help' && ! $completed;
-                # or return all commands
-                return $comp_cmd->();
+            ### complete word ###
+            # aliases.
+            if ($self->is_alias($last_args[0])) {
+                $dwarn->("$last_args[0] is alias.");
+
+                return $last_args[0]
+                    if $prev_word eq $last_args[0] && ! $completed;
             }
-            # complete command
-            elsif ($self->is_command($last_args->[0])) {
-                return $last_args->[0]
-                    if $prev_word eq $last_args->[0] && ! $completed;
+            # commands.
+            elsif ($self->is_command($last_args[0])) {
+                $dwarn->("$last_args[0] is command.");
+
+                return $last_args[0]
+                    if $prev_word eq $last_args[0] && ! $completed;
+
+                # 'help' command
+                if ($last_args[0] eq 'help' && (@last_args == 1 || (@last_args == 2 && ! $completed))) {
+                    # if arg 1 'help' is not completed, return it.
+                    return $last_args[0]
+                        if $prev_word eq 'help' && ! $completed;
+                    # or return all commands.
+                    return $comp_cmd->();
+                }
 
                 # complete options
-                my $options = $HWW_COMMAND{ $last_args->[0] }{option};
-                if (@$last_args >= 2 && $last_args->[-1] =~ /^(--?)(.*)$/) {
+                my $options = $HWW_COMMAND{ $last_args[0] }{option};
+                if (@last_args >= 2 && $last_args[-1] =~ /^(--?)(.*)$/) {
                     my ($bar, $opt) = ($1, $2);
                     $dwarn->("matced!:[$opt]");
 
@@ -346,25 +379,40 @@ sub regist_command {
                         return map { $bar.$_ } $get_options->($options);
                     }
                 }
-
-                if ($completed) {
-                    return $glob_files->();
-                }
-                elsif ($last_args->[-1] =~ m{^ (.*) $sep $}x) {    # ending with $sep
-                    # complete directory's files
-                    return $glob_files->(dir => $1);
-                } else {
-                    # complete incomplete files
-                    return $glob_files->(file => $last_args->[-1].'*');
-                }
             }
-            # incomplete command
-            elsif (my @match = $grep_cmd->($last_args->[0], \%HWW_COMMAND)) {
+            # shell built-in commands.
+            elsif (exists $shell_cmd{ $last_args[0] }) {
+                $dwarn->("$last_args[0] is built-in command.");
+
+                return $last_args[0]
+                    if $prev_word eq $last_args[0] && ! $completed;
+
+                if ($last_args[0] eq 'config' && (@last_args == 1 || (@last_args == 2 && ! $completed))) {
+                    # if arg 1 'config' is not completed, return it.
+                    return $last_args[0]
+                        if $prev_word eq 'config' && ! $completed;
+                    # or return all config.
+                    return $comp_config->();
+                }
+
+            }
+
+            ### incompleted word ###
+            # aliases.
+            elsif (@match = $grep_cmd->($last_args[0], {%{ $self->{config}{alias} }})) {
+                return @match;
+            }
+            # commands.
+            elsif (@match = $grep_cmd->($last_args[0], {%HWW_COMMAND})) {
+                return @match;
+            }
+            # shell built-in commands.
+            elsif (@match = $grep_cmd->($last_args[0], {%shell_cmd})) {
                 return @match;
             }
 
-
-            return $glob_files->();
+            $dwarn->("reach to the end of func");
+            return $comp_files->($completed, [@last_args]);
         }
     }
 }
