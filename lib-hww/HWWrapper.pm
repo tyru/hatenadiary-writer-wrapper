@@ -385,11 +385,11 @@ sub dispatch_with_args {
     my ($opts, $cmd, $cmd_args) = $self->split_opt(@args);
     $cmd = 'help' unless defined $cmd;
 
-    # parse '$self->{args}{options}' (same as $opts).
-    $self->parse_opt();
-
     # load config files.
     $self->load_config();
+
+    # parse '$self->{args}{options}' (same as $opts).
+    $self->parse_opt();
 
     unless ($cmd =~ /^ (help | version | copyright | init) $/x) {
         # check if prereq files exist.
