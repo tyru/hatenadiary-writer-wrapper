@@ -32,6 +32,11 @@ hw.server_encoding: euc-jp
 # (必要ないので)config.txtは読み込まない
 no_load_config_hw: 1
 
+# クッキーを使う。
+# これをしないといちいちコマンドを打つ度にログイン/ログアウトし直すようになる。
+# (tips: うまくログインできなかったら、initコマンドを実行するか手動でcookie.txtを削除するとうまくいく(たぶん))
+use_cookie: 1
+
 
 # password: ********
 
