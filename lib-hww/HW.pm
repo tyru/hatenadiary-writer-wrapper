@@ -112,11 +112,10 @@ sub new {
 
     # prepare arguments options.
     my %arg_opt = (
-        't|trivial' => \$self->{config}{trivial},    # "trivial" flag.
         'u|username=s' => \$self->{config}{username},    # "username" option.
         'p|password=s' => \$self->{config}{password},    # "password" option.
         'a|agent=s' => \$self->{config}{agent},    # "agent" option.
-        'T|timeout=s' => \$self->{config}{timeout},    # "timeout" option.
+        'T|timeout=i' => \$self->{config}{timeout},    # "timeout" option.
         'g|group=s' => \$self->{config}{groupname},    # "groupname" option.
         'M|no-timestamp' => \$self->{config}{no_timestamp},    # "no timestamp" flag.
         'n|config-hw=s' => \$self->{config}{config_file},    # "config file" option.

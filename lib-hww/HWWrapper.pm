@@ -1,23 +1,5 @@
 package HWWrapper;
 
-# TODO
-# - 'load'コマンドで取ってきたファイルの先頭行に空行が入るバグを直す
-# - プロファイリングして最適化
-#
-# - テスト追加
-#   - 対話形式 (特定の環境変数がセットされてる場合に行うようにする)
-#     - はてなから全エントリを持ってくる
-#     - はてなから全下書きを持ってくる
-#     - そのエントリが入ったディレクトリにたいしてget\_entrydate()やget\_~()など色んなサブルーチンのテストを行う
-#   - 日付関係のテスト
-#   - 引数(@ARGV)のテスト
-#
-#   - hww.plに常に付ける引数(.provercや.ctagsみたいな感じ)
-#   - コマンド名をミスった場合に空気呼んで似てるコマンドを呼び出すか訊く設定 (zshのcorrectみたいに)
-#   - パスワードを入力中、端末に表示するかしないか
-#   - 補完関数の細かな挙動 (隠しファイルを補完するかなど)
-
-
 # NOTE
 # - new()で設定のデフォルト値をセットして
 # - load_config()で設定ファイルの値をセットして
@@ -301,10 +283,10 @@ sub parse_opt {
 
 
 
+# check permissions and make warnings if it is too open.
 sub check_permission {
     my $self = shift;
 
-    # check permissions.
     for my $file (qw(cookie_file config_file config_hww_file)) {
         next unless -f $self->$file;
         my $mode = (stat $self->$file)[2];

@@ -34,6 +34,9 @@ sub regist_command {
 
 # TODO
 # - 引数がない時は今日のエントリを持ってくる
+# FIXME
+# - 取ってきたファイルの先頭行に空行が入る
+#   - --allコマンドの時かそうでない時かどっちだったか忘れた
 sub run {
     my ($self, $args, $opt) = @_;
 
