@@ -47,6 +47,7 @@ sub regist_command {
                 my ($cmd, @cmd_args) = @$shell_args;
                 ($cmd, @cmd_args) = ($self->expand_alias($cmd), @cmd_args);
 
+                use sigtrap qw(die INT QUIT);
 
                 if ($cmd eq 'shell') {
                     $self->warning("you have been already in the shell.");
