@@ -2,7 +2,7 @@
 Hatena Diary Writer Wrapper って何？
 ============================================
 
-[Hatena Diary Writer](http://www.hyuki.com/techinfo/hatena_diary_writer.html)にさまざまな機能を加えたものです。
+[はてなダイアリーライター（略称：はてダラ）](http://www.hyuki.com/techinfo/hatena_diary_writer.html)にさまざまな機能を加えたものです。
 個人的に
 
 - はてなダイアリーライターラッパー (そのまま)
