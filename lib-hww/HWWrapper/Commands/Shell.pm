@@ -152,11 +152,11 @@ sub regist_command {
                     my ($name, $value) = @_;
 
                     if (defined $value) {
-                        # delete its alias.
-                        delete $self->{config}{alias}{$name};
-                    } else {
                         # alias it.
                         $self->{config}{alias}{$name} = $value;
+                    } else {
+                        # delete its alias.
+                        delete $self->{config}{alias}{$name};
                     }
                 }
                 else {
