@@ -38,8 +38,8 @@ server_encoding: euc-jp
 #password: ********
 
 
-### (必要ないので)config.txtは読み込まない
-no_load_config_hw: 1
+### 必要がないならconfig.txtは読み込まない
+#no_load_config_hw: 1
 
 
 ### クッキーを使う。
