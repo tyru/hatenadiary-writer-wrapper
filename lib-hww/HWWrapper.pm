@@ -292,18 +292,8 @@ sub parse_opt {
 
 
 
-sub validate_prereq_files {
+sub check_permission {
     my $self = shift;
-
-    # these files must exist.
-    for my $file (qw(config_file txt_dir)) {
-        unless (-e $self->$file) {
-            $self->error(
-                $self->$file.": $!\n\n" .
-                "not found prereq files. please run 'perl hww.pl init'."
-            );
-        }
-    }
 
     # check permissions.
     for my $file (qw(cookie_file config_file config_hww_file)) {
@@ -394,7 +384,7 @@ sub run {
 
     unless ($cmd =~ /^ (help | version | copyright | init) $/x) {
         # check if prereq files exist.
-        $self->validate_prereq_files();
+        $self->check_permission();
     }
 
     # dispatch command.
