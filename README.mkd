@@ -310,7 +310,7 @@ Hatena AtomPub APIを使っている
     - 日記ファイルのエンコーディングです。
 - enable\_ssl
     - 常に1
-    - はてダラの-Sオプションにあたるもの。
+    - はてダラの-Sオプションにあたるものです。
 - no\_load\_config\_hww
     - デフォルトは0
     - --no-load-hwwオプションで指定可能
@@ -321,4 +321,4 @@ Hatena AtomPub APIを使っている
     - hww.plの設定ファイルです。この設定を設定ファイル(config-hww.txt)で変えても意味がありません。--config-hwwオプションで指定することで読み込む設定ファイル名を変えることができます。
 - hatena\_sslregister\_url
     - デフォルトはCrypt::SSLeayがインストールされていれば'https://www.hatena.ne.jp/login'、されていなければ'http://www.hatena.ne.jp/login'
-    - ログインに使われる
+    - ログインに使われます。
