@@ -19,7 +19,7 @@ sub regist_command {
                 desc => "apply config's settings",
             },
             'd|delete' => {
-                desc => "delete config file and cookie file, and make new ones",
+                desc => "delete cookie file",
             },
         },
     };
@@ -29,8 +29,8 @@ sub regist_command {
 sub run {
     my ($self, $args, $opt) = @_;
 
-    my $read_config = $opt->{'c|config'};
-    my $del_config  = $opt->{'d|delete'};
+    my $opt_config = $opt->{'c|config'};
+    my $opt_delete = $opt->{'d|delete'};
 
     my $txt_dir = 'text';
     my $config_file = 'config.txt';
@@ -41,7 +41,7 @@ sub run {
     if (defined $dir) {
         $txt_dir = $dir;
     }
-    elsif ($read_config) {
+    elsif ($opt_config) {
         $txt_dir = $self->txt_dir;
         $config_file = $self->config_file;
         $hww_config_file = $self->config_hww_file;
@@ -56,11 +56,9 @@ client_encoding:utf-8
 server_encoding:euc-jp
 EOT
 
-    if ($del_config) {
-        for ($config_file, $cookie_file) {
-            next unless -f;
-            unlink $_ or $self->warning("$_: $!")
-        }
+    if ($opt_delete && -f $cookie_file) {
+        unlink $cookie_file
+            or $self->warning("$cookie_file: $!")
     }
 
 
@@ -116,3 +114,5 @@ EOT
 
 
 1;
+
+
