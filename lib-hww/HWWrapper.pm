@@ -101,18 +101,10 @@ sub new {
 
     # arg_opt
     my %arg_opt = (
-        d => \$self->{config}{is_debug},
-        debug => \$self->{config}{is_debug},
-
-        D => \$self->{config}{is_debug_stderr},
-        'debug-stderr' => \$self->{config}{is_debug_stderr},
-
-        C => \$self->{config}{no_cookie},
-        'no-cookie' => \$self->{config}{no_cookie},
-
-        'N=s' => \$self->{config}{config_hww_file},
-        'config-hww=s' => \$self->{config}{config_hww_file},
-
+        'd|debug' => \$self->{config}{is_debug},
+        'D|debug-stderr' => \$self->{config}{is_debug_stderr},
+        'C|no-cookie' => \$self->{config}{no_cookie},
+        'N|config-hww=s' => \$self->{config}{config_hww_file},
         'no-load-hww' => \$self->{config}{no_load_config_hww},
     );
     while (my ($k, $v) = each %arg_opt) {

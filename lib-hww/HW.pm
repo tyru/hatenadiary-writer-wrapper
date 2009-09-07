@@ -112,30 +112,14 @@ sub new {
 
     # prepare arguments options.
     my %arg_opt = (
-        t => \$self->{config}{trivial},    # "trivial" flag.
-        trivial => \$self->{config}{trivial},
-
-        'u=s' => \$self->{config}{username},    # "username" option.
-        'username=s' => \$self->{config}{username},
-
-        'p=s' => \$self->{config}{password},    # "password" option.
-        'password=s' => \$self->{config}{password},
-
-        'a=s' => \$self->{config}{agent},    # "agent" option.
-        'agent=s' => \$self->{config}{agent},
-
-        'T=s' => \$self->{config}{timeout},    # "timeout" option.
-        'timeout=s' => \$self->{config}{timeout},
-
-        'g=s' => \$self->{config}{groupname},    # "groupname" option.
-        'group=s' => \$self->{config}{groupname},
-
-        M => \$self->{config}{no_timestamp},    # "no timestamp" flag.
-        'no-replace' => \$self->{config}{no_timestamp},
-
-        'n=s' => \$self->{config}{config_file},    # "config file" option.
-        'config-hw=s' => \$self->{config}{config_file},
-
+        't|trivial' => \$self->{config}{trivial},    # "trivial" flag.
+        'u|username=s' => \$self->{config}{username},    # "username" option.
+        'p|password=s' => \$self->{config}{password},    # "password" option.
+        'a|agent=s' => \$self->{config}{agent},    # "agent" option.
+        'T|timeout=s' => \$self->{config}{timeout},    # "timeout" option.
+        'g|group=s' => \$self->{config}{groupname},    # "groupname" option.
+        'M|no-replace' => \$self->{config}{no_timestamp},    # "no timestamp" flag.
+        'n|config-hw=s' => \$self->{config}{config_file},    # "config file" option.
         'no-load-hw' => \$self->{config}{no_load_config_hw},
     );
     while (my ($k, $v) = each %arg_opt) {
