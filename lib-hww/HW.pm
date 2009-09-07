@@ -118,7 +118,7 @@ sub new {
         'a|agent=s' => \$self->{config}{agent},    # "agent" option.
         'T|timeout=s' => \$self->{config}{timeout},    # "timeout" option.
         'g|group=s' => \$self->{config}{groupname},    # "groupname" option.
-        'M|no-replace' => \$self->{config}{no_timestamp},    # "no timestamp" flag.
+        'M|no-timestamp' => \$self->{config}{no_timestamp},    # "no timestamp" flag.
         'n|config-hw=s' => \$self->{config}{config_file},    # "config file" option.
         'no-load-hw' => \$self->{config}{no_load_config_hw},
     );
