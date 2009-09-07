@@ -208,6 +208,16 @@ sub mk_accessors {
 # Login.
 sub login {
     my $self = shift;
+    my %opt = (
+        force => 0,
+        @_
+    );
+    local $self->no_cookie = $opt{force} ? 1 : $self->no_cookie;
+
+    if (defined $self->user_agent) {
+        $self->debug("already logged in.");
+        return 1;
+    }
 
     $self->user_agent = LWP::UserAgent->new(agent => $self->agent, timeout => $self->timeout);
     $self->user_agent->env_proxy;
@@ -219,12 +229,12 @@ sub login {
     }
 
     # Ask username if not set.
-    unless ($self->username) {
-        $self->username = prompt("Username: ", -echo => '');
+    unless (length $self->username) {
+        $self->username = prompt("Username: ");
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
-    if (! $self->no_cookie() and -e($self->cookie_file)) {
+    if (! $self->no_cookie() && -e($self->cookie_file)) {
         $self->debug("Loading cookie jar.");
 
         $self->cookie_jar = HTTP::Cookies->new;
@@ -235,11 +245,12 @@ sub login {
 
         puts("Skip login.");
 
+        # though I don't know if the cookie is correct.
         return;
     }
 
     # Ask password if not set.
-    unless ($self->password) {
+    unless (length $self->password) {
         $self->password = prompt("Password: ", -echo => '');
     }
 
@@ -247,7 +258,7 @@ sub login {
     $form{name} = $self->username;
     $form{password} = $self->password;
 
-    my $r; # Response.
+    my $res;
     if ($self->enable_ssl) {
         my $diary_url = sprintf '%s/%s/', $self->hatena_url, $self->username;
 
@@ -260,38 +271,26 @@ sub login {
         puts(sprintf 'Login to %s as %s.',
             $self->hatena_sslregister_url, $form{name});
 
-        $r = $self->user_agent->simple_request(
+        $res = $self->user_agent->simple_request(
             HTTP::Request::Common::POST($self->hatena_sslregister_url, \%form)
         );
 
-        $self->debug($r->status_line);
-
-        $self->debug("\$r = " . $r->content());
+        $self->debug($res->status_line);
     }
     else {
         # For older version.
 
         $self->debug('hatena_url: '.$self->hatena_url);
         puts(sprintf 'Login to %s as %s.', $self->hatena_url, $form{name});
-        $r = $self->user_agent->simple_request(
+        $res = $self->user_agent->simple_request(
             HTTP::Request::Common::POST($self->hatena_url."/login", \%form)
         );
 
-        $self->debug($r->status_line);
+        $self->debug($res->status_line);
 
-        if (not $r->is_redirect) {
-            $self->error("Login: Unexpected response: ", $r->status_line);
+        unless ($res->is_redirect) {
+            $self->error("Login: Unexpected response: ", $res->status_line);
         }
-    }
-
-    # Check to exist <meta http-equiv="refresh" content="1;URL=..." />
-    unless (defined $r->header('refresh')) {
-        $self->debug("failed to login. retry...");
-        # $username = '';    # needless?
-        $self->password = '';
-        # Retry to login.
-        @_ = ($self);
-        goto &login;
     }
 
     puts("Login OK.");
@@ -299,11 +298,31 @@ sub login {
     $self->debug("Making cookie jar.");
 
     $self->cookie_jar = HTTP::Cookies->new;
-    $self->cookie_jar->extract_cookies($r);
+    $self->cookie_jar->extract_cookies($res);
     $self->cookie_jar->save($self->cookie_file);
     $self->cookie_jar->scan(\&get_rkm);
 
     $self->debug("\$cookie_jar = " . $self->cookie_jar->as_string);
+
+
+    # unless exist <meta http-equiv="refresh" content="1;URL=..." />,
+    # retry to login.
+    unless (defined $res->header('refresh')) {
+        if ($self->{login_retry_count} >= $self->{config}{login_retry_num}) {
+            $self->debug("stop trying to login.");
+            $self->error("failed to login.");
+        }
+
+        $self->username = '';
+        $self->password = '';
+        $self->user_agent = undef;
+
+        local $self->{login_retry_count} = $self->{login_retry_count} + 1;
+        $self->debug(sprintf "failed to login. retry... (count:%d)",
+                             $self->{login_retry_count});
+        # Retry to login.
+        $self->login;
+    }
 }
 
 # get session id.
@@ -318,7 +337,16 @@ sub get_rkm {
 # Logout.
 sub logout {
     my $self = shift;
-    return unless $self->user_agent;
+    my %opt = (
+        force => 0,
+        @_
+    );
+    local $self->no_cookie = $opt{force} ? 1 : $self->no_cookie;
+
+    unless (defined $self->user_agent) {
+        $self->debug("already logged out.");
+        return;
+    }
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
     if (! $self->no_cookie() and -e($self->cookie_file)) {
@@ -333,16 +361,18 @@ sub logout {
     puts(sprintf 'Logout from %s as %s.', $self->hatena_url, $form{name});
 
     $self->user_agent->cookie_jar($self->cookie_jar);
-    my $r = $self->user_agent->get($self->hatena_url."/logout");
-    $self->debug($r->status_line);
+    my $res = $self->user_agent->get($self->hatena_url."/logout");
+    $self->debug($res->status_line);
 
-    if (not $r->is_redirect and not $r->is_success) {
-        $self->error("Logout: Unexpected response: ", $r->status_line);
+    if (! $res->is_redirect && ! $res->is_success) {
+        $self->error("Logout: Unexpected response: ", $res->status_line);
     }
 
     unlink($self->cookie_file);
 
     puts("Logout OK.");
+
+    $self->user_agent = undef;
 }
 
 # Update entry.

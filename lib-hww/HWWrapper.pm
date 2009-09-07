@@ -59,7 +59,7 @@ sub new {
     my $self = bless { @_ }, $pkg;
 
 
-    # set members
+    # config
     $self->{config} = {
         # use cookie. (default)
         no_cookie => 0,
@@ -79,8 +79,13 @@ sub new {
             update => 'release -t',
         },
         no_load_config_hww => 0,
+        login_retry_num => 2,
     };
-    # from HW::load_config().
+
+    # login_retry_count
+    $self->{login_retry_count} = 0;
+
+    # hw_comp_config
     $self->{hw_comp_config} = {
         id => 'username',
         g => 'groupname',
@@ -94,6 +99,7 @@ sub new {
         touch => 'touch_file',
     };
 
+    # arg_opt
     my %arg_opt = (
         d => \$self->{config}{is_debug},
         debug => \$self->{config}{is_debug},
@@ -113,6 +119,7 @@ sub new {
         $self->{arg_opt}{$k} = $v;
     }
 
+    # debug_fh
     $self->{debug_fh} = IO::String->new;
 
 
