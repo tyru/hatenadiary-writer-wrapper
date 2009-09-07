@@ -214,6 +214,7 @@ sub regist_command {
         }
         elsif ($line =~ /^\s*$/) {
             # retry to read line.
+            @_ = ($self);
             goto &readline_shell
         }
 
