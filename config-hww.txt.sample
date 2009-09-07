@@ -3,18 +3,18 @@
 
 
 ### config.txtに書いていた設定は、頭に「hw」をくっつければ動きます。
-# hw.id: tyru
-# hw.txt_dir: text
-# hw.touch: text/touch.txt
-# hw.client_encoding: utf-8
-# hw.server_encoding: euc-jp
+# hw.id:tyru
+# hw.txt_dir:text
+# hw.touch:text/touch.txt
+# hw.client_encoding:utf-8
+# hw.server_encoding:euc-jp
 
 ### 上の設定は下と同じ
-#username: tyru
-txt_dir: text
-touch_file: text/touch.txt
-client_encoding: utf-8
-server_encoding: euc-jp
+#username:tyru
+txt_dir:text
+touch_file:text/touch.txt
+client_encoding:utf-8
+server_encoding:euc-jp
 
 ### 意味は同じだが互換性のために作った設定とそれに対応するもの
 ### hw.id              => username
@@ -31,33 +31,33 @@ server_encoding: euc-jp
 
 ### Config::Pitを使ってユーザ名とパスワードを~/.pitから取得
 ### (pit_domainの値はデフォルトなのでこの場合指定しなくてもいい)
-#load_from_pit: 1
-#pit_domain: hatena.ne.jp
+#load_from_pit:1
+#pit_domain:hatena.ne.jp
 
-#username: tyru
-#password: ********
+#username:tyru
+#password:********
 
 
 ### 必要がないならconfig.txtは読み込まない
-#no_load_config_hw: 1
+#no_load_config_hw:1
 
 
 ### クッキーを使う。
 ### これをしないといちいちコマンドを打つ度にログイン/ログアウトし直すようになる。
-### (tips: うまくログインできなかったら、'init --delete'を実行するか手動でcookie.txtを削除するとうまくいく(たぶん))
-use_cookie: 1
+### (tips:うまくログインできなかったら、'init --delete'を実行するか手動でcookie.txtを削除するとうまくいく(たぶん))
+use_cookie:1
 
 
 ### フルパスかコマンド名で「editor」コマンドに使うエディタ指定
 ### デフォルトは$EDITOR
-#editor: gvim
+#editor:gvim
 
 
 ### aliasやhwなど一部の設定には'.'が使用可能
-alias.gh: gen-html
-alias.ui: update-index
-alias.sh: shell
-alias.ed: editor
-alias.ve: verify
-alias.ah: apply-headline
-alias.rh: revert-headline
+alias.gh:gen-html
+alias.ui:update-index
+alias.sh:shell
+alias.ed:editor
+alias.ve:verify
+alias.ah:apply-headline
+alias.rh:revert-headline
