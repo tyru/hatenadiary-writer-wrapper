@@ -130,6 +130,10 @@ sub new {
     }
 
 
+    # make accessors at base class.
+    $self = $self->SUPER::new;
+
+
     # Crypt::SSLeay check.
     eval {
         require Crypt::SSLeay;
@@ -139,9 +143,7 @@ sub new {
         $self->{config}{hatena_sslregister_url} = 'http://www.hatena.ne.jp/login';
     }
 
-
-    # make accessors at base class.
-    $self->SUPER::new;
+    return $self;
 }
 
 

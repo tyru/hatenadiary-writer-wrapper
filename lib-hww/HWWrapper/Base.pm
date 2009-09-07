@@ -35,13 +35,7 @@ use LWP::UserAgent;
 sub new {
     my $self = shift;
 
-    # make all(HW and HWWrapper) class's accessors.
-    #
-    # $self->$method
-    # is lvalue method and identical to
-    # $self->{config}{$method}
-    #
-    # $self->mk_accessors(keys %{ $self->{config} });
+    # make all(HW and HWWrapper) class's accessors to this package.
     $self->mk_accessors(
         [keys %{ $self->{config} }],
         $self->{config},
