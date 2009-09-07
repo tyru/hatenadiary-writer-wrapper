@@ -310,8 +310,8 @@ sub validate_prereq_files {
         next unless -f $self->$file;
         my $mode = (stat $self->$file)[2];
         if (($mode & S_IRWXG) || ($mode & S_IRWXO)) {
-            my $fmt = "permission %o is too open. please run 'init' command.";
-            $self->warning(sprintf $fmt, S_IMODE($mode));
+            my $fmt = "%s: permission %o is too open. please run 'init' command.";
+            $self->warning(sprintf $fmt, $self->$file, S_IMODE($mode));
         }
     }
 }
