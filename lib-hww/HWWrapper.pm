@@ -136,7 +136,7 @@ sub __load_config {
 
         $self->debug($FH->input_line_number.': '.$_);
 
-        if (/^ ([^:]+) : \s* (.*) $/x) {    # match!
+        if (/^ ([^:]+) : (.*) $/x) {    # match!
             if (strcount($1, '.') > 1) {
                 $self->error("too many dots: allowed only one dot.");
             }

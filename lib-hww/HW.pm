@@ -183,43 +183,43 @@ sub load_config {
         next if /^#/ or /^\s*$/;
         chomp;
 
-        if (/^id: \s* ([^:]+)$/x) {
+        if (/^id:([^:]+)$/) {
             $self->username = $1;
             $self->debug("id:".$self->username);
         }
-        elsif (/^g: \s* ([^:]+)$/x) {
+        elsif (/^g:([^:]+)$/) {
             $self->groupname = $1;
             $self->debug("g:".$self->groupname);
         }
-        elsif (/^password: \s* (.*)$/x) {
+        elsif (/^password:(.*)$/) {
             $self->password = $1;
             $self->debug("password:********");
         }
-        elsif (/^cookie: \s* (.*)$/x) {
+        elsif (/^cookie:(.*)$/) {
             $self->cookie_file = glob($1);
             $self->debug("cookie:".$self->cookie_file);
         }
-        elsif (/^proxy: \s* (.*)$/x) {
+        elsif (/^proxy:(.*)$/) {
             $self->http_proxy = $1;
             $self->debug("proxy:".$self->http_proxy);
         }
-        elsif (/^client_encoding: \s* (.*)$/x) {
+        elsif (/^client_encoding:(.*)$/) {
             $self->client_encoding = $1;
             $self->debug("client_encoding:".$self->client_encoding);
         }
-        elsif (/^server_encoding: \s* (.*)$/x) {
+        elsif (/^server_encoding:(.*)$/) {
             $self->server_encoding = $1;
             $self->debug("server_encoding:".$self->server_encoding);
         }
-        elsif (/^filter: \s* (.*)$/x) {
+        elsif (/^filter:(.*)$/) {
             $self->filter_command = $1;
             $self->debug("filter:".$self->filter_command);
         }
-        elsif (/^txt_dir: \s* (.*)$/x) {
+        elsif (/^txt_dir:(.*)$/) {
             $self->txt_dir = glob($1);
             $self->debug("txt_dir:".$self->txt_dir);
         }
-        elsif (/^touch: \s* (.*)$/x) {
+        elsif (/^touch:(.*)$/) {
             $self->touch_file = glob($1);
             $self->debug("touch:".$self->touch_file);
         }
