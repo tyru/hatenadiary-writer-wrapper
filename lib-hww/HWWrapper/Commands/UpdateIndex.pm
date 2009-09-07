@@ -23,14 +23,13 @@ sub regist_command {
 }
 
 
+# TODO
+# - index.htmlだけでなく、いくつかのページを持ったindex.htmlを出力。
+#   (index<連番>.htmlという形にするか、2ページ目以降はどこかのディレクトリに納めるかは、どうやって決める？)
+# - 1ページ当たりのエントリ数(オプション)
+# - max-lengthをバイト数じゃなく文字数にする
 sub run {
     my ($self, $args, $opt) = @_;
-
-    # TODO
-    # - index.htmlだけでなく、いくつかのページを持ったindex.htmlを出力。
-    #   (index<連番>.htmlという形にするか、2ページ目以降はどこかのディレクトリに納めるかは、どうやって決める？)
-    # - 1ページ当たりのエントリ数(オプション)
-
 
     $self->require_modules(qw(
         HTML::TreeBuilder
@@ -38,42 +37,23 @@ sub run {
         Time::Local
     ));
 
-
-    my $path = shift(@$args);
-    unless (defined $path) {
+    my ($html_dir, $index_tmpl) = @$args;
+    unless (defined $html_dir) {
         $self->arg_error;
     }
-
-    if (-f $path) {
-        if (@$args) {
-            my $dir = shift @$args;
-            $self->error("$dir:$!") unless -d $dir;
-            update_index($self, $opt, $dir, $path);
-        }
-        else {
-            update_index($self, $opt, dirname($path), $path);
-        }
-
+    unless (defined $index_tmpl) {
+        $index_tmpl = File::Spec->catfile($html_dir, 'index.tmpl');
     }
-    elsif (-d $path) {
-        my $index_tmpl = File::Spec->catfile($path, 'index.tmpl');
-        update_index($self, $opt, $path, $index_tmpl);
 
+    unless (-f $index_tmpl) {
+        $self->error("$index_tmpl: $!");
     }
-    else {
-        $self->warning("$path is neither file nor directory.");
-        STDERR->flush;
-        $self->arg_error;
-    }
+    update_index($self, $opt, $html_dir, $index_tmpl);
 }
 
 
 sub update_index {
     my ($self, $opt, $html_dir, $index_tmpl) = @_;
-
-    unless (-f $index_tmpl) {
-        $self->error("$index_tmpl: $!");
-    }
 
     my $max_strlen;
     if (defined $opt->{'m|max-length=s'}) {
