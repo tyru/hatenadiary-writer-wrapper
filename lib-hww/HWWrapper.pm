@@ -62,7 +62,7 @@ sub new {
     # config
     $self->{config} = {
         # use cookie. (default)
-        no_cookie => 0,
+        use_cookie => 0,
 
         is_debug_stderr => 0,
         is_debug => 0,
@@ -80,6 +80,7 @@ sub new {
         },
         no_load_config_hww => 0,
         login_retry_num => 2,
+        delete_cookie_if_error => 0,
     };
 
     # login_retry_count
@@ -103,7 +104,7 @@ sub new {
     my %arg_opt = (
         'd|debug' => \$self->{config}{is_debug},
         'D|debug-stderr' => \$self->{config}{is_debug_stderr},
-        'C|no-cookie' => \$self->{config}{no_cookie},
+        'c|use-cookie' => \$self->{config}{use_cookie},
         'N|config-hww=s' => \$self->{config}{config_hww_file},
         'no-load-hww' => \$self->{config}{no_load_config_hww},
     );

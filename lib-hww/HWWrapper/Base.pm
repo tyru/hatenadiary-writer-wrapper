@@ -212,7 +212,7 @@ sub login {
         force => 0,
         @_
     );
-    local $self->{config}{no_cookie} = $opt{force} ? 1 : $self->{config}{no_cookie};
+    local $self->{config}{use_cookie} = $opt{force} ? 0 : $self->{config}{use_cookie};
     if ($opt{force}) {
         $self->user_agent = undef;
         $self->username = '';
@@ -239,7 +239,7 @@ sub login {
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
-    if (! $self->no_cookie() && -e($self->cookie_file)) {
+    if ($self->use_cookie() && -e($self->cookie_file)) {
         $self->debug("Loading cookie jar.");
 
         $self->cookie_jar = HTTP::Cookies->new;
@@ -269,7 +269,7 @@ sub login {
 
         $form{backurl} = $diary_url;
         $form{mode} = "enter";
-        unless ($self->no_cookie) {
+        if ($self->use_cookie) {
             $form{persistent} = "1";
         }
 
@@ -297,8 +297,6 @@ sub login {
             $self->error("Login: Unexpected response: ", $res->status_line);
         }
     }
-
-    puts("Login OK.");
 
     $self->debug("Making cookie jar.");
 
@@ -328,6 +326,8 @@ sub login {
         # Retry to login.
         $self->login;
     }
+
+    puts("Login OK.");
 }
 
 # get session id.
@@ -346,7 +346,7 @@ sub logout {
         force => 0,
         @_
     );
-    local $self->{config}{no_cookie} = $opt{force} ? 1 : $self->{config}{no_cookie};
+    local $self->{config}{use_cookie} = $opt{force} ? 0 : $self->{config}{use_cookie};
 
     unless (defined $self->user_agent) {
         $self->debug("already logged out.");
@@ -354,7 +354,7 @@ sub logout {
     }
 
     # If "cookie" flag is on, and cookie file exists, do not logout.
-    if (! $self->no_cookie() and -e($self->cookie_file)) {
+    if ($self->use_cookie() && -e($self->cookie_file)) {
         puts("Skip logout.");
         return;
     }
@@ -374,10 +374,9 @@ sub logout {
     }
 
     unlink($self->cookie_file);
+    $self->user_agent = undef;
 
     puts("Logout OK.");
-
-    $self->user_agent = undef;
 }
 
 # Update entry.
@@ -415,7 +414,7 @@ sub doit_and_retry {
 
     while ($retry < 2) {
         $ok = $funcref->();
-        if ($ok or $self->no_cookie) {
+        if ($ok or ! $self->use_cookie) {
             last;
         }
         $self->debug($msg);
@@ -808,6 +807,13 @@ sub get_wsse_header {
     my $self = shift;
     my ($user, $pass) = ($self->username, $self->password);
 
+    if (! defined $user || length $user == 0) {
+        $self->error("username is empty.");
+    }
+    if (! defined $pass || length $pass == 0) {
+        $self->error("password is empty.");
+    }
+
     $self->require_modules(qw(
         Digest::SHA1
         MIME::Base64
@@ -859,7 +865,11 @@ sub error {
         @errmsg = ("error: ", @_, "\n");
     }
 
-    unlink $self->cookie_file;
+    if ($self->delete_cookie_if_error && -f $self->cookie_file) {
+        unlink $self->cookie_file
+            or $self->warning($self->warning.": $!");
+    }
+
     die @errmsg;
 }
 

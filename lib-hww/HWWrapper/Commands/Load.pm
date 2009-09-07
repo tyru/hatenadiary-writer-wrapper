@@ -167,7 +167,7 @@ sub run_draft {
         my $save_diary_draft = sub ($$$) {
             my $self = shift;
             my ($epoch, $title, $body) = @_;
-            my $filename = $self->draft_filename($epoch);
+            my $filename = draft_filename($self, $epoch);
             return if $missing_only && -f $filename;
 
             my $OUT;
@@ -193,9 +193,8 @@ sub run_draft {
     }
 
 
-    {
-        local $self->{config}{no_cookie} = 1;
-        $self->login();    # login if necessary.
+    if (length $self->username == 0 || length $self->password == 0) {
+        $self->login(force => 1);
     }
 
     # don't use cookie.
@@ -241,7 +240,7 @@ sub run_draft {
 
         for my $entry (@{ $feed->{entry} }) {
             my $epoch = (split '/', $entry->{'link'}{'-href'})[-1];
-            $self->save_diary_draft($epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
+            save_diary_draft($self, $epoch, $entry->{'title'}, $entry->{'content'}{'#text'});
         }
     }
 
