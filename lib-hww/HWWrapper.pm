@@ -285,7 +285,6 @@ sub parse_opt {
             username => 'your username on hatena',
             password => 'your password on hatena',
         });
-        puts();
         if (! exists $config->{username} || ! exists $config->{password}) {
             $self->error("can't get username and password from Config::Pit.");
         }
