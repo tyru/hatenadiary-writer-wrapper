@@ -73,7 +73,7 @@ sub run {
 
         # call update-index.
         if (defined $index_tmpl) {
-            $self->dispatch('update-index' => [$index_tmpl, $out])
+            $self->dispatch('update-index' => [$out, $index_tmpl])
         }
         elsif ($make_index) {
             $self->dispatch('update-index' => [$out]);
@@ -87,6 +87,9 @@ sub run {
 
         gen_html($self, $in, $out);
 
+        if (defined $index_tmpl) {
+            $self->dispatch('update-index' => [dirname($out), $index_tmpl])
+        }
         if ($make_index) {
             $self->dispatch('update-index' => [dirname($out)]);
         }
