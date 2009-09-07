@@ -4,12 +4,8 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(HWWrapper::Commands::Base);
-
-# export our variables.
-use HWWrapper::Commands qw(%HWW_COMMAND);
-# export sub who does not take $self.
-use HWWrapper::Functions;
+# export some variables and subs.
+use HWWrapper::Commands::Base;
 
 
 
@@ -55,7 +51,6 @@ sub run {
     my %entry;
     for my $file (@entry) {
         my $date = $self->get_entrydate($file);
-        $self->dump($date);
         my $ymd = $self->cat_date($date->{year}, $date->{month}, $date->{day});
         if (exists $entry{$ymd}) {
             $self->debug("$file is duplicated.");

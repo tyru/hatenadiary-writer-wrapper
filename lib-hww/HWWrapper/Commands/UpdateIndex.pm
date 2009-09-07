@@ -4,12 +4,8 @@ use strict;
 use warnings;
 use utf8;
 
-use base qw(HWWrapper::Commands::Base);
-
-# export our variables.
-use HWWrapper::Commands qw(%HWW_COMMAND);
-# export sub who does not take $self.
-use HWWrapper::Functions;
+# export some variables and subs.
+use HWWrapper::Commands::Base;
 
 
 
@@ -170,8 +166,6 @@ sub update_index {
             'link'    => $basename,
             'summary' => $summary,
         };
-
-        # $self->dump($entry[0]);
     }
     $template->param(entrylist => \@entry);
 
