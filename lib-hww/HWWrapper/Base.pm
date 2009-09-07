@@ -619,8 +619,8 @@ sub read_title_body {
     }
     $self->debug("input: $input");
     my $FILE;
-    if (not open($FILE, '<', $input)) {
-        $self->error("$!:$input");
+    if (not open($FILE, $input)) {
+        $self->error("$!: $input");
     }
     my $title = <$FILE>; # first line.
     chomp($title);
