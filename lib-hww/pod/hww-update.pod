@@ -6,7 +6,7 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl update [release command options]
+    perl hww.pl update [same as 'release' arguments]
 
 
 =head1 DESCRIPTION

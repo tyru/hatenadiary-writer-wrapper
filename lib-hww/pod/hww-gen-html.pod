@@ -6,7 +6,8 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl gen-html [-i|--update-index] [-m|--missing-only] [--] [<directory> <directory>|<file> <file>]
+    perl hww.pl gen-html [OPTIONS] [--] <directory-from> <directory-to>
+    perl hww.pl gen-html [OPTIONS] [--] <file-from> <file-to>
 
 
 
@@ -28,15 +29,19 @@ after this command performed.
 
 =item -i, --update-index
 
-if this option was given and if two directories were given,
-this performs 'perl hww.pl update-index <destination directory>'.
+directory:
+this performs 'perl hww.pl update-index <directory-to>'.
 
-or if this option was given and if two files were given,
-this performs 'perl hww.pl update-index <directory of destination file>'.
+file:
+this performs 'perl hww.pl update-index <directory of file-to>'.
 
 =item -I <template file>
 
-this performs 'perl hww.pl update-index <template file> <destination directory>'.
+directory:
+this performs 'perl hww.pl update-index <directory-to> <template file>'.
+
+file:
+this performs 'perl hww.pl update-index <directory of file-to> <template file>'.
 
 =item -m, --missing-only
 

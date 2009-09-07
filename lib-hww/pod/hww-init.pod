@@ -17,15 +17,7 @@ and if cookie file exists, run 'chmod 600 <cookie file>'.
 
 =head1 OPTIONS
 
-=over
-
-=item -c, --config
-
-if config file has already existed,
-makes each file or directyry as config file's value.
-
-
-=back
+No options.
 
 
 =head1 AUTHOR

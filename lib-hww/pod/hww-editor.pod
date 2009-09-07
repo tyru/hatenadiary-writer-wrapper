@@ -6,12 +6,12 @@
 
 =head1 SYNOPSIS
 
-    perl hww.pl editor [COMMAND]
+    perl hww.pl editor [-g|--gui] [-p <editor>|--program <editor>] [--] [YYYY-MM-DD]
 
 
 =head1 DESCRIPTION
 
-open today's entry file with $EDITOR.
+open today or YYYY-MM-DD's entry file with $EDITOR.
 if -p option is given, use that program.
 
 
