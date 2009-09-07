@@ -34,40 +34,9 @@ sub regist_command {
             $initialized = 1;
         }
 
-
-        my $readline; $readline = sub {
-            my $line = $term->readline("> ");
-            # EOF for the first time
-            unless (defined $line) {
-                # exit shell
-                return undef;
-            }
-            elsif ($line =~ /^\s*$/) {
-                # retry to read line.
-                goto &$readline;
-            }
-
-            # read lines until $line is complete
-            until ($self->is_complete_str($line)) {
-                if (length $line && substr($line, -1, 1) eq  "\\") {
-                    chop $line;
-                }
-
-                $self->debug("reading next line...[$line]");
-                my $l = $term->readline("");
-
-                # EOF
-                return $line unless defined $l;
-                $line .= $l;
-            }
-
-            return $line;
-        };
-
-
         # EOF (or q or quit) to leave shell.
         SHELL:
-        while (defined(my $line = $readline->())) {
+        while (defined(my $line = readline_shell($self))) {
 
             $self->debug("eval...[$line]");
             DISPATCH:
@@ -130,8 +99,26 @@ sub regist_command {
     sub init_shell {
         my $self = shift;
 
-
         # define built-in commands.
+        init_shell_cmd($self);
+
+        $term = Term::ReadLine->new;
+        # define completion function!
+        $term->Attribs->{completion_function} = gen_compl_func($self);
+
+        # initialize all command's info.
+        HWWrapper::Commands->regist_all_command() || do {
+            $self->debug("regist_all_command() was failed.");
+            $self->error("failed to initialize the shell");
+        };
+
+        $self->debug("initialized the shell...");
+    }
+
+
+    sub init_shell_cmd {
+        my $self = shift;
+
         %shell_cmd = (
             quit => sub { goto EXIT_LOOP },
             q => sub { $shell_cmd{quit}->(@_) },    # same as 'quit'.
@@ -213,21 +200,38 @@ sub regist_command {
                 }
             },
         );
+    }
 
 
-        $term = Term::ReadLine->new;
+    sub readline_shell {
+        my $self = shift;
 
-        # define completion function!
-        $term->Attribs->{completion_function} = gen_compl_func($self);
+        my $line = $term->readline("> ");
+        # EOF for the first time
+        unless (defined $line) {
+            # exit shell
+            return undef;
+        }
+        elsif ($line =~ /^\s*$/) {
+            # retry to read line.
+            goto &readline_shell
+        }
 
-        # initialize all command's info.
-        HWWrapper::Commands->regist_all_command() || do {
-            $self->debug("regist_all_command() was failed.");
-            $self->error("failed to initialize the shell");
-        };
+        # read lines until $line is complete
+        until ($self->is_complete_str($line)) {
+            if (length $line && substr($line, -1, 1) eq  "\\") {
+                chop $line;
+            }
 
+            $self->debug("reading next line...[$line]");
+            my $l = $term->readline("");
 
-        $self->debug("initialized the shell...");
+            # EOF
+            return $line unless defined $l;
+            $line .= $l;
+        }
+
+        return $line;
     }
 
 
