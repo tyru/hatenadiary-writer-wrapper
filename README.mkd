@@ -1,5 +1,5 @@
 
-Hatena Diary Writer Wrapper って何？
+概要
 ============================================
 
 結城浩さんが作った[はてなダイアリーライター（略称：はてダラ）](http://www.hyuki.com/techinfo/hatena_diary_writer.html)にさまざまな機能を加えたものです。
