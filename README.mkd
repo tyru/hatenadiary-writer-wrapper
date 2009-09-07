@@ -15,6 +15,62 @@ Hatena Diary Writer Wrapper って何？
 
 
 
+日記を書き始める
+============================================
+
+依存モジュールのインストール
+--------------------------------------------
+
+    $ cpan Bundle::HWWrapper
+
+いくつかのモジュールは必要になった時に呼ばれるのでなくても構いません。
+ただhww.plを起動して次のようなメッセージが出なければ必須のモジュールがインストールされていない可能性があります。
+
+    Usage:
+            $ perl hww.pl [HWW_OPTIONS] [HW_OPTIONS] COMMAND [ARGS]
+
+    available commands:
+      apply-headline
+      chain
+      copyright
+      diff
+      editor
+      gen-html
+      help
+      init
+      load
+      release
+      revert-headline
+      shell
+      status
+      touch
+      truncate
+      update-index
+      verify
+      version
+
+    and if you want to know hww.pl's option, perldoc -F hww.pl
+
+
+設定ファイルを書く
+--------------------------------------------
+
+まずinitコマンドを実行します。
+するとconfig-hww.txt.sampleというサンプルの設定ファイルが
+config-hww.txtにコピーされるので、それをサンプルを元に編集していってください。
+場合はconfig-hww.txtを自分で作成しても構いません。
+
+またconfig.txtというはてダラの設定ファイルがあればそれを読み込みます。
+はてダラを使っていた人は設定ファイルをコピーしてくればすぐ使えるはずです。
+
+設定ファイルについて詳しく知りたい方は「設定」の項を参照してください。
+
+これでやるべき事は終了です。
+あとは日記を書くだけです。
+
+
+
+
 どんなことができるのか
 ============================================
 
@@ -22,8 +78,6 @@ Hatena Diary Writer Wrapper って何？
 詳しくはヘルプを見てください。(日本語ヘルプ作成中)
 
 
-- init
-    - config-hww.txt.sampleをconfig-hww.txtにコピーし、クッキーを削除します。
 - apply-headline
     - 日記ファイルからタグを探しだして、タグをファイル名に付けたフォーマットに変える。直すにはrevert-headlineを使う。
 - chain
@@ -38,6 +92,8 @@ Hatena Diary Writer Wrapper って何？
     - 日記ファイルからHTMLを作成します。要Text::Hatena。
 - help
     - ヘルプを表示します。引数にコマンド名を与えればそれのコマンドを表示。現在日本語ヘルプ作成中です。
+- init
+    - config-hww.txt.sampleをconfig-hww.txtにコピーし、クッキーを削除します。
 - load
     - はてなダイアリーから特定の、あるいは全ての日記ファイルを持ってきます。
 - release
@@ -49,7 +105,7 @@ Hatena Diary Writer Wrapper って何？
 - status
     - 更新された日記ファイルを表示します。表示されたファイルがreleaseコマンドあるいはupdateコマンドでアップロードされます。
 - touch
-    - touch.txtを更新します。これをすることでstatusにファイルが表示されなくなり、日記のアップロードもされなくなります。またアップロードしたい場合は、その日記ファイルを更新するか、releaseコマンドの引数に指定してください。これはhw.plの-fオプションにあたります。
+    - touch.txtを更新します。これをすることでstatusにファイルが表示されなくなり、日記のアップロードもされなくなります。またアップロードしたい場合は、その日記ファイルを更新するか、releaseコマンドの引数に指定してください。これははてダラの-fオプションにあたります。
 - truncate
     - 日記ファイルの前後の空白を取り除きます。
 - update
@@ -104,7 +160,7 @@ shellコマンドは
 
 
 
-hw.plと違う動作
+はてダラと違う動作
 ============================================
 
 オプション
@@ -116,7 +172,7 @@ hw.plと違う動作
 - -tオプション
 
 削除した理由は「コマンドの」オプション引数で変更することが可能になったからです。
-これ以外のhw.plコマンドは全て指定可能です。
+これ以外のオプションは全て指定可能です。
 
 
 ログインをやり直す
@@ -146,7 +202,7 @@ Hatena AtomPub APIを使っている
 まず設定ファイルが読まれ、次に引数で指定された値を読みます。
 つまり引数で指定された方が後に読み込まれるので優先順位が高いです。
 
-設定ファイルには2つあり、hw.plの設定ファイル(config.txt)とhww.plの設定ファイル(config-hww.txt)があります。
+設定ファイルには2つあり、はてダラの設定ファイル(config.txt)とhww.plの設定ファイル(config-hww.txt)があります。
 読み込まれる順番は
 
 1. config.txt
@@ -162,7 +218,7 @@ Hatena AtomPub APIを使っている
 - config\_file
     - デフォルトは"config.txt"
     - -n, --config-hwオプションで指定可能
-    - hw.plの設定ファイルです。
+    - はてダラの設定ファイルです。
 - delete\_cookie\_if\_error
     - デフォルトは0
     - 1だとエラー時にクッキーを削除し、0だと削除しません。1に設定すると認証に関係がない操作でエラーになってもクッキーが削除されるようになります。
@@ -254,7 +310,7 @@ Hatena AtomPub APIを使っている
     - 日記ファイルのエンコーディングです。
 - enable\_ssl
     - 常に1
-    - hw.plの-Sオプションにあたるもの。
+    - はてダラの-Sオプションにあたるもの。
 - no\_load\_config\_hww
     - デフォルトは0
     - --no-load-hwwオプションで指定可能
