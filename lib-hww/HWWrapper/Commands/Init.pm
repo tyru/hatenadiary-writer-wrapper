@@ -43,7 +43,10 @@ sub run {
             $self->require_modules(qw(File::Copy));
             File::Copy::copy($config_file_sample => $config_file)
                 or
-            $self->warning("Cannot copy $config_file_sample to $config_file: $!");
+            $self->warning("Cannot copy $config_file_sample to $config_file");
+
+            chmod 0600, $config_file
+                or $self->warning("Cannot chmod 0600 $config_file");
         }
     }
 }

@@ -61,9 +61,6 @@ sub new {
 
     # config
     $self->{config} = {
-        # use cookie. (default)
-        use_cookie => 0,
-
         is_debug_stderr => 0,
         is_debug => 0,
 
@@ -83,6 +80,7 @@ sub new {
         delete_cookie_if_error => 0,
         load_from_pit => 0,
         pit_domain => 'hatena.ne.jp',
+        use_cookie => 0,
     };
 
     # login_retry_count
@@ -124,9 +122,7 @@ sub new {
 
 
 
-# load hww config file(default to 'config-hww.txt') here.
-# loading hw config file(default to 'config.txt') will be done
-# at HW::load_config().
+# load hww config file(default to 'config-hww.txt').
 sub load_config {
     my $self = shift;
 
@@ -182,7 +178,7 @@ sub __load_config {
                 if ($k eq 'hw') {
                     # hw compatible settings.
                     unless (exists $self->{hw_comp_config}{$kk}) {
-                        $self->error("$k: no such key config value");
+                        $self->error("$kk: no such key config value");
                     }
                     $self->{config}{ $self->{hw_comp_config}{$kk} } = $v;
                 } else {
@@ -393,11 +389,11 @@ sub run {
     # load config files.
     $self->load_config();
 
-    # parse '$self->{args}{options}' (same as $opts).
+    # parse '$self->{args}{options}'.
     $self->parse_opt();
 
     unless ($cmd =~ /^ (help | version | copyright | init) $/x) {
-        # check if prereq files exist.
+        # check if permissions are too open.
         $self->check_permission();
     }
 
