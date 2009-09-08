@@ -207,7 +207,7 @@ sub regist_command {
     sub readline_shell {
         my $self = shift;
 
-        my $line = $term->readline("> ");
+        my $line = $term->readline($self->prompt_str);
         # EOF for the first time
         unless (defined $line) {
             # exit shell
@@ -226,7 +226,7 @@ sub regist_command {
             }
 
             $self->debug("reading next line...[$line]");
-            my $l = $term->readline("");
+            my $l = $term->readline($self->prompt_next_line_str);
 
             # EOF
             return $line unless defined $l;

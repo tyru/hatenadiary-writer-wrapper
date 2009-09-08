@@ -64,6 +64,8 @@ sub new {
         pit_domain => 'hatena.ne.jp',
         use_cookie => 0,
         dont_show_password => 0,
+        prompt_str => '> ',
+        prompt_next_line_str => '',
     };
 
     # login_retry_count
