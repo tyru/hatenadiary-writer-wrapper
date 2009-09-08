@@ -250,7 +250,8 @@ sub login {
 
     # Ask username if not set.
     unless (length $self->username) {
-        $self->username = prompt("Username: ");
+        print "Username: ";
+        chomp($self->username = <STDIN>);
     }
 
     # If "cookie" flag is on, and cookie file exists, do not login.
@@ -271,7 +272,14 @@ sub login {
 
     # Ask password if not set.
     unless (length $self->password) {
-        $self->password = prompt("Password: ", -echo => '');
+        if ($self->dont_show_password) {
+            $self->require_modules(qw(IO::Prompt));
+            $self->password = IO::Prompt::prompt("Password: ", -echo => '');
+        }
+        else {
+            print "Password: ";
+            chomp($self->password = <STDIN>);
+        }
     }
 
     my %form;
