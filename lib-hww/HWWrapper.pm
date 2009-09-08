@@ -289,6 +289,11 @@ sub parse_opt {
 sub check_permission {
     my $self = shift;
 
+    if ($^O eq 'MSWin32') {
+        $self->debug("skip checking permissions: this is $^O environment.");
+        return;
+    }
+
     for my $file (qw(cookie_file config_file config_hww_file)) {
         next unless -f $self->$file;
         my $mode = (stat $self->$file)[2];
