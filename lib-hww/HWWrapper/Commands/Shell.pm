@@ -33,7 +33,7 @@ sub regist_command {
             init_shell($self);
             $initialized = 1;
 
-            puts("type 'q' to leave. or type '?' to see built-in command's help.");
+            puts("type 'q' to leave. or type '?' to see built-in command's list.");
         }
 
         # EOF (or q or quit) to leave shell.
