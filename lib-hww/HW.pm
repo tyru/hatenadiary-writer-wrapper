@@ -1,25 +1,4 @@
 #!/usr/bin/perl
-#
-# hw.pl - Hatena Diary Writer (with Loader).
-#
-# Copyright (C) 2004,2005,2007 by Hiroshi Yuki.
-# <hyuki@hyuki.com>
-# http://www.hyuki.com/techinfo/hatena_diary_writer.html
-#
-# Special thanks to:
-# - Ryosuke Nanba http://d.hatena.ne.jp/rna/
-# - Hahahaha http://www20.big.or.jp/~rin_ne/
-# - Ishinao http://ishinao.net/
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the same terms as Perl itself.
-#
-# 'Hatena Diary Loader' originally written by Hahahaha(id:rin_ne)
-#    http://d.hatena.ne.jp/rin_ne/20040825#p7
-#
-# Modified by Kengo Koseki (id:koseki2)
-#    http://d.hatena.ne.jp/koseki2/
-#
 package HW;
 
 use strict;
@@ -32,17 +11,6 @@ use base qw(HWWrapper::Base);
 
 # import all util commands!!
 use HWWrapper::Functions;
-
-
-
-# NOTE:
-# settings will be overridden like the followings
-# - set default settings
-# - set config settings
-# - set arguments settings
-#
-# but -n option(config file) is exceptional case.
-#
 
 
 
@@ -116,13 +84,14 @@ sub new {
 
     # prepare arguments options.
     my %arg_opt = (
-        'u|username=s' => \$self->{config}{username},    # "username" option.
-        'p|password=s' => \$self->{config}{password},    # "password" option.
-        'a|agent=s' => \$self->{config}{agent},    # "agent" option.
-        'T|timeout=i' => \$self->{config}{timeout},    # "timeout" option.
-        'g|group=s' => \$self->{config}{groupname},    # "groupname" option.
-        'M|no-timestamp' => \$self->{config}{no_timestamp},    # "no timestamp" flag.
-        'n|config-hw=s' => \$self->{config}{config_file},    # "config file" option.
+        'u|username=s' => \$self->{config}{username},
+        'p|password=s' => \$self->{config}{password},
+        'a|agent=s' => \$self->{config}{agent},
+        'T|timeout=i' => \$self->{config}{timeout},
+        'g|group=s' => \$self->{config}{groupname},
+        'c|use-cookie' => \$self->{config}{use_cookie},
+        'M|no-timestamp' => \$self->{config}{no_timestamp},
+        'n|config-hw=s' => \$self->{config}{config_file},
         'no-load-hw' => \$self->{config}{no_load_config_hw},
     );
     while (my ($k, $v) = each %arg_opt) {
@@ -239,112 +208,3 @@ sub load_config {
 }
 
 1;
-__END__
-
-=head1 NAME
-
-hw.pl - Hatena Diary Writer
-
-
-=head1 SYNOPSIS
-
-    $ perl hw.pl [Options]
-
-    # upload updated entries(with cookie)
-    $ perl hw.pl -c
-
-=head1 OPTIONS
-
-=over
-
-=item --version
-
-Show version.
-
-=item --help
-
-Show this message.
-
-=item -t
-
-Trivial. Use this switch for trivial edit (i.e. typo).
-
-=item -d
-
-Debug. Use this switch for verbose log.
-
-=item -u username
-
-Username. Specify username.
-
-=item -p password
-
-Password. Specify password.
-
-=item -a agent
-
-User agent. Default value is HatenaDiaryWriter/$VERSION.
-
-=item -T seconds
-
-Timeout. Default value is 180.
-
-=item -c
-
-Cookie. Skip login/logout if $cookie_file exists.
-
-=item -g groupname
-
-Groupname. Specify groupname.
-
-=item -f filename
-
-File. Send only this file without checking timestamp.
-
-=item -M
-
-Do NOT replace *t* with current time.
-
-=item -n config_file
-
-Config file. Default value is $config_file.
-
-=item -l YYYY-MM-DD
-
-Load diary.
-
-=item -L
-
-Load all entries of diary.
-
-=item -s
-
-Load all drafts. drafts will be saved in '$draft_dir'.
-
-=back
-
-
-=head1 CONFIG FILE EXAMPLE
-
-    id:yourid
-    password:yourpassword
-    cookie:cookie.txt
-    # txt_dir:/usr/yourid/diary
-    # touch:/usr/yourid/diary/hw.touch
-    # proxy:http://www.example.com:8080/
-    # g:yourgroup
-    # client_encoding:Shift_JIS
-    # server_encoding:UTF-8
-    ## for Unix, if Encode module is not available.
-    # filter:iconv -f euc-jp -t utf-8 %s
-
-
-=head1 AUTHOR
-
-Hiroshi Yuki
-Kengo Koseki (+Loader)
-
-
-=head1 COPYRIGHT
-
-Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.

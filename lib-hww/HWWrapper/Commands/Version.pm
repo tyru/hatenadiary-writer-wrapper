@@ -22,13 +22,13 @@ sub regist_command {
 sub run {
     # hw
     print <<EOD;
-Hatena Diary Writer(+Loader) Version $HW::VERSION
+Hatena Diary Writer(+Loader) ver. $HW::VERSION
 Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
 
 EOD
     # hww
     print <<EOD;
-Hatena Diary Writer Wrapper version v$HWWrapper::VERSION
+Hatena Diary Writer Wrapper ver. $HWWrapper::VERSION
 EOD
 }
 

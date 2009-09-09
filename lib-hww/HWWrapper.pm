@@ -1,11 +1,13 @@
 package HWWrapper;
 
 # NOTE
-# - new()で設定のデフォルト値をセットして
-# - load_config()で設定ファイルの値をセットして
-# - parse_opt()で引数の値をセット
+# 設定は次の順番で上書きされる。
 #
-# croakはモジュールの扱い方に問題があった場合にのみ使われる
+# 1. デフォルト - new()
+# 2. 設定ファイル - load_config()
+# 3. 引数 - parse_opt()
+#
+# つまり引数からの値が一番優先順位が高い。
 
 
 
@@ -21,6 +23,7 @@ use base qw(HW);
 use HWWrapper::Functions;
 
 
+# croakは引数がおかしい場合にのみ使われる
 use Carp qw(croak);
 use IO::String;
 use Fcntl qw(:mode);
@@ -89,7 +92,6 @@ sub new {
     my %arg_opt = (
         'd|debug' => \$self->{config}{is_debug},
         'D|debug-stderr' => \$self->{config}{is_debug_stderr},
-        'c|use-cookie' => \$self->{config}{use_cookie},
         'N|config-hww=s' => \$self->{config}{config_hww_file},
         'no-load-hww' => \$self->{config}{no_load_config_hww},
     );

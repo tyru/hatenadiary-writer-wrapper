@@ -57,9 +57,14 @@ print debug messages.
 
 print debug messages to stderr.
 
-=item -C, --no-cookie
+=item -N=<config_file>, --config-hww=<config file>
 
-don't use cookie.
+load hww's config file.
+default value is 'config-hww.txt'.
+
+=item --no-load-hww
+
+do not load hww's config file.
 
 =back
 
@@ -68,54 +73,58 @@ don't use cookie.
 
 =over
 
-=item -t
+=item -u=<username>, --username=<username>
 
-Trivial. Use this switch for trivial edit (i.e. typo).
+hatena username.
 
-=item -u username
+=item -p=<password>, --password=<password>
 
-Username. Specify username.
+hatena password.
 
-=item -p password
+=item -a=<agent>, --agent=<agent>
 
-Password. Specify password.
+user agent.
+default value is "HatenaDiaryWriterWrapper/<version_name>".
 
-=item -a agent
+=item -T=<seconds>, --timeout=<seconds>
 
-User agent. Default value is HatenaDiaryWriter/$VERSION.
+timeout.
+default value is 180.
 
-=item -T seconds
+=item -c, --use-cookie
 
-Timeout. Default value is 180.
+use cookie.
+skip login/logout if 'cookie.txt'(default name) exists.
 
-=item -c
+=item -g=<groupname>
 
-Cookie. Skip login/logout if $cookie_file exists.
+groupname. specify groupname.
 
-=item -g groupname
+=item -M, --no-timestamp
 
-Groupname. Specify groupname.
+do not replace *t* with current time.
 
-=item -f filename
+=item -n=<config_file>, --config-hw=<config_file>
 
-File. Send only this file without checking timestamp.
+hw's config file.
+default value is 'config.txt'.
 
-=item -M
+=item --no-load-hw
 
-Do NOT replace *t* with current time.
-
-=item -n config_file
-
-Config file. Default value is $config_file.
-
-=item -l YYYY-MM-DD
-
-Load diary.
+do not load hw's config file.
 
 =back
 
 
 =head1 AUTHOR
 
-    tyru <tyru.exe@gmail.com>
+hatena diary writer:
+    Hiroshi Yuki
+    Ryosuke Nanba <http://d.hatena.ne.jp/rna/>
+    Hahahaha <http://www20.big.or.jp/~rin_ne/>
+    Ishinao <http://ishinao.net/>
+    +Loader by Kengo Koseki. <http://d.hatena.ne.jp/koseki2/>
+
+hatena diary writer wrapper:
+    tyru <http://d.hatena.ne.jp/tyru/>
 
