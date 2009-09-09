@@ -621,13 +621,13 @@ sub read_title_body {
 
     # Execute filter command, if any.
     my $input = $file;
-    if ($self->filter_command) {
+    if (length $self->filter_command) {
         $input = sprintf($self->filter_command." |", $file);
     }
     $self->debug("input: $input");
     my $FILE;
     if (not open($FILE, $input)) {
-        $self->error("$!: $input");
+        $self->error("$input: $!");
     }
     my $title = <$FILE>; # first line.
     chomp($title);
