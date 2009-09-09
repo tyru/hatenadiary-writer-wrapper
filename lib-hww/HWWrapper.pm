@@ -13,7 +13,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '1.9.0';
+our $VERSION = '2.0.0';
 
 use base qw(HW);
 
