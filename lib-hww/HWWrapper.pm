@@ -289,7 +289,7 @@ sub parse_opt {
 sub check_permission {
     my $self = shift;
 
-    if ($^O eq 'MSWin32') {
+    if ($^O eq 'MSWin32' || $^O eq 'cygwin') {
         $self->debug("skip checking permissions: this is $^O environment.");
         return;
     }
