@@ -32,6 +32,8 @@ sub regist_command {
         unless ($initialized) {
             init_shell($self);
             $initialized = 1;
+
+            puts("type 'q' to leave. or type '?' to see built-in command's help.");
         }
 
         # EOF (or q or quit) to leave shell.
@@ -127,7 +129,7 @@ sub regist_command {
                 puts("shell built-in commands here:");
                 puts("  $_") for keys %shell_cmd;
                 puts();
-                puts("if you want to see the help of hww's commands, type 'help'.");
+                puts("if you want to see the helps of hww's commands, type 'help'.");
                 STDOUT->flush;
             },
             h => sub { $shell_cmd{'?'}->() },    # same as '?'
