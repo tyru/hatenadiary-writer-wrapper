@@ -21,9 +21,10 @@ sub regist_command {
 
 sub run {
     # hw
-    print <<"EOD";
+    print <<EOD;
 Hatena Diary Writer(+Loader) Version $HW::VERSION
 Copyright (C) 2004,2005,2007,2009 by Hiroshi Yuki / +Loader by Kengo Koseki.
+
 EOD
     # hww
     print <<EOD;
