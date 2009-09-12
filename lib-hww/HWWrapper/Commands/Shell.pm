@@ -202,6 +202,31 @@ sub regist_command {
                     }
                 }
             },
+
+            # modify txt_dir, touch_file.
+            set_dir => sub {
+                my ($dir, $touch_file) = @_;
+                return unless defined $dir;
+
+                unless (-d $dir) {
+                    $self->warning("$dir: No such a directory");
+                    return;
+                }
+
+                # txt_dir
+                $self->txt_dir = $dir;
+                # touch_file
+                unless (defined $touch_file) {
+                    $touch_file = File::Spec->catfile($dir, "touch.txt");
+                }
+                if (-f $touch_file) {
+                    $self->touch_file = $touch_file;
+                }
+                else {
+                    $self->warning("$touch_file: No such a file");
+                    $self->warning(sprintf "touch file was not changed from '%s'", $self->touch_file)
+                }
+            },
         );
     }
 
