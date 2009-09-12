@@ -182,12 +182,6 @@ shellコマンドは
 この回数はlogin\_retry\_numで設定可能です。
 
 
-Hatena AtomPub APIを使っている
---------------------------------------------
-
-※まだ未実装です
-
-
 
 
 設定
@@ -322,3 +316,13 @@ Hatena AtomPub APIを使っている
 - hatena\_sslregister\_url
     - デフォルトはCrypt::SSLeayがインストールされていれば'https://www.hatena.ne.jp/login'、されていなければ'http://www.hatena.ne.jp/login'
     - ログインに使われます。
+
+
+
+
+要望とかバグ報告とか
+============================================
+
+tyru.exe@gmail.comまでどうぞ。
+それか[twitter](http://twitter.com/tyru)からでもどうぞ。(リプライは遅めです)
+自分の環境だとうまくいかないだとかインストールできないよ！なども気軽に相談ください。お願いします。
