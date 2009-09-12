@@ -27,6 +27,7 @@ sub run {
     my ($self, $args, $opt) = @_;
     $self->trivial = $opt->{'t|trivial'};
 
+    my $target_file;
     if (@$args) {
         unless (-e $args->[0]) {
             $self->error($args->[0].": $!");
@@ -36,19 +37,17 @@ sub run {
             $self->txt_dir = $args->[0];
         }
         elsif (-f $args->[0]) {
-            $self->target_file = $args->[0];
+            $target_file = $args->[0];
         }
     }
 
 
-    my $count = 0;
     my @files;
-
     # Setup file list.
-    if ($self->target_file) {
+    if (defined $target_file) {
         # Do not check timestamp.
-        push(@files, $self->target_file);
-        $self->debug("files: option -f: @files");
+        push(@files, $target_file);
+        $self->debug("files:@files");
     }
     else {
         for ($self->get_entries($self->txt_dir)) {
@@ -56,21 +55,25 @@ sub run {
             next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
             push(@files, $_);
         }
-        $self->debug(sprintf 'files: current dir (%s): %s', $self->txt_dir, join ' ', @files);
+        $self->debug(
+            sprintf 'current dir:%s, files:%s',
+                    $self->txt_dir, join(', ', @files)
+        );
     }
+
+    unless (@files) {
+        puts("No files are posted.");
+        return;
+    }
+
+    # Login if necessary.
+    $self->login();
 
     # Process it.
     for my $file (@files) {
         # Check file name.
-        next unless ($file =~ /\b(\d\d\d\d)-(\d\d)-(\d\d)(?:-.+)?\.txt$/);
-        # Check if it is a file.
-        next unless (-f $file);
-
-        my ($year, $month, $day) = ($1, $2, $3);
-        my $date = $year . $month . $day;
-
-        # Login if necessary.
-        $self->login();
+        my $datehashref = $self->get_entrydate($file);
+        next unless defined $datehashref;
 
         # Replace "*t*" unless suppressed.
         $self->replace_timestamp($file) unless ($self->no_timestamp);
@@ -81,10 +84,11 @@ sub run {
         # Find image files.
         my $imgfile = $self->find_image_file($file);
 
+        my ($year, $month, $day) = @$datehashref{qw(year month day)};
         if ($title eq $self->delete_title) {
             # Delete entry.
             puts("Delete $year-$month-$day.");
-            $self->delete_diary_entry($date);
+            $self->delete_diary_entry($year, $month, $day);
             puts("Delete OK.");
         }
         else {
@@ -95,25 +99,12 @@ sub run {
         }
 
         sleep(1);
-
-        $count++;
     }
 
     # Logout if necessary.
     $self->logout();
-
-    if ($count == 0) {
-        puts("No files are posted.");
-    }
-    else {
-        unless ($self->target_file) {
-            # Touch file.
-            my $FILE;
-            open($FILE, '>', $self->touch_file) or error($self->touch_file.": $!");
-            print $FILE $self->get_timestamp();
-            close($FILE);
-        }
-    }
+    # update touch file.
+    $self->update_touch_file;
 }
 
 

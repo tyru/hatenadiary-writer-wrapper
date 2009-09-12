@@ -77,7 +77,6 @@ sub new {
         hatena_url => URI->new('http://d.hatena.ne.jp'),
         cookie_jar => undef,
         user_agent => undef,
-        target_file => '',
         trivial => 0,
     };
 

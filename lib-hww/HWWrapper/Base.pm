@@ -124,7 +124,8 @@ sub get_touchdate {
     my $self = shift;
 
     my $touch_time = do {
-        my $FH = FileHandle->new($self->touch_file, 'r') or $self->error(":$!");
+        my $FH = FileHandle->new($self->touch_file, 'r')
+                    or $self->error($self->touch_file.": $!");
         chomp(my $line = <$FH>);
         $FH->close;
 
@@ -142,6 +143,15 @@ sub get_touchdate {
         sec   => $6,
         epoch => POSIX::mktime($6, $5, $4, $3, $2-1, $1-1900),
     };
+}
+
+sub update_touch_file {
+    my ($self) = @_;
+
+    my $FH = FileHandle->($self->touch_file, 'w')
+                or $self->error($self->touch_file.": $!");
+    $FH->print($self->get_timestamp);
+    $FH->close;
 }
 
 {
@@ -429,11 +439,20 @@ sub update_diary_entry {
 
 # Delete entry.
 sub delete_diary_entry {
-    my $self = shift;
-    my ($date) = @_;
+    my ($self, $year, $month, $day) = @_;
+
+    my $date = $self->cat_date({
+        year => $year,
+        month => $month,
+        day => $day,
+        cat_with => '',
+    });
 
     # Delete.
-    $self->doit_and_retry("delete_diary_entry: DELETE.", sub { return $self->delete_it($date) });
+    $self->doit_and_retry(
+        "delete_diary_entry: DELETE.",
+        sub { return $self->delete_it($date) }
+    );
 }
 
 # Do the $funcref, and retry if fail.
@@ -574,7 +593,12 @@ sub post_it {
                 # Important:
                 # This entry must already exist.
                 body => $body,
-                date => "$year$month$day",
+                date => $self->cat_date({
+                    year => $year,
+                    month => $month,
+                    day => $day,
+                    cat_with => '',
+                }),
                 image => [
                     $imgfile,
                 ]
@@ -610,14 +634,13 @@ sub get_timestamp {
     $mon++;
 
     sprintf
-        '%04d%02d%02d%02d%02d%02d',
+        '%04d'.'%02d'.'%02d'.'%02d'.'%02d'.'%02d',
         $year, $mon, $day, $hour, $min, $sec;
 }
 
 # Read title and body.
 sub read_title_body {
-    my $self = shift;
-    my ($file) = @_;
+    my ($self, $file) = @_;
 
     # Execute filter command, if any.
     my $input = $file;
@@ -647,22 +670,20 @@ sub read_title_body {
 
 # Find image file.
 sub find_image_file {
-    my $self = shift;
-    my ($fulltxt) = @_;
-    my ($base, $path, $type) = fileparse($fulltxt, qr/\.txt/);
+    my ($self, $entry_filename) = @_;
+    my ($base, $path, $type) = fileparse($entry_filename, qr/\.txt/);
+
     for my $ext ('jpg', 'png', 'gif') {
         my $imgfile = "$path$base.$ext";
-        if (-e $imgfile) {
-            if ($self->target_file) {
-                $self->debug("-f option, always update: $imgfile");
-                return $imgfile;
-            }
-            elsif (-e($self->touch_file) and (-M($imgfile) > -M($self->touch_file))) {
+        $self->debug("imgfile: $imgfile");
+        if (-f $imgfile) {
+            $self->debug("found imgfile '$imgfile'.");
+
+            if (-e($self->touch_file) and (-M($imgfile) > -M($self->touch_file))) {
                 $self->debug("skip $imgfile (not updated).");
                 next;
             }
             else {
-                $self->debug($imgfile);
                 return $imgfile;
             }
         }
@@ -934,9 +955,7 @@ sub require_modules {
     $self->debug("required ".join(', ', @_));
 }
 
-# TODO
-# - runnning background
-#
+
 # FIXME UTF8以外の環境だとMalformed UTF-8 characterと出る
 #
 # NOTE:
@@ -1125,6 +1144,15 @@ sub familiar_words {
 }
 
 
+sub is_date {
+    my ($self, $date) = @_;
+
+    eval {
+        $self->split_date($date);
+    };
+    $@ ? 0 : 1;
+}
+
 # split 'date'.
 #
 # NOTE:
@@ -1144,13 +1172,31 @@ sub split_date {
 # concat 'date'.
 sub cat_date {
     my $self = shift;
-    my ($year, $month, $day, $headlines) = @_;
+
+    my ($year, $month, $day, $headlines);
+    my %opt;
+    if (ref $_[0] eq 'HASH') {
+        # for receiving options.
+        %opt = %{ shift() };
+        ($year, $month, $day) = @opt{qw(year month day)};
+        $headlines = $opt{headlines} if exists $opt{headlines};
+    }
+    else {
+        ($year, $month, $day, $headlines) = @_;
+    }
+    %opt = (
+        # default value
+        cat_with => '-',
+
+        %opt
+    );
 
     # concat ymd.
-    my $datename = sprintf '%04d-%02d-%02d', $year, $month, $day;
+    my $datename = sprintf '%04d%s%02d%s%02d',
+                           $year, $opt{cat_with}, $month, $opt{cat_with}, $day;
     # concat headlines
     if ($headlines && @$headlines) {
-        $datename .= '-'.join('-', @$headlines);
+        $datename .= '-'.join($opt{cat_with}, @$headlines);
     }
 
     return $datename;
