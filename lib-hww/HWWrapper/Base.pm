@@ -722,21 +722,31 @@ sub load_diary_entry {
 
     puts("Load $year-$month-$day.");
 
-    $self->debug(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day);
+    my $date = $self->cat_date({
+        year => $year,
+        month => $month,
+        day => $day,
+        cat_with => '',
+    });
+    $self->debug(
+        sprintf '%s/%s/edit?date=%s',
+                $self->hatena_url, $self->username, $date);
 
     $self->user_agent->cookie_jar($self->cookie_jar);
 
-    my $r = $self->user_agent->simple_request(
-        HTTP::Request::Common::GET(sprintf '%s/%s/edit?date=%s%s%s', $self->hatena_url, $self->username, $year, $month, $day));
+    my $res = $self->user_agent->simple_request(
+        HTTP::Request::Common::GET(
+            sprintf '%s/%s/edit?date=%s',
+                    $self->hatena_url, $self->username, $date));
 
-    $self->debug($r->status_line);
+    $self->debug($res->status_line);
 
-    if (not $r->is_success()) {
-        $self->error("Load: Unexpected response: ", $r->status_line);
+    if (not $res->is_success()) {
+        $self->error("Load: Unexpected response: ", $res->status_line);
     }
 
     # Check entry exist.
-    $r->content =~ /<form .*?action="\.\/edit" .*?>(.*<\/textarea>)/s;
+    $res->content =~ /<form .*?action="\.\/edit" .*?>(.*<\/textarea>)/s;
     my $form_data = $1;
 
     $form_data =~ /<input type="hidden" name="date" value="(\d\d\d\d\d\d\d\d)">/;
