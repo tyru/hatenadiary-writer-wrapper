@@ -1,13 +1,12 @@
 ### 先頭に#がある行や空白行は無視されます。
-### また「:」と値の間にいくつも空白を置いても無視されます
 
 
 ### config.txtに書いていた設定は、頭に「hw」をくっつければ動きます。
-# hw.id:tyru
-# hw.txt_dir:text
-# hw.touch:text/touch.txt
-# hw.client_encoding:utf-8
-# hw.server_encoding:euc-jp
+#hw.id:tyru
+#hw.txt_dir:text
+#hw.touch:text/touch.txt
+#hw.client_encoding:utf-8
+#hw.server_encoding:euc-jp
 
 ### 上の設定は下と同じ
 #username:tyru
@@ -16,7 +15,7 @@ touch_file:text/touch.txt
 client_encoding:utf-8
 server_encoding:euc-jp
 
-### 意味は同じだが互換性のために作った設定とそれに対応するもの
+### 意味は同じだけど互換性のために作った設定とそれに対応するもの
 ### hw.id              => username
 ### hw.password        => password
 ### hw.g               => groupname
@@ -54,10 +53,11 @@ use_cookie:1
 
 
 ### aliasやhwなど一部の設定には'.'が使用可能
-alias.gh:gen-html
-alias.ui:update-index
-alias.sh:shell
-alias.ed:editor
-alias.ve:verify
-alias.ah:apply-headline
-alias.rh:revert-headline
+#alias.g:group
+#alias.gh:gen-html
+#alias.ui:update-index
+#alias.sh:shell
+#alias.ed:editor
+#alias.ve:verify
+#alias.ah:apply-headline
+#alias.rh:revert-headline
