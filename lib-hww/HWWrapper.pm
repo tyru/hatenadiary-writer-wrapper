@@ -53,7 +53,7 @@ sub new {
 
         # hw compatible settings.
         # this value is not used.
-        # but HWWrapper::load_config() look at this.
+        # but HWWrapper::load_config() looks at this.
         hw => {},
 
         editor => $ENV{EDITOR},
@@ -155,13 +155,11 @@ sub load_config {
 
             # hw compatible settings.
             my %hw = %{ $self->{config}{hw} };
-            if (%hw) {
-                while (my ($k, $v) = each %hw) {
-                    unless (exists $self->{hw_comp_config}{$k}) {
-                        $self->error("no such a hw key config value.");
-                    }
-                    $self->{config}{ $self->{hw_comp_config}{$k} } = $v;
+            while (my ($k, $v) = each %hw) {
+                unless (exists $self->{hw_comp_config}{$k}) {
+                    $self->error("no such a hw key config value.");
                 }
+                $self->{config}{ $self->{hw_comp_config}{$k} } = $v;
             }
 
             $FH->close;

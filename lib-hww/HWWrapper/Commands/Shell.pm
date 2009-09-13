@@ -331,6 +331,7 @@ sub regist_command {
         };
 
         ### directory's separator ###
+        # I don't know other platform :)
         my %sep = (
             MSWin32 => qr{\\ | /}x,
             MacOS => ':',
