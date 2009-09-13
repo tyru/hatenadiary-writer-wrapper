@@ -157,7 +157,7 @@ sub load_config {
             my %hw = %{ $self->{config}{hw} };
             while (my ($k, $v) = each %hw) {
                 unless (exists $self->{hw_comp_config}{$k}) {
-                    $self->error("no such a hw key config value.");
+                    $self->error("$k: no such a hw key config value.");
                 }
                 $self->{config}{ $self->{hw_comp_config}{$k} } = $v;
             }
@@ -174,7 +174,14 @@ sub load_config {
 
 sub set_config {
     my ($self, $k, $v) = @_;
-    $self->__set_config($self->{config}, [split /\./, $k], $v);
+    my @keys = split /\./, $k;
+
+    return unless @keys;
+    unless (exists $self->{config}{ $keys[0] }) {
+        $self->error("$keys[0]: no such a key config value.");
+    }
+
+    $self->__set_config($self->{config}, \@keys, $v);
 }
 
 sub __set_config {
