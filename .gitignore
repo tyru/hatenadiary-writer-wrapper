@@ -1,12 +1,10 @@
-*~
-.project
 cookie.txt
-config*.txt
 text
-Build
-Build.bat
-_build
-Makefile
 tags
 nytprof*
 *.bak
+.proverc
+t
+index.tmpl
+config*.txt
+.gitignore
