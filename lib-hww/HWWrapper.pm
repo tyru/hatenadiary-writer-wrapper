@@ -72,6 +72,12 @@ sub new {
         group => {},
     };
 
+    # current_group
+    $self->{current_group} = '';
+    # previous_group_stash
+    #   this is stash for default group setting.
+    $self->{previous_group_stash} = {};
+
     # login_retry_count
     $self->{login_retry_count} = 0;
 
@@ -152,7 +158,7 @@ sub load_config {
             if (%hw) {
                 while (my ($k, $v) = each %hw) {
                     unless (exists $self->{hw_comp_config}{$k}) {
-                        $self->error("no such hw key config value.");
+                        $self->error("no such a hw key config value.");
                     }
                     $self->{config}{ $self->{hw_comp_config}{$k} } = $v;
                 }

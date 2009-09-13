@@ -148,7 +148,7 @@ sub get_touchdate {
 sub update_touch_file {
     my ($self) = @_;
 
-    my $FH = FileHandle->($self->touch_file, 'w')
+    my $FH = FileHandle->new($self->touch_file, 'w')
                 or $self->error($self->touch_file.": $!");
     $FH->print($self->get_timestamp);
     $FH->close;
@@ -675,7 +675,6 @@ sub find_image_file {
 
     for my $ext ('jpg', 'png', 'gif') {
         my $imgfile = "$path$base.$ext";
-        $self->debug("imgfile: $imgfile");
         if (-f $imgfile) {
             $self->debug("found imgfile '$imgfile'.");
 

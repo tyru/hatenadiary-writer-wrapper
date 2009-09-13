@@ -76,7 +76,11 @@ sub new {
         STORE => sub {
             ${ $_[0] } = $_[1];
             # change also hatena_url.
-            $weaken_self->hatena_url = URI->new("http://$_[1].g.hatena.ne.jp");
+            if (length $_[1]) {
+                $weaken_self->hatena_url = URI->new("http://$_[1].g.hatena.ne.jp");
+            } else {
+                $weaken_self->hatena_url = URI->new("http://d.hatena.ne.jp");
+            }
             $weaken_self->debug(
                 sprintf "hatena_url is now '%s'.", $weaken_self->hatena_url
             );
@@ -87,12 +91,15 @@ sub new {
     # move this values from $self->{config}.
     # because avoid to be set in config file.
     # (HWWrapper::load_config() only sees $self->{config})
-    $self->{config_file_immutable_ac} = {
+    my %config_file_immutable_ac = (
         hatena_url => URI->new('http://d.hatena.ne.jp'),
         cookie_jar => undef,
         user_agent => undef,
         trivial => 0,
-    };
+    );
+    while (my ($k, $v) = each %config_file_immutable_ac) {
+        $self->{config_file_immutable_ac}{$k} = $v;
+    }
 
 
     # prepare arguments options.

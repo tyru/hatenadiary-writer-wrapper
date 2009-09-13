@@ -203,28 +203,54 @@ sub regist_command {
                 }
             },
 
-            # modify txt_dir, touch_file.
-            set_dir => sub {
-                my ($dir, $touch_file) = @_;
-                return unless defined $dir;
+            # change group.
+            group => sub {
+                my ($group) = @_;
 
-                unless (-d $dir) {
-                    $self->warning("$dir: No such a directory");
-                    return;
-                }
+                my $apply_config = sub {
+                    # copy it. don't change original refhash.
+                    my %c = %{ shift() };
 
-                # txt_dir
-                $self->txt_dir = $dir;
-                # touch_file
-                unless (defined $touch_file) {
-                    $touch_file = File::Spec->catfile($dir, "touch.txt");
-                }
-                if (-f $touch_file) {
-                    $self->touch_file = $touch_file;
+                    while (my ($k, $v) = each %c) {
+                        $self->debug("  $k => $v");
+                        $self->$k = $v;
+                    }
+                };
+
+                if (defined $group) {
+                    if (exists $self->{config}{group}{$group}) {    # change the group.
+                        # restore previous config.
+                        $self->debug("restore previous config...");
+                        $apply_config->($self->{previous_group_stash});
+
+                        # change the config to $group's config.
+                        my $group_config = $self->{config}{group}{$group};
+                        for my $k (keys %$group_config) {
+                            # stash current config.
+                            $self->{previous_group_stash}{$k} = $self->$k;
+                        }
+                        $self->debug("apply $group config...");
+                        $apply_config->($group_config);
+
+                        # change the current group.
+                        $self->{current_group} = $group;
+                    }
+                    else {
+                        $self->warning("$group: no such a group.");
+                        return;
+                    }
+
+                    puts("change group to '$group'.");
                 }
                 else {
-                    $self->warning("$touch_file: No such a file");
-                    $self->warning(sprintf "touch file was not changed from '%s'", $self->touch_file)
+                    # restore previous config.
+                    $self->debug("restore previous config...");
+                    $apply_config->($self->{previous_group_stash});
+                    $self->{previous_group_stash} = {};
+
+                    $self->{current_group} = '';
+
+                    puts("change group to main group.");
                 }
             },
         );
