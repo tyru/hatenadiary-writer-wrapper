@@ -658,7 +658,9 @@ sub read_title_body {
     close($FILE);
 
     # Convert encodings.
-    if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+    my $is_specified = length $self->client_encoding && length $self->server_encoding;
+    my $is_same_encoding = $self->client_encoding eq $self->server_encoding;
+    if ($self->enable_encode && $is_specified && ! $is_same_encoding) {
         $self->debug(sprintf 'Convert from %s to %s.',
                 $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->client_encoding, $self->server_encoding);
@@ -768,7 +770,9 @@ sub load_diary_entry {
     $body = $self->unescape($body);
 
     # Convert encodings.
-    if ($self->enable_encode and ($self->client_encoding ne $self->server_encoding)) {
+    my $is_specified = length $self->client_encoding && length $self->server_encoding;
+    my $is_same_encoding = $self->client_encoding eq $self->server_encoding;
+    if ($self->enable_encode && $is_specified && ! $is_same_encoding) {
         $self->debug(sprintf 'Convert from %s to %s.', $self->client_encoding, $self->server_encoding);
         Encode::from_to($title, $self->server_encoding, $self->client_encoding);
         Encode::from_to($body, $self->server_encoding, $self->client_encoding);
