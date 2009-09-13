@@ -155,6 +155,14 @@ shellコマンドは
 ※まだ未実装です
 
 
+グループ機能
+--------------------------------------------
+
+複数のダイアリーを管理できます。
+一つのアカウントで複数のダイアリーを持つ人向けです。
+使用方法は最後の「config-hww.txt サンプル」を参照してください。
+
+
 
 
 はてダラと違う動作
@@ -317,7 +325,54 @@ shellコマンドは
 
 
 
-要望とかバグ報告とか
+config-hww.txtのサンプル
+============================================
+
+サンプルです。
+(というか自分がそのまま使っている設定です)
+
+
+    # config.txtを読み込まない
+    no_load_config_hw:1
+    # ユーザネームとパスワードをConfig::Pitから読み込み
+    load_from_pit:1
+
+    # デフォルト
+    txt_dir:text/tyru-entry
+    touch_file:text/tyru-entry/touch.txt
+    client_encoding:utf-8
+    server_encoding:euc-jp
+    use_cookie:1
+    editor:gvim
+
+    # vimグループ特有の設定
+    group.vim.groupname:vim
+    group.vim.txt_dir:text/vim
+    group.vim.touch_file:text/vim/touch.txt
+    group.vim.server_encoding:utf-8
+
+    # twitterグループ特有の設定
+    group.twitter.groupname:twitter
+    group.twitter.txt_dir:text/twitter
+    group.twitter.touch_file:text/twitter/touch.txt
+    group.twitter.server_encoding:utf-8
+
+    # alias
+    alias.g:group
+    alias.gh:gen-html
+    alias.ui:update-index
+    alias.sh:shell
+    alias.ed:editor
+    alias.ve:verify
+    alias.ah:apply-headline
+    alias.rh:revert-headline
+
+    alias.debug:config is_debug
+
+
+
+
+要望やバグ報告
 ============================================
 
 tyru.exe@gmail.comまでどうぞ。
