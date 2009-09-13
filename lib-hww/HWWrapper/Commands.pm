@@ -27,7 +27,6 @@ our %HWW_COMMAND = map {
     $_ => undef,
 } qw(
     apply-headline
-    chain
     copyright
     diff
     editor
