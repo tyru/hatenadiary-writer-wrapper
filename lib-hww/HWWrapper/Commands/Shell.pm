@@ -16,6 +16,11 @@ sub regist_command {
     $HWW_COMMAND{shell} = {
         coderef => \&run,
         desc => 'run commands like a shell',
+        option => {
+            'c=s' => {
+                desc => 'take string to execute like bash, zsh',
+            },
+        },
     };
 }
 
@@ -27,8 +32,10 @@ sub regist_command {
 
 
     sub run {
-        my ($self, $args) = @_;
+        my ($self, $args, $opt) = @_;
+        my $command_str = $opt->{'c=s'};
 
+        # initialize
         unless ($initialized) {
             init_shell($self);
             $initialized = 1;
@@ -36,63 +43,16 @@ sub regist_command {
             puts("type 'q' to leave. or type '?' to see built-in command's list.");
         }
 
-        # EOF (or q or quit) to leave shell.
-        SHELL:
+        # process -c option.
+        if (defined $command_str) {
+            eval_cmdline($self, $command_str);
+            return;
+        }
+
+        # start the shell.
         while (defined(my $line = readline_shell($self))) {
-
             $self->debug("eval...[$line]");
-            DISPATCH:
-            for my $shell_args ($self->shell_eval_str($line)) {
-                next unless @$shell_args;
-
-                $self->debug(sprintf "process %s...", dumper($shell_args));
-                my ($cmd, @cmd_args) = @$shell_args;
-                ($cmd, @cmd_args) = ($self->expand_alias($cmd), @cmd_args);
-
-                use sigtrap qw(die INT QUIT);
-
-                if ($cmd eq 'shell') {
-                    $self->warning("you have been already in the shell.");
-                    last DISPATCH;
-                }
-                elsif (exists $shell_cmd{$cmd}) {
-                    eval {
-                        $shell_cmd{$cmd}->(@cmd_args);
-                    };
-                }
-                elsif ($self->is_command($cmd)) {
-                    eval {
-                        $self->dispatch($cmd => \@cmd_args);
-                    };
-                }
-                else {
-                    # I can emulate 'correct' in zsh by using familiar_words().
-                    # but that might be annoying if that's default.
-                    my @familiar = $self->familiar_words(
-                        $cmd,
-                        [
-                            keys(%HWW_COMMAND),
-                            keys(%shell_cmd),
-                            keys(%{ $self->{config}{alias} })
-                        ],
-                        {
-                            diff_strlen => 4,
-                            partial_match_len => 3,
-                        },
-                    );
-
-                    if (@familiar) {
-                        # so currently I just suggest that words.
-                        puts("\nDid you mean this?");
-                        puts("\t$_") for @familiar;
-                    }
-                    else {
-                        $self->warning("$cmd: command not found");
-                    }
-                }
-
-                $self->warning($@) if $@;
-            }
+            eval_cmdline($self, $line);
         }
 
         EXIT_LOOP:
@@ -473,6 +433,63 @@ sub regist_command {
 
             $dwarn->("reach to the end of func");
             return $comp_files->($completed, [@last_args]);
+        }
+    }
+
+
+    sub eval_cmdline {
+        my ($self, $line) = @_;
+
+        for my $shell_args ($self->shell_eval_str($line)) {
+            next unless @$shell_args;
+
+            $self->debug(sprintf "process %s...", dumper($shell_args));
+            my ($cmd, @cmd_args) = @$shell_args;
+            ($cmd, @cmd_args) = ($self->expand_alias($cmd), @cmd_args);
+
+            use sigtrap qw(die INT QUIT);
+
+            if ($cmd eq 'shell') {
+                $self->warning("you have been already in the shell.");
+                last;
+            }
+            elsif (exists $shell_cmd{$cmd}) {
+                eval {
+                    $shell_cmd{$cmd}->(@cmd_args);
+                };
+            }
+            elsif ($self->is_command($cmd)) {
+                eval {
+                    $self->dispatch($cmd => \@cmd_args);
+                };
+            }
+            else {
+                # I can emulate 'correct' in zsh by using familiar_words().
+                # but that might be annoying if that's default.
+                my @familiar = $self->familiar_words(
+                    $cmd,
+                    [
+                        keys(%HWW_COMMAND),
+                        keys(%shell_cmd),
+                        keys(%{ $self->{config}{alias} })
+                    ],
+                    {
+                        diff_strlen => 4,
+                        partial_match_len => 3,
+                    },
+                );
+
+                if (@familiar) {
+                    # so currently I just suggest that words.
+                    puts("\nDid you mean this?");
+                    puts("\t$_") for @familiar;
+                }
+                else {
+                    $self->warning("$cmd: command not found");
+                }
+            }
+
+            $self->warning($@) if $@;
         }
     }
 }
