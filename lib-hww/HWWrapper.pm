@@ -119,7 +119,45 @@ sub load_config {
     }
     else {
         if (-f $self->config_hww_file) {
-            $self->__load_config($self->config_hww_file);
+            my $confname = $self->config_hww_file;
+            my $FH = FileHandle->new($confname)
+                        or $self->error("$confname: $!");
+
+            while (<$FH>) {
+                next if /^#/ or /^\s*$/;
+                chomp;
+
+                my $lnum = $FH->input_line_number;
+                $self->debug("$lnum: $_");
+
+                if (/^ ([^:]+) : (.*) $/x) {
+                    eval {
+                        $self->set_config($1, $2);
+                    };
+                    if ($@) {
+                        chomp $@;
+                        $self->warning($@);
+                        $self->error(
+                            "error occured at line $lnum while loading $confname: '$_'"
+                        );
+                    }
+                } else {
+                    $self->error("invalid format in $confname: '$_'");
+                }
+            }
+
+            # hw compatible settings.
+            my %hw = %{ $self->{config}{hw} };
+            if (%hw) {
+                while (my ($k, $v) = each %hw) {
+                    unless (exists $self->{hw_comp_config}{$k}) {
+                        $self->error("no such hw key config value.");
+                    }
+                    $self->{config}{ $self->{hw_comp_config}{$k} } = $v;
+                }
+            }
+
+            $FH->close;
         } else {
             $self->debug($self->config_hww_file." is not found. skip to load config...");
         }
@@ -129,67 +167,30 @@ sub load_config {
     $self->SUPER::load_config;
 }
 
-sub __load_config {
-    my ($self, $config) = @_;
-
-    my $FH = FileHandle->new($config)
-                or $self->error("$config: $!");
-
-    while (<$FH>) {
-        next if /^#/ or /^\s*$/;
-        chomp;
-
-        $self->debug($FH->input_line_number.': '.$_);
-
-        if (/^ ([^:]+) : (.*) $/x) {
-            $self->set_config($1, $2);
-        } else {
-            $self->error("invalid format in $config: $_");
-        }
-    }
-
-    $FH->close;
-}
-
 sub set_config {
     my ($self, $k, $v) = @_;
 
-    if (strcount($k, '.') > 1) {
-        $self->error("too many dots: allowed only one dot.");
-    }
+    my @keys = split /\./, $k;
+    return unless @keys;
+    $self->__set_config($self->{config}, \@keys, $v);
+}
 
-    if ($k =~ /\./) {
-        my $kk;
-        ($k, $kk) = split /\./, $k;
+sub __set_config {
+    my ($self, $config, $keys, $v) = @_;
 
-        unless (ref $self->{config}{$k} eq 'HASH') {
-            $self->error("$k.$kk: invalid type");
-        }
-
-        if ($k eq 'hw') {
-            # hw compatible settings.
-            unless (exists $self->{hw_comp_config}{$kk}) {
-                $self->error("$k.$kk: no such key config value");
-            }
-
-            my $conf_name = $self->{hw_comp_config}{$kk};
-            $self->$conf_name = $v;
-        }
-        else {
-            # other settings with a dot.
-            $self->$k->{$kk} = $v;
-        }
-    }
-    else {
-        # settings with no dot.
-        unless (exists $self->{config}{$k}) {
-            $self->error("$k: no such key config value");
-        }
-        if (ref $self->{config}{$k}) {
+    if (@$keys == 1) {
+        my $k = $keys->[0];
+        if (exists $config->{$k} && ref $config->{$k}) {
             $self->error("$k: invalid type");
         }
-
-        $self->$k = $v;
+        $config->{$k} = $v;
+    }
+    else {
+        my $k = shift @$keys;
+        unless (exists $config->{$k} && ref $config->{$k} eq 'HASH') {
+            $self->error("$k: invalid type");
+        }
+        $self->__set_config($config->{$k}, $keys, $v);
     }
 }
 
