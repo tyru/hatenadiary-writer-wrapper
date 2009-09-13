@@ -69,6 +69,7 @@ sub new {
         dont_show_password => 0,
         prompt_str => '> ',
         prompt_next_line_str => '',
+        group => {},
     };
 
     # login_retry_count
@@ -169,27 +170,31 @@ sub load_config {
 
 sub set_config {
     my ($self, $k, $v) = @_;
-
-    my @keys = split /\./, $k;
-    return unless @keys;
-    $self->__set_config($self->{config}, \@keys, $v);
+    $self->__set_config($self->{config}, [split /\./, $k], $v);
 }
 
 sub __set_config {
     my ($self, $config, $keys, $v) = @_;
 
-    if (@$keys == 1) {
-        my $k = $keys->[0];
-        if (exists $config->{$k} && ref $config->{$k}) {
-            $self->error("$k: invalid type");
-        }
+    if (@$keys == 0) {
+        return;
+    }
+    elsif (@$keys == 1) {
+        my $k = shift @$keys;
         $config->{$k} = $v;
     }
     else {
         my $k = shift @$keys;
-        unless (exists $config->{$k} && ref $config->{$k} eq 'HASH') {
-            $self->error("$k: invalid type");
+
+        if (exists $config->{$k}) {
+            unless (ref $config->{$k} eq 'HASH') {
+                $self->error("$k: invalid type");
+            }
         }
+        else {
+            $config->{$k} = {};
+        }
+
         $self->__set_config($config->{$k}, $keys, $v);
     }
 }
