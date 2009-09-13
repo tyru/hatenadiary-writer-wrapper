@@ -31,6 +31,7 @@ LWP::UserAgent
 List::MoreUtils
 MIME::Base64
 Text::Hatena
+Tie::Simple
 URI
 XML::TreePP
 
