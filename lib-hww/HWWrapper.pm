@@ -141,52 +141,56 @@ sub __load_config {
 
         $self->debug($FH->input_line_number.': '.$_);
 
-        if (/^ ([^:]+) : (.*) $/x) {    # match!
-            if (strcount($1, '.') > 1) {
-                $self->error("too many dots: allowed only one dot.");
-            }
-
-            my ($k, $v) = ($1, $2);
-            my $kk;
-            ($k, $kk) = split /\./, $k;
-
-            unless (exists $self->{config}{$k}) {
-                $self->error("$k: no such key config value");
-            }
-
-            if (defined $kk) {
-                # $1 contains dot.
-                unless (ref $self->{config}{$k} eq 'HASH') {
-                    # die if not hash
-                    $self->error("$k.$kk: invalid type");
-                }
-
-                if ($k eq 'hw') {
-                    # hw compatible settings.
-                    unless (exists $self->{hw_comp_config}{$kk}) {
-                        $self->error("$kk: no such key config value");
-                    }
-                    $self->{config}{ $self->{hw_comp_config}{$kk} } = $v;
-                } else {
-                    $self->{config}{$k}{$kk} = $v;
-                }
-            }
-            else {
-                # $1 does not contain dot.
-                unless (not ref $self->{config}{$k}) {
-                    # die if not scalar
-                    $self->error("$k: invalid type");
-                }
-                $self->{config}{$k} = $v;
-            }
-        }
-        else {
-            $self->error(sprintf "%s: %d: invalid format",
-                            $config, $FH->input_line_number);
+        if (/^ ([^:]+) : (.*) $/x) {
+            $self->set_config($1, $2);
+        } else {
+            $self->error("invalid format in $config: $_");
         }
     }
 
     $FH->close;
+}
+
+sub set_config {
+    my ($self, $k, $v) = @_;
+
+    if (strcount($k, '.') > 1) {
+        $self->error("too many dots: allowed only one dot.");
+    }
+
+    if ($k =~ /\./) {
+        my $kk;
+        ($k, $kk) = split /\./, $k;
+
+        unless (ref $self->{config}{$k} eq 'HASH') {
+            $self->error("$k.$kk: invalid type");
+        }
+
+        if ($k eq 'hw') {
+            # hw compatible settings.
+            unless (exists $self->{hw_comp_config}{$kk}) {
+                $self->error("$k.$kk: no such key config value");
+            }
+
+            my $conf_name = $self->{hw_comp_config}{$kk};
+            $self->$conf_name = $v;
+        }
+        else {
+            # other settings with a dot.
+            $self->$k->{$kk} = $v;
+        }
+    }
+    else {
+        # settings with no dot.
+        unless (exists $self->{config}{$k}) {
+            $self->error("$k: no such key config value");
+        }
+        if (ref $self->{config}{$k}) {
+            $self->error("$k: invalid type");
+        }
+
+        $self->$k = $v;
+    }
 }
 
 
@@ -278,9 +282,6 @@ sub parse_opt {
         $self->password = $config->{password};
     }
 
-
-    # change hw option settings like above.
-    $self->SUPER::parse_opt();
 
     return ($cmd, $cmd_args);
 }

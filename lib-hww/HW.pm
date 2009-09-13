@@ -12,6 +12,8 @@ use base qw(HWWrapper::Base);
 # import all util commands!!
 use HWWrapper::Functions;
 
+use Tie::Simple;
+use Scalar::Util qw(weaken);
 
 
 
@@ -25,7 +27,6 @@ sub new {
     my %config = (
         username => '',
         password => '',
-        groupname => '',
 
         agent => "HatenaDiaryWriter/$VERSION", # "Mozilla/5.0",
         timeout => 180,
@@ -64,11 +65,24 @@ sub new {
 
         no_load_config_hw => 0,
     );
-
-    # add hw config to $self->{config}.
     while (my ($k, $v) = each %config) {
         $self->{config}{$k} = $v;
     }
+
+    my $weaken_self = $self;
+    weaken $weaken_self;
+    tie $self->{config}{groupname}, 'Tie::Simple', \do {my $anon = ''},
+        FETCH => sub { ${ $_[0] } },
+        STORE => sub {
+            ${ $_[0] } = $_[1];
+            # change also hatena_url.
+            $weaken_self->hatena_url = URI->new("http://$_[1].g.hatena.ne.jp");
+            $weaken_self->debug(
+                sprintf "hatena_url is now '%s'.", $weaken_self->hatena_url
+            );
+            return $weaken_self->hatena_url;
+        };
+
 
     # move this values from $self->{config}.
     # because avoid to be set in config file.
@@ -116,22 +130,6 @@ sub new {
 
 
 
-### set arguments settings ###
-sub parse_opt {
-    my $self = shift;
-
-    # change the URL to hatena group's URL if '-g' option was given.
-    if (length $self->groupname) {
-        my $tmp = $self->hatena_url;
-        $self->hatena_url = URI->new(
-            sprintf 'http://%s.g.hatena.ne.jp', $self->groupname
-        );
-        $self->debug(sprintf 'hatena_url: %s -> %s', $tmp, $self->hatena_url);
-    }
-}
-
-
-
 ### set config file settings ###
 sub load_config {
     my $self = shift;
@@ -150,7 +148,7 @@ sub load_config {
 
     $self->debug("Loading config file ($config_file).");
 
-    my $CONF = FileHandle->new($config_file, 'r')
+    my $CONF = FileHandle->new($config_file)
                 or $self->error("Can't open $config_file.");
 
     while (<$CONF>) {

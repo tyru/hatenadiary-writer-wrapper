@@ -907,10 +907,10 @@ sub warning {
     if ($self->is_debug) {
         my ($filename, $line, $subname) = (caller 1)[1, 2, 3];
         $filename = File::Basename::basename($filename);
-        warn "warning: $subname()  at $filename line $line:", @_, "\n";
+        STDERR->print("warning: $subname()  at $filename line $line:", @_, "\n");
     }
     else {
-        warn "warning: ", @_, "\n";
+        STDERR->print("warning: ", @_, "\n");
     }
 }
 
@@ -942,8 +942,7 @@ sub debug {
         if ! $self->{debug_fh}->isa('IO::String')
         && ! $self->is_debug;
 
-    my $subname = (caller 1)[3];
-    $self->{debug_fh}->print("debug: $subname(): ", @_, "\n");
+    $self->{debug_fh}->print("debug: ", @_, "\n");
 }
 
 sub require_modules {
