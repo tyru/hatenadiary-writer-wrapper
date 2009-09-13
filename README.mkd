@@ -31,7 +31,6 @@
 
     available commands:
       apply-headline
-      chain
       copyright
       diff
       editor
@@ -80,8 +79,6 @@ config-hww.txtにコピーされるので、それをサンプルを元に編集
 
 - apply-headline
     - 日記ファイルからタグを探しだして、タグをファイル名に付けたフォーマットに変える。直すにはrevert-headlineを使う。
-- chain
-    - コマンドを繋げられます。ただ、これをするぐらいならshellコマンドの中でコマンドを「;」に続けて打てば
 - copyright
     - Copyrightを表示します。
 - diff
