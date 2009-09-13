@@ -15,7 +15,7 @@ use strict;
 use warnings;
 use utf8;
 
-our $VERSION = '2.0.3';
+our $VERSION = '2.0.4';
 
 use base qw(HW);
 
