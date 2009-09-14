@@ -40,7 +40,9 @@ sub regist_command {
             init_shell($self);
             $initialized = 1;
 
-            puts("type 'q' to leave. or type '?' to see built-in command's list.");
+            unless (defined $command_str) {
+                puts("type 'q' to leave. or type '?' to see built-in command's list.");
+            }
         }
 
         # process -c option.
