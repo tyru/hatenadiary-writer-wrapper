@@ -29,18 +29,23 @@ sub run {
 
     if ($opt->{'a|all'}) {
         my $dir = @$args ? $args->[0] : $self->txt_dir;
+        unless (-d $dir) {
+            $self->error("$dir: $!");
+        }
+
         my @entry = $self->get_entries($dir);
         unless (@entry) {
             puts("$dir: no entries");
             return;
         }
+
         for (@entry) {
             apply($self, $_);
         }
     }
     elsif (@$args) {
         unless (-f $args->[0]) {
-            $self->error($args->[0].":$!");
+            $self->error("$args->[0]: $!");
         }
         apply($self, $args->[0]);
     }
