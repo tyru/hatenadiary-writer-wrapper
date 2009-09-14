@@ -7,6 +7,7 @@ use utf8;
 # export some variables and subs.
 use HWWrapper::Commands::Base;
 
+use List::MoreUtils qw(uniq);
 
 
 
@@ -33,10 +34,6 @@ sub regist_command {
 }
 
 
-# XXX
-# - 恐らく見出しの有無に関わらず、ファイルを作ってしまう(-mオプションが効かない)
-#   - get_entrypath()してから、存在してるか調べる
-#   - gen-htmlに関わらず--missing-onlyオプションがあるコマンドはチェック
 sub run {
     my ($self, $args, $opt) = @_;
 
@@ -59,13 +56,29 @@ sub run {
             mkdir $out;
         }
 
-        for my $infile ($self->get_entries($in)) {
-            my $outfile = File::Spec->catfile($out, basename($infile));
-            # *.txt -> *.html
-            $outfile =~ s/\.txt$/.html/;
+        # YYYY-MM-DD
+        my %html;
+        if (-d $out) {
+            my @html = uniq($self->get_entries($out, '*.html'), $self->get_entries($out, '*.htm'));
+            %html = map {
+                my $date = $self->get_entrydate($_);
+                $self->cat_date(@$date{qw(year month day)}) => 1;
+            } @html;
+        }
 
-            # '--missing-only' option generate only non-existent file.
-            next if $missing_only && -f $outfile;
+        my $exists_html = sub {
+            my ($filename) = @_;
+            my $date = $self->get_entrydate($filename);
+            return exists $html{
+                $self->cat_date(@$date{qw(year month day)})
+            };
+        };
+
+        for my $infile ($self->get_entries($in)) {
+            next if $missing_only && $exists_html->($infile);
+
+            my $outfile = File::Spec->catfile($out, basename($infile));
+            $outfile =~ s/\.txt$/.html/;
 
             # generate html.
             gen_html($self, $infile, $outfile);
@@ -115,7 +128,7 @@ sub gen_html {
     # cut blank lines in order not to generate blank section.
     shift @text while ($text[0] =~ /^\s*$/);
 
-    puts("gen_html: $in -> $out");
+    puts("$in -> $out");
     my $html = Text::Hatena->parse(join "\n", @text);
 
     # write result.

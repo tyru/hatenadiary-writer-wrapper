@@ -55,7 +55,7 @@ sub new {
 
 sub get_entrydate {
     my ($self, $path) = @_;
-    my @allowed_ext = qw(.html .txt .jpg .gif .png);
+    my @allowed_ext = qw(.txt .htm .html .jpg .gif .png);
     my ($base, $dir, $ext) = fileparse($path, @allowed_ext);
 
     # not allowed ext
@@ -94,8 +94,7 @@ sub find_headlines {
 }
 
 sub get_entries {
-    my $self = shift;
-    my ($dir, $fileglob) = @_;
+    my ($self, $dir, $fileglob) = @_;
 
     # set default value.
     $dir      = $self->txt_dir unless defined $dir;
