@@ -191,25 +191,19 @@ sub run_draft {
         };
 
         no strict 'refs';
+        no warnings 'redefine';
         *save_diary_draft = $save_diary_draft;
         *draft_filename = $draft_filename;
     }
 
 
-    if (length $self->username == 0 || length $self->password == 0) {
-        $self->login(force => 1);
-    }
+    $self->login;
 
     # don't use cookie.
     # just add X-WSSE header.
+    my $temp_cookie = $self->user_agent->cookie_jar;
     $self->user_agent->cookie_jar(undef);
 
-    # TODO
-    # save wsse header.
-    # because authetication with cookie has been obsoleted
-    # (cookie is expired at that time) since 2008-09-02.
-    #
-    # $self->user_agent->cookie_jar($self->cookie_jar);
 
     my $url = $self->hatena_url->host.':'.$self->hatena_url->port;
     $self->user_agent->credentials($url, '', $self->username, $self->password);
@@ -247,6 +241,7 @@ sub run_draft {
         }
     }
 
+    $self->user_agent->cookie_jar($temp_cookie);
     $self->logout();
 }
 
