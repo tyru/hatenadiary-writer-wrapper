@@ -75,9 +75,7 @@ sub run_all {
     my ($self, $args, $opt) = @_;
     my $missing_only = $opt->{'m|missing-only'};
 
-    if (@$args) {
-        $self->txt_dir = shift(@$args);
-    }
+    local $self->{config}{txt_dir} = @$args ? shift(@$args) : $self->{config}{txt_dir};
     unless (-d $self->txt_dir) {
         mkdir $self->txt_dir or error($self->txt_dir.": $!");
     }

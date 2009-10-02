@@ -70,7 +70,7 @@ sub update_index {
     );
 
     my @entry;
-    for my $path ($self->get_entries($html_dir, '*')) {
+    for my $path ($self->get_entries($html_dir, '*.html')) {
         my $basename = basename($path);
         next    unless $basename =~ /^(\d{4})-(\d{2})-(\d{2})(?:-.+)?\.html$/;
 

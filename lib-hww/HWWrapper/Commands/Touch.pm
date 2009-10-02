@@ -21,8 +21,7 @@ sub regist_command {
 sub run {
     my ($self, $args) = @_;
 
-    my $filename = File::Spec->catfile($self->txt_dir, 'touch.txt');
-    my $FH = FileHandle->new($filename, 'w') or $self->error("$filename:$!");
+    my $FH = FileHandle->new($self->touch_file, 'w') or $self->error("$self->touch_file :$!");
     # NOTE: I assume that this format is compatible
     # between Date::Manip::UnixDate and POSIX::strftime.
     my $touch_fmt = '%Y%m%d%H%M%S';

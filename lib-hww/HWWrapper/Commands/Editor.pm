@@ -16,7 +16,7 @@ sub regist_command {
         desc => "edit today's entry quickly",
         option => {
             'g|gui' => {
-                desc => 'wait until gui program exits',
+                desc => 'wait until forked program exits',
             },
             'p|program=s' => {
                 desc => 'editor program to edit',

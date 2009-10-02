@@ -36,9 +36,7 @@ sub run {
     my $dir = $opt->{'d|dir=s'};
     my $file = $opt->{'f|file=s'};
 
-    if (defined $dir) {
-        $self->txt_dir = $dir;
-    }
+    local $self->{config}{txt_dir} = defined $dir ? $dir : $self->{config}{txt_dir};
 
 
     if (defined $file) {

@@ -59,14 +59,14 @@ sub run {
 
 
     if ($all) {
-        if (@$args) {
-            $self->txt_dir = shift @$args;
-        }
-        unless (-d $self->txt_dir) {
-            mkdir $self->txt_dir or $self->error($self->txt_dir.": $!");
+        # don't change txt_dir because modifying this value influences other commands.
+        my $txt_dir = $self->txt_dir;
+        $txt_dir = $args->[0] if @$args;
+        unless (-d $txt_dir) {
+            mkdir $txt_dir or $self->error($txt_dir.": $!");
         }
 
-        for my $entrypath ($self->get_entries($self->txt_dir)) {
+        for my $entrypath ($self->get_entries($txt_dir)) {
             $self->debug($entrypath);
             $truncate->($entrypath);
         }

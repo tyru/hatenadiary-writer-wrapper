@@ -39,26 +39,23 @@ sub run {
     my $no_caption = $opt->{'C|no-caption'};
 
     # if undef, $self->txt_dir is used.
-    my $dir = shift @$args;
-    if (defined $dir) {
-        $self->txt_dir = $dir;
-        $self->touch_file = File::Spec->catfile($dir, 'touch.txt');
-        unless (-f $self->touch_file) {
-            $self->error($self->touch_file.": $!");
-        }
+    local $self->{config}{txt_dir} = @$args ? $args->[0] : $self->txt_dir;
+    local $self->{config}{touch_file} = @$args ? File::Spec->catfile($self->txt_dir, 'touch.txt') : $self->touch_file;
+    unless (-f $self->touch_file) {
+        $self->error($self->touch_file.": $!");
     }
 
 
     if ($all) {
         puts("all entries:") unless $no_caption;
-        for ($self->get_entries($dir)) {
+        for ($self->get_entries) {
             print "  " unless $no_caption;
             puts($_);
         }
     }
     else {
         # updated only.
-        my @updated_entry = $self->get_updated_entries($dir);
+        my @updated_entry = $self->get_updated_entries;
 
         unless (@updated_entry) {
             puts("no files updated.");

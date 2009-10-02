@@ -25,8 +25,11 @@ sub regist_command {
 
 sub run {
     my ($self, $args, $opt) = @_;
-    $self->trivial = $opt->{'t|trivial'};
+    local $self->{config}{trivial} = $opt->{'t|trivial'};
 
+    # don't change txt_dir!!
+    # that will influence other commands.
+    my $txt_dir = $self->txt_dir;
     my $target_file;
     if (@$args) {
         unless (-e $args->[0]) {
@@ -34,7 +37,7 @@ sub run {
         }
 
         if (-d $args->[0]) {
-            $self->txt_dir = $args->[0];
+            $txt_dir = $args->[0];
         }
         elsif (-f $args->[0]) {
             $target_file = $args->[0];
@@ -50,15 +53,13 @@ sub run {
         $self->debug("files:@files");
     }
     else {
-        for ($self->get_entries($self->txt_dir)) {
+        for ($self->get_updated_entries($txt_dir)) {
             # Check timestamp.
-            next if (-e($self->touch_file) and (-M($_) > -M($self->touch_file)));
             push(@files, $_);
         }
         $self->debug(
             sprintf 'current dir:%s, files:%s',
-                    $self->txt_dir, join(', ', @files)
-        );
+                    $txt_dir, join(', ', @files));
     }
 
     unless (@files) {
